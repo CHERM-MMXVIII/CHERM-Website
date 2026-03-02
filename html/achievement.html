@@ -1,0 +1,354 @@
+<!doctype html>
+<html>
+
+<head>
+    <!-- Metadata and external resources -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Achievements</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../img/slsu-cherm-logo.png">
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../css/Style.css">
+    <link rel="stylesheet" href="../css/mapstyle.css">
+    <link rel="stylesheet" href="../css/stylesheet2.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <!-- AOS Animation -->
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+</head>
+
+<body>
+    <!-- Navbar Section -->
+    <nav class="navbar navbar-expand-md navbar-light shadow-lg">
+        <div class="d-flex navbar-content justify-content-between">
+            <a class="navbar-brand" href="../index.html">
+                <img src="../img/slsu-cherm-logo.png" class="logo-pic" alt="Logo of SLSU CHERM">
+                <h3 class="logo-name">SLSU CHERM</h3>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="modal" data-bs-target="#navModal">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav text-white">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../html/services.html">Services</a>
+                    </li>
+                    <li class="nav-item dropdown" onmouseenter="document.getElementById('customDropdown').classList.add('show')" onmouseleave="setTimeout(() => { if (!document.getElementById('customDropdown').matches(':hover')) document.getElementById('customDropdown').classList.remove('show'); }, 100)">
+                        <a class="nav-link" href="../index.html#what-is-cherm" id="navbarDropdown">
+                            About Us <span class="dropdown-arrow">▼</span>
+                        </a>
+                        <div class="custom-dropdown-menu" id="customDropdown" onmouseenter="this.classList.add('show')" onmouseleave="this.classList.remove('show')">
+                            <div class="dropdown-menu-container">
+                                <div class="dropdown-link-container">
+                                    <div class="dropdown-link">
+                                        <a class="dropdown-item" href="../html/objectives.html">Objectives</a>
+                                        <a class="dropdown-item" href="../html/achievement.html">Achievements</a>
+                                        <a class="dropdown-item" href="../html/events.html">Events and Updates</a>
+                                        <a class="dropdown-item" href="../html/org.html">People behind CHERM</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact-us">Contact Us</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Custom Dropdown Menu -->
+    <div id="customDropdown" class="custom-dropdown-menu">
+        <div class="dropdown-menu-container">
+            <div class="slsu-cherm-partnership">
+                <div class="slsu">
+                    <img src="../img/slsu-logo.png" class="slsu">
+                </div>
+                <div class="dost-calabarzon">
+                    <img src="../img/dost-logo.png" class="dost">
+                </div>
+                <div class="slsu-office-of-research-services">
+                    <img src="../img/slsu-research-logo.png" class="ors">
+                </div>
+            </div>
+            <div class="dropdown-link-container">
+                <div class="dropdown-link">
+                    <a class="dropdown-item" href="objectives.html">Objectives</a>
+                    <a class="dropdown-item" href="events.html">Events and Updates</a>
+                    <a class="dropdown-item" href="org.html">People behind CHERM</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Navigation -->
+    <div class="modal fade" id="navModal" tabindex="-1" aria-labelledby="navModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div data-bs-theme="dark">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-content">
+                <div class="modal-body">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#Home">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="services.html">Services</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#about-us">About Us</a>
+                        </li>
+                        <li class="nav-item">
+                        <li><a class="nav-link" href="objectives.html">Objectives</a></li>
+                        </li>
+                        <li class="nav-item">
+                        <li><a class="nav-link" href="achievement.html">Achievements</a></li>
+                        </li>
+                        <li class="nav-item">
+                        <li><a class="nav-link" href="events.html">Events and Updates</a></li>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#contact-us">Contact Us</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="org.html">People Behind CHERM</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SVG Map Section -->
+    <div class="quezon-map-container">
+        <!-- Interactive map with tooltip -->
+        <object id="quezon-map" type="image/svg+xml" data="../img/quezon_interactive_map.svg"></object>
+        <div class="map-tooltip" id="mapTooltip"></div>
+    </div>
+
+    <!-- Achievements Section -->
+    <section id="achievements">
+        <!-- Title -->
+        <h2 class="title" data-aos="fade-right" data-aos-duration="2000">ACHIEVEMENTS</h2>
+        <!-- Dynamic Title -->
+        <div id="achieve-title" class="achieve-title">
+            <!-- Title will be dynamically updated here -->
+        </div>
+        <!-- Achievement Buttons -->
+        <div class="con-achievement">
+            <div class="achieve-btn" data-aos="fade-left" data-aos-duration="2000">
+                <button class="mapping">Geomapping</button>
+                <button class="training">Geospatial Cability Enhancement Center</button>
+                <button class="research">Technology Driven Research and Development Provider</button>
+                <button class="arrow-btn" id="backButton" onclick="backAchieve(event)">
+                    <img src="../img/leftarrow.png" alt="Arrow to Left">Back
+                </button>
+            </div>
+
+            <!-- Achievement List -->
+            <div id="achieve" data-aos="fade-in" data-aos-duration="2000">
+                <div class="list-achieve">
+                    <div class="list-achieve"   >
+                        <div class="achieve-con">
+                            <img src="../mapping-img/2025/20250113_TORIBIO.jpg" class="achieve-img" alt="Mapping Achievement">
+                            <div class="achievement-det">
+                                <h2>Mt. Banahaw de Tayabas</h2>
+                                <p class="setting">January 2025 <br><br>Plotted Sampling Sites</p>
+                                
+                            </div>  
+                        </div>
+                        <span></span>
+                    </div>
+                    <div class="list-achieve" >
+                        <div class="achieve-con">
+                            <img src="../mapping-img/2025/20250310_ZoomIn_v3 (1).jpg" class="achieve-img" alt="Mapping Achievement">
+                            <div class="achievement-det">
+                                <h2>Forest Buffer Zone of Mt. Banahaw de Liliw and Nagcarlan</h2>
+                                <p class="setting">March 2025 <br><br></p>
+                            </div>  
+                            </div>
+                        <span></span>
+                        <div class="list-achieve" >
+                            <div class="achieve-con">
+                                <img src="../img/training1.png" class="achieve-img" alt="Training Achievement">
+                                <div class="achievement-det">
+                                    <h2>SLSU Staff Trained on GIS for Land Use Planning</h2>
+                                    <p class="setting">CHERM Training Room <br>May 23-24, 2024</p>
+                                    <p>SLSU Planning and Development Office personnel joined a two-day GIS training on 
+                                    May 23–24, 2024, at CHERM, Lucena City. The course covered GIS software use, data 
+                                    creation, and map generation for Land Use Development and Infrastructure 
+                                    Planning (LUDIP). Facilitated by CHERM staff, the training aimed to enhance GIS skills 
+                                    for improving the university’s LUDI Plan.</p>                      
+                                </div>  
+                            </div>
+                        <span></span>
+                        </div>
+                        <div class="list-achieve" >
+                            <div class="achieve-con">
+                                <img src="../img/training2.jpg" class="achieve-img" alt="Training Achievement">
+                                <div class="achievement-det">
+                                    <h2>CHERM Strengthens Disaster Preparedness Through GeoRiskPH Training</h2>
+                                    <p class="setting">Infanta, Quezon <br> December 10-11, 2024</p>
+                                    <p>The SLSU–CHERM joined the GeoRiskPH training by Infanta LDRRMO and DOST-PHIVOLCS to boost its 
+                                    disaster risk reduction skills. The team trained on HazardHunterPH, GeoMapperPH, and 
+                                    GeoAnalyticsPH, gaining tools and partnerships to better support LGUs in hazard mapping 
+                                    and disaster planning.</p>                      
+                                </div>  
+                            </div>
+                        <span></span>
+                        </div>
+            </div>
+        </div>
+    </section>
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
+
+    <!-- Footer Section -->
+    <footer id="footer">
+        <!-- Footer Content -->
+        <div class="footer-container">
+            <div class="bagong-pilipinas">
+                <a href="https://www.bagongpilipinastayo.com/" target="_blank">
+                    <img src="../img/Hi-Res-BAGONG-PILIPINAS-LOGO-1474x1536.png" class="bagong-pilipinas-logo">
+                </a>
+            </div>
+            <div class="footer-col">
+                <div class="cherm">
+                    <img src="../img/slsu-cherm-logo.png" class="cherm-logo">
+                    <p class="text-center" style="font-size: 20px;">Southern Luzon State University</p>
+                    <p class="text-center" style="font-size: 30px;">Center for Hazard and <br>Environmental Resource
+                        Mapping<br>(CHERM)</p>
+                </div>
+            </div>
+            <div class="footer-col">
+                <div class="p-5 contact-us" id="contact-us">
+                    <p>Contact Us:</p>
+                    <div class="facebook">
+                        <a href="https://www.facebook.com/SLSU.CHERM" target="_blank"
+                            class="d-flex align-items-center text-decoration-none">
+                            <img src="../img/facebook.png" class="icon">
+                            <p class="mb-0">SLSU Center for Hazard and Environmental Resource Mapping(CHERM)</p>
+                        </a>
+                    </div>
+
+                    <div class="gmail">
+                        <a href="mailto:cherm4a@slsu.edu.ph" class="d-flex align-items-center text-decoration-none">
+                            <img src="../img/gmail.png" class="icon">
+                            <p class="mb-0">cherm4a@slsu.edu.ph</p>
+                        </a>
+                    </div>
+                    <div class="address">
+                        <p style="text-transform: uppercase;">Address:</p>
+                        <p>2F DOST-PSTC Quezon, SLSU Lucena Campus, Ibabang Dupay</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-col">
+                <div class="map">
+                    <iframe class="map-frame"
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3872.1698134828434!2d121.62914570000001!3d13.9484925!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x33bd4b5adf90d2e9%3A0xfdc797625c9f5ab1!2sDepartment%20of%20Science%20and%20Technology%20(DOST)%20-%20Quezon%20S%20and%20T%20Center!5e0!3m2!1sen!2sph!4v1742370723029!5m2!1sen!2sph"
+                        width="400" height="300" style="border:0;" allowfullscreen="" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Copyright Notice -->
+    <div style="width: 100%; background: #034955; color: #fdfdfd; text-align: center; padding: 8px 0 8px 0; font-size: 16px;">
+        &copy; 2025 SLSU - CHERM. All rights reserved.
+    </div>
+
+    <!-- External Scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+
+    <!-- Custom Scripts -->
+    <script>
+        // Functionality for About Us redirection
+        function goToAboutUs() {
+            window.location.href = "../index.html#what-is-cherm";
+            sessionStorage.setItem("scrollToWhatIsCherm", "true"); // Store flag in sessionStorage
+        }
+
+        // Functionality for Contact Us redirection
+        function goToContactUs() {
+            window.location.href = "../index.html#contact-us";
+            sessionStorage.setItem("scrollToContactUs", "true");
+        }
+
+        // Back Button Functionality
+        function backAchieve(event) {
+            event.preventDefault();
+            window.location.href = "achievement.html";
+        }
+
+        // Modal Resize Handling
+        function handleResize() {
+            const navModal = document.getElementById('navModal');
+            if (window.innerWidth >= 992 && navModal.classList.contains('show')) {
+                const modalInstance = bootstrap.Modal.getInstance(navModal);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.remove();
+                }
+                document.body.classList.remove('modal-open');
+                document.body.style.paddingRight = '';
+            }
+        }
+
+        // Add event listener for window resize
+        window.addEventListener('resize', handleResize);
+        document.addEventListener('DOMContentLoaded', handleResize);
+
+        // Button Movement Logic for Modal
+        document.addEventListener("DOMContentLoaded", function () {
+            const achieveBtnContainer = document.querySelector(".achieve-btn");
+            const modalBody = document.querySelector("#navModal .modal-body");
+            const originalParent = achieveBtnContainer.parentElement;
+
+            function moveAchieveButtons() {
+                if (window.innerWidth <= 767) {
+                    if (!modalBody.contains(achieveBtnContainer)) {
+                        modalBody.appendChild(achieveBtnContainer);
+                    }
+                } else {
+                    if (!originalParent.contains(achieveBtnContainer)) {
+                        originalParent.insertBefore(achieveBtnContainer, originalParent.firstChild);
+                    }
+                }
+            }
+
+            moveAchieveButtons();
+            window.addEventListener("resize", moveAchieveButtons);
+        });
+    </script>
+
+    <!-- Achievement-specific Script -->
+    <script src="/js/achievement.js"></script>
+
+</body>
+
+</html>

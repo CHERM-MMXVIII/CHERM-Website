@@ -1,0 +1,237 @@
+<!doctype html>
+<html>
+
+<head>
+    <!-- Metadata and external resources -->
+    <!-- Includes meta tags, favicon, title, and external CSS/JS libraries -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="icon" type="image/png" href="./img/slsu-cherm-logo.png">
+    <title>SLSU - Center for Hazard and Environmental Resource Mapping</title>
+    <link rel="stylesheet" href="../css/Style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="./css/mapstyle.css"/>
+    <link rel="stylesheet" href="../css/map-form.css"/>
+
+</head>
+
+<body>   
+    <!-- SVG Background -->
+    <!-- Dynamically loads the SVG map of the Philippines -->
+    <div id="svg-bg"></div>
+
+    <!-- Navbar -->
+    <!-- Contains navigation links and dropdown menu -->
+    <nav class="navbar navbar-expand-md navbar-light shadow-lg">
+        <div class="d-flex navbar-content justify-content-between">
+            <a class="navbar-brand" href="./index.html">
+                <img src="../img/slsu-cherm-logo.png" class="logo-pic" alt="Logo of SLSU CHERM">
+                <h3 class="logo-name">SLSU CHERM</h3>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="modal" data-bs-target="#navModal">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav text-white">
+                    <li class="nav-item">
+                        <a class="nav-link" href="./index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="./html/services.html">Services</a>
+                    </li>
+                    <li class="nav-item dropdown" onmouseenter="document.getElementById('customDropdown').classList.add('show')" onmouseleave="setTimeout(() => { if (!document.getElementById('customDropdown').matches(':hover')) document.getElementById('customDropdown').classList.remove('show'); }, 100)">
+                        <a class="nav-link" href="./index.html#what-is-cherm" id="navbarDropdown">
+                            About Us <span class="dropdown-arrow">▼</span>
+                        </a>
+                        <div class="custom-dropdown-menu" id="customDropdown" onmouseenter="this.classList.add('show')" onmouseleave="this.classList.remove('show')">
+                            <div class="dropdown-menu-container">
+                                <div class="dropdown-link-container">
+                                    <div class="dropdown-link">
+                                        <a class="dropdown-item" href="./html/objectives.html">Objectives</a>
+                                        <a class="dropdown-item" href="./html/achievement.html">Achievements</a>
+                                        <a class="dropdown-item" href="./html/events.html">Events and Updates</a>
+                                        <a class="dropdown-item" href="./html/org.html">People behind CHERM</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact-us">Contact Us</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Modal -->
+    <!-- Provides a collapsible navigation menu for smaller screens -->
+    <div class="modal fade" id="navModal" tabindex="-1" aria-labelledby="navModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div data-bs-theme="dark">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-content">
+                <div class="modal-body">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#Home">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="./html/services.html">Services</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="./index.html#about-us">About Us</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="./html/objectives.html">Objectives</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="./html/achievement.html">Achievements</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="./html/events.html">Events and Updates</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#contact-us">Contact Us</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="form-wrapper">
+        <div class="container">
+            <div class="header">
+                <h1>GIS MAPPING REQUISITION FORM</h1>
+                <p>Fill out all required fields to submit your map request</p>
+            </div>
+
+            <form class="form-content" id="requestForm">
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="you@slsu.edu.ph" required>
+                </div>
+
+                <!-- Name Fields -->
+                <div class="form-row">
+                    <div>
+                        <label for="surname">Surname</label>
+                        <input type="text" id="surname" name="surname" placeholder="Dela Cruz" required>
+                    </div>
+                    <div>
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName" placeholder="Juan" required>
+                    </div>
+                    <div>
+                        <label for="mi">M.I.</label>
+                        <input type="text" id="mi" name="mi" placeholder="A." maxlength="2">
+                    </div>
+                </div>
+
+                <!-- Office and Date -->
+                <div class="form-row-2">
+                    <div>
+                        <label for="office">Office / Agency / College</label>
+                        <input type="text" id="office" name="office" placeholder="e.g. College of Engineering" required>
+                    </div>
+                    <div>
+                        <label for="date">Map Needed By <span class="helper-text">(Varies depending on data availability and map complexity.)</span></label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+                </div>
+
+                <!-- Type of Map and Purpose -->
+                <div class="form-row-2">
+                    <div>
+                        <label for="mapType">Type of Map Requested</label>
+                        <select id="mapType" name="mapType" required>
+                            <option value="">Select map type</option>
+                            <option value="topographic">Topographic Map</option>
+                            <option value="cadastral">Cadastral Map</option>
+                            <option value="land-use">Land Use Map</option>
+                            <option value="thematic">Thematic Map</option>
+                            <option value="reference">Reference Map</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="purpose">Purpose</label>
+                        <input type="text" id="purpose" name="purpose" placeholder="e.g. Research, Planning, etc." required>
+                    </div>
+                </div>
+
+                <!-- Area of Interest -->
+                <div class="form-group">
+                    <label for="areaOfInterest">Area of Interest</label>
+                    <textarea id="areaOfInterest" name="areaOfInterest" placeholder="Describe the specific area or location for the map..." required></textarea>
+                </div>
+
+                <!-- Size and Quantity -->
+                <div class="form-row-2">
+                    <div>
+                        <label for="mapSize">Size of Map</label>
+                        <input type="text" id="mapSize" name="mapSize" placeholder="e.g. A4, 12x18 inches, etc." required>
+                    </div>
+                    <div>
+                        <label for="quantity">Quantity</label>
+                        <input type="number" id="quantity" name="quantity" value="1" min="1" required>
+                    </div>
+                </div>
+
+                <!-- Upload Fields -->
+                <div class="form-row-2">
+                    <div>
+                        <label for="requestLetter">Request Letter (PDF)</label>
+                        <p class="helper-text">Filename format: GISMR_OFFICE/COLLEGE_YourInitials.pdf. <br>Example: GISMR_CHERM_JDC.pdf.</p>
+                        <div class="upload-area" onclick="document.getElementById('requestLetter').click()">
+                            <div class="upload-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <path d="M11 15h2V9h3l-4-5-4 5h3v6zm9 0v2H4v-2h3v-2H4c-1.1 0-2 .9-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c0-1.1-.9-2-2-2h-3v2h3z"/>
+                                </svg>
+                            </div>
+                            <div class="upload-text">Click to upload PDF</div>
+                            <div class="upload-subtext">PDF only, max 10MB</div>
+                        </div>
+                        <input type="file" id="requestLetter" name="requestLetter" accept=".pdf">
+                    </div>
+                    <div>
+                        <label for="signature">Signature (PDF)</label>
+                        <p class="helper-text">Filename format: Surname_Esign.pdf.<br>Example: DelaCruz_Esign.pdf.</p>
+                        <div class="upload-area" onclick="document.getElementById('signature').click()">
+                            <div class="upload-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <path d="M11 15h2V9h3l-4-5-4 5h3v6zm9 0v2H4v-2h3v-2H4c-1.1 0-2 .9-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c0-1.1-.9-2-2-2h-3v2h3z"/>
+                                </svg>
+                            </div>
+                            <div class="upload-text">Click to upload PDF</div>
+                            <div class="upload-subtext">PDF only, max 10MB</div>
+                        </div>
+                        <input type="file" id="signature" name="signature" accept=".pdf">
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-cancel" onclick="resetForm()">Cancel</button>
+                    <button type="submit" class="btn btn-submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M290.5 287.7L491.4 86.9 359 456.3 290.5 287.7zM457.4 53L256.6 253.8 88 185.3 457.4 53zM38.1 216.8l205.8 83.6 83.6 205.8c5.3 13.1 18.1 21.7 32.3 21.7 14.7 0 27.8-9.2 32.8-23.1L570.6 8c3.5-9.8 1-20.6-6.3-28s-18.2-9.8-28-6.3L39.4 151.7c-13.9 5-23.1 18.1-23.1 32.8 0 14.2 8.6 27 21.7 32.3z"/></svg>
+                        Submit Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

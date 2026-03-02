@@ -1,0 +1,323 @@
+<!doctype html>
+<html>
+
+<head>
+    <!-- Metadata and external resources -->
+    <!-- Includes meta tags, favicon, title, and external CSS/JS libraries -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Customer/Client Satisfaction Survey (CSS)</title>
+    <link rel="icon" type="image/png" href="../img/slsu-cherm-logo.png">
+    <link rel="stylesheet" href="../css/Style.css">
+    <link rel="stylesheet" href="../css/mapstyle.css">
+    <link rel="stylesheet" href="../css/stylesheet2.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="../css/css-survey.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <!-- Contains navigation links and dropdown menu -->
+    <nav class="navbar navbar-expand-md navbar-light shadow-lg">
+        <div class="d-flex navbar-content justify-content-between">
+            <a class="navbar-brand" href="../index.html">
+                <img src="../img/slsu-cherm-logo.png" class="logo-pic" alt="Logo of SLSU CHERM">
+                <h3 class="logo-name">SLSU CHERM</h3>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="modal" data-bs-target="#navModal">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav text-white">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../html/services.html">Services</a>
+                    </li>
+                    <li class="nav-item dropdown" onmouseenter="document.getElementById('customDropdown').classList.add('show')" onmouseleave="setTimeout(() => { if (!document.getElementById('customDropdown').matches(':hover')) document.getElementById('customDropdown').classList.remove('show'); }, 100)">
+                        <a class="nav-link" href="../index.html#what-is-cherm" id="navbarDropdown">
+                            About Us <span class="dropdown-arrow">▼</span>
+                        </a>
+                        <div class="custom-dropdown-menu" id="customDropdown" onmouseenter="this.classList.add('show')" onmouseleave="this.classList.remove('show')">
+                            <div class="dropdown-menu-container">
+                                <div class="dropdown-link-container">
+                                    <div class="dropdown-link">
+                                        <a class="dropdown-item" href="../html/objectives.html">Objectives</a>
+                                        <a class="dropdown-item" href="../html/achievement.html">Achievements</a>
+                                        <a class="dropdown-item" href="../html/events.html">Events and Updates</a>
+                                        <a class="dropdown-item" href="../html/org.html">People behind CHERM</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact-us">Contact Us</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Custom Dropdown -->
+    <!-- Displays dropdown menu for additional navigation options -->
+    <div class="custom-dropdown-menu" id="customDropdown">
+        <div class="dropdown-menu-container">
+            <div class="slsu-cherm-partnership">
+                <div class="slsu">
+                    <img src="../img/slsu-logo.png" class="slsu">
+                </div>
+                <div class="dost-calabarzon">
+                    <img src="../img/dost-logo.png" class="dost">
+                </div>
+                <div class="slsu-office-of-research-services">
+                    <img src="../img/slsu-research-logo.png" class="ors">
+                </div>
+            </div>
+            <div class="dropdown-link-container">
+                <div class="dropdown-link">
+                    <a class="dropdown-item" href="../html/objectives.html">Objectives</a>
+                    <a class="dropdown-item" href="../html/achievement.html">Achievements</a>
+                    <a class="dropdown-item" href="../html/org.html">People behind CHERM</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="quezon-map-container-services">
+        <object id="quezon-map" type="image/svg+xml" data="../img/quezon_interactive_map.svg"></object>
+        <div class="map-tooltip" id="mapTooltip"></div>
+    </div>
+
+    <!-- Modal -->
+    <!-- Provides a collapsible navigation menu for smaller screens -->
+    <div class="modal fade" id="navModal" tabindex="-1" aria-labelledby="navModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div data-bs-theme="dark">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-content">
+                <div class="modal-body">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#Home">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="../html/services.html">Services</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="../index.html#about-us">About Us</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="../html/objectives.html">Objectives</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="../html/achievement.html">Achievements</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="../html/events.html">Events and Updates</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#contact-us">Contact Us</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="../html/org.html">People Behind CHERM</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="survey-wrapper">
+        <div class="survey-header">
+            <div class="header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                <rect x="9" y="3" width="6" height="4" rx="1"/>
+                <path d="M9 12h6M9 16h4"/>
+            </svg>
+            </div>
+            <h1>Customer/Client Satisfaction Survey</h1>
+            <p>Your feedback helps us improve our services. Please take a moment to complete this survey.</p>
+        </div>
+
+        <div class="survey-body">
+            <form id="surveyForm" novalidate>
+
+                <!-- Respondent Information -->
+                <div class="section">
+                    <div class="section-title">Respondent Information</div>
+                    <div class="form-grid">
+                    <div class="form-group">
+                        <label>Email <span class="req">*</span></label>
+                        <input type="email" name="email" placeholder="your@gmail.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Date <span class="req">*</span></label>
+                        <input type="date" name="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Name of Respondent (optional)</label>
+                        <input type="text" name="name" placeholder="Juan Dela Cruz">
+                    </div>
+                    <div class="form-group">
+                        <label>College/Campus/Office/Company <span class="req">*</span></label>
+                        <input type="text" name="college" placeholder="e.g. College of Engineering" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Position <span class="req">*</span></label>
+                        <input type="text" name="position" placeholder="e.g. Faculty Member" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Number <span class="req">*</span></label>
+                        <input type="tel" name="contact" placeholder="09XX XXX XXXX" required>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- Service/s Availed -->
+                <div class="section">
+                    <div class="section-title">Service/s Availed <span class="req">*</span></div>
+                    <div class="services-grid">
+                    <label class="service-option">
+                        <input type="checkbox" name="service" value="GIS Mapping">
+                        <span class="check-box"></span>
+                        GIS Mapping
+                    </label>
+                    <label class="service-option">
+                        <input type="checkbox" name="service" value="Training">
+                        <span class="check-box"></span>
+                        Training
+                    </label>
+                    <label class="service-option">
+                        <input type="checkbox" name="service" value="Inquiry">
+                        <span class="check-box"></span>
+                        Inquiry
+                    </label>
+                    <label class="service-option">
+                        <input type="checkbox" name="service" value="Office Visitation">
+                        <span class="check-box"></span>
+                        Office Visitation
+                    </label>
+                    <label class="other-option" id="otherLabel">
+                        <input type="checkbox" name="service" value="other" id="otherCheckbox">
+                        <span class="check-box" id="otherDot"></span>
+                        <span class="other-label-text">Other:</span>
+                        <input type="text" class="other-text-input" id="otherInput" placeholder="Please specify" readonly>
+                    </label>
+                    </div>
+                </div>
+
+                <!-- Performance Criteria -->
+                <div class="section">
+                    <div class="section-title">Performance Criteria</div>
+                    <p class="criteria-desc">
+                    Please indicate your satisfaction by selecting a rating for each criterion below.
+                    </p>
+                    <div class="likert-legend">
+                        <span>1</span> – Poor &nbsp;|&nbsp;
+                        <span>2</span> – Fair &nbsp;|&nbsp;
+                        <span>3</span> – Satisfactory &nbsp;|&nbsp;
+                        <span>4</span> – Very Satisfactory &nbsp;|&nbsp;
+                        <span>5</span> – Outstanding
+                    </div>
+                    <div id="criteriaContainer"></div>
+                </div>
+
+                <!-- Remarks / Comments -->
+                <div class="section section-last">
+                    <div class="section-title">Remarks / Comments</div>
+                    <textarea name="remarks" placeholder="Share any additional feedback or suggestions..."></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"/>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                    Submit Survey
+                </button>
+            </form>
+
+            <div class="success-msg" id="successMsg">
+                <div class="check-circle">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                </div>
+                <h2>Thank You!</h2>
+                <p>Your feedback has been submitted successfully. We appreciate your time.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <!-- Contains contact information, address, and embedded map -->
+    <footer id="footer">
+        <div class="footer-container">
+            <div class="bagong-pilipinas">
+                <a href="https://www.bagongpilipinastayo.com/" target="_blank">
+                    <img src="../img/Hi-Res-BAGONG-PILIPINAS-LOGO-1474x1536.png" class="bagong-pilipinas-logo">
+                </a>
+            </div>
+            <div class="footer-col">
+                <div class="cherm">
+                    <img src="../img/slsu-cherm-logo.png" class="cherm-logo">
+                    <p class="text-center" style="font-size: 20px;">Southern Luzon State University</p>
+                    <p class="text-center" style="font-size: 30px;">Center for Hazard and <br>Environmental Resource
+                        Mapping<br>(CHERM)</p>
+                </div>
+            </div>
+            <div class="footer-col">
+                <div class="p-5 contact-us" id="contact-us">
+                    <p>Contact Us:</p>
+                    <div class="facebook">
+                        <a href="https://www.facebook.com/SLSU.CHERM" target="_blank"
+                            class="d-flex align-items-center text-decoration-none">
+                            <img src="../img/facebook.png" class="icon">
+                            <p class="mb-0">SLSU Center for Hazard and Environmental Resource Mapping(CHERM)</p>
+                        </a>
+                    </div>
+
+                    <div class="gmail">
+                        <a href="mailto:cherm4a@slsu.edu.ph" class="d-flex align-items-center text-decoration-none">
+                            <img src="../img/gmail.png" class="icon">
+                            <p class="mb-0">cherm4a@slsu.edu.ph</p>
+                        </a>
+                    </div>
+                    <div class="address">
+                        <p style="text-transform: uppercase;">Address:</p>
+                        <p>2F DOST-PSTC Quezon, SLSU Lucena Campus, Ibabang Dupay</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-col">
+                <div class="map">
+                    <iframe class="map-frame"
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3872.1698134828434!2d121.62914570000001!3d13.9484925!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x33bd4b5adf90d2e9%3A0xfdc797625c9f5ab1!2sDepartment%20of%20Science%20and%20Technology%20(DOST)%20-%20Quezon%20S%20and%20T%20Center!5e0!3m2!1sen!2sph!4v1742370723029!5m2!1sen!2sph"
+                        width="400" height="300" style="border:0;" allowfullscreen="" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Footer Copyright -->
+    <!-- Displays copyright information -->
+    <div style="width: 100%; background: #034955; color: #fdfdfd; text-align: center; padding: 8px 0 8px 0; font-size: 16px;">
+        &copy; 2025 SLSU - CHERM. All rights reserved.
+    </div>
+
+    <script src="/JS/css-survey.js"></script>
+</body>
+</html>

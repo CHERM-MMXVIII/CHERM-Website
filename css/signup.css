@@ -1,0 +1,685 @@
+@import url('https://fonts.googleapis.com/css2?family=Inria+Sans:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
+
+body,
+html {
+    overflow-x: hidden;
+}
+
+body {
+    background-color: #F5F5F5;  
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: linear-gradient(135deg, rgba(9, 85, 85, 0.9), rgba(14, 156, 156, 0.363)),
+                url('/img/slsu\ dost\ building.png');
+    background-size: cover;
+    background-position: center;
+    padding: 0 1rem;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary-color: #008080;
+    --primary-dark: #095555;
+    --primary-light: #0e9c9c;
+}
+
+.signup-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 420px;
+    padding: 48px 40px;
+    margin-bottom: 32px;
+}
+
+.logo-section {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.logo-icon {
+    width: 64px;
+    height: 64px;
+    background: #ffffff;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-icon img {
+    width: 60px;
+    height: 60px;
+}
+
+.logo-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+}
+
+.logo-title .slsu {
+    color: #2c2c2c;
+}
+
+.logo-title .cherm {
+    color: var(--primary-color);
+}
+
+.logo-subtitle {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.logo-university {
+    font-size: 12px;
+    color: #999;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.password-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.forgot-link {
+    font-size: 13px;
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.forgot-link:hover {
+    color: var(--primary-dark);
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: #999;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 14px 12px 42px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333;
+    transition: all 0.2s;
+    background: #fafafa;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: white;
+}
+
+.form-input::placeholder {
+    color: #aaa;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password:hover {
+    color: #666;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+.checkbox-label {
+    font-size: 13px;
+    color: #666;
+    cursor: pointer;
+}
+
+.sign-in-btn {
+    width: 100%;
+    padding: 13px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.sign-in-btn:hover {
+    background: var(--primary-dark);
+}
+
+.sign-in-btn:active {
+    transform: translateY(1px);
+}
+
+.help-section {
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.help-text {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 8px;
+}
+
+.admin-link {
+    font-size: 13px;
+    color: #008080;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.admin-link:hover {
+    text-decoration: underline;
+}
+
+.copyright {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+}
+
+/* Signup specific styles */
+.signup-container {
+    max-width: 480px;
+    padding: 40px;
+}
+
+.signup-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.signup-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+}
+
+.signup-subtitle {
+    font-size: 13px;
+    color: #666;
+}
+
+/* Step Indicator */
+.step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 24px 0;
+    gap: 0;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    color: #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.3s;
+}
+
+.step.active .step-circle {
+    background: var(--primary-color);
+    color: white;
+}
+
+.step.completed .step-circle {
+    background: var(--primary-color);
+    color: white;
+}
+
+.step.completed .step-circle::before {
+    content: '✓';
+    font-size: 18px;
+}
+
+.step-line {
+    width: 60px;
+    height: 2px;
+    background: #e0e0e0;
+    transition: all 0.3s;
+}
+
+.step.completed + .step-line {
+    background: var(--primary-color);
+}
+
+.step-label {
+    text-align: center;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 24px;
+    font-weight: 500;
+}
+
+/* Form Steps */
+.form-step {
+    display: none;
+}
+
+.form-step.active {
+    display: block;
+}
+
+/* Button Group */
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.back-btn {
+    flex: 1;
+    background: white;
+    color: #666;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px;
+}
+
+.back-btn:hover {
+    border-color: #ccc;
+    background: #fafafa;
+}
+
+.button-group .sign-in-btn {
+    flex: 1;
+}
+
+/* .next-btn {
+    margin-top: 24px;
+} */
+
+/* Form row for side-by-side fields */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 0;
+}
+
+.form-row .form-group {
+    margin-bottom: 20px;
+}
+
+/* Date input styling */
+.date-input {
+    color: #999;
+    cursor: pointer;
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: opacity(0.6);
+}
+
+.date-input:focus {
+    color: #333;
+}
+
+.date-input:valid {
+    color: #333;
+}
+
+/* Adjust spacing for signup form */
+.signup-container .form-group {
+    margin-bottom: 20px;
+}
+
+.signup-container .logo-section {
+    margin-bottom: 24px;
+}
+
+/* Password strength indicator (optional) */
+.password-strength {
+    margin-top: 6px;
+    height: 3px;
+    background: #e0e0e0;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.password-strength-bar {
+    height: 100%;
+    width: 0;
+    transition: all 0.3s;
+    border-radius: 3px;
+}
+
+.password-strength-bar.weak {
+    width: 33%;
+    background: #ff4444;
+}
+
+.password-strength-bar.medium {
+    width: 66%;
+    background: #ffaa00;
+}
+
+.password-strength-bar.strong {
+    width: 100%;
+    background: #00c851;
+}
+
+.footer {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+    .signup-container {
+        padding: 32px 24px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+    
+    .signup-title {
+        font-size: 20px;
+    }
+    
+    .step-line {
+        width: 40px;
+    }
+    
+    .step-circle {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+    
+    .copyright {
+        font-size: 10px;
+        padding: 0 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        margin: 20px;
+        padding: 36px 28px;
+    }
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* HIDE MODAL */
+.hidden {
+  display: none;
+}
+
+/* MODAL BOX */
+.modal-content {
+  background: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #008080;
+  margin-bottom: 4px;
+}
+
+.modal-content p {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 12px 14px 12px 14px;
+  margin-bottom: 16px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  transition: all 0.2s;
+  background: #fafafa;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* BUTTONS */
+.btn-primary {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.btn-secondary {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #f7f7f7;
+}
+
+.btn-secondary {
+  background: #dadada;
+}
+
+/* Success/Error Icon Container */
+.modal-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Success Icon - Teal */
+.modal-icon.success {
+    background: #d4f4f4;
+}
+
+.modal-icon.success i {
+    font-size: 28px;
+    color: #008080;
+}
+
+/* Error Icon - Orange */
+.modal-icon.error {
+    background: #fff5e6;
+}
+
+.modal-icon.error i {
+    font-size: 28px;
+    color: #f59e0b;
+}
+
+/* Animated Checkmark (Optional) */
+.success-checkmark svg {
+    width: 40px;
+    height: 40px;
+}
+
+.checkmark-circle {
+    stroke: #008080;
+    stroke-width: 3;
+    fill: none;
+    stroke-dasharray: 166;
+    stroke-dashoffset: 166;
+    animation: drawCircle 0.5s ease forwards;
+}
+
+.checkmark-check {
+    stroke: #008080;
+    stroke-width: 3;
+    fill: none;
+    stroke-dasharray: 48;
+    stroke-dashoffset: 48;
+    animation: drawCheck 0.3s ease 0.3s forwards;
+}
+
+@keyframes drawCircle {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes drawCheck {
+    to { stroke-dashoffset: 0; }
+}
+
+/* Center text in modals */
+.modal-content.centered {
+    text-align: center;
+}
+
+/* Loading Spinner */
+.spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+
+
+
+
+
+
+
+
+
+
+

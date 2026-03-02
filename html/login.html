@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+<head>
+    <!-- Metadata and external resources -->
+    <!-- Includes meta tags, favicon, title, and external CSS/JS libraries -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="../css/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo-section">
+            <div class="logo-icon">
+                <img src="/img/cherm-logo.png" alt="">
+            </div>
+            <h1 class="logo-title">
+                <span class="slsu">SLSU</span> <span class="cherm">CHERM</span>
+            </h1>
+            <div class="logo-subtitle">
+                Center for Hazard and Environmental<br>Resource Mapping
+            </div>
+            <div class="logo-university">Southern Luzon State University</div>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <div class="input-wrapper">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email"
+                        class="form-input" 
+                        placeholder="you@slsu.edu.ph"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="password-header">
+                    <label class="form-label" for="password">Password</label>
+                    <a href="#" class="forgot-link" id="forgot-password">Forgot password?</a>
+                </div>
+                <div class="input-wrapper">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password"
+                        class="form-input" 
+                        placeholder="Enter your password"
+                        required
+                    >
+                    <button type="button" class="toggle-password" id="togglePassword">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="checkbox-wrapper">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember" class="checkbox-label">Remember me</label>
+            </div>
+
+            <button type="submit" class="sign-in-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                    <polyline points="10 17 15 12 10 7"/>
+                    <line x1="15" y1="12" x2="3" y2="12"/>
+                </svg>
+                Sign In
+            </button>
+
+            <!-- <div class="help-section">
+                <div class="help-text">Need assistance?</div>
+                <div class="admin-link">
+                    Contact the <a href="#">CHERM Administrator</a> for account access
+                </div>
+            </div> -->
+
+            <div class="help-section">
+                <div class="help-text">Don't have an account?</div>
+                <div class="admin-link" onclick="location.href='/signup'">
+                    Sign up here
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="footer">
+        © 2026 SLSU - CHERM. All rights reserved.
+    </div>
+
+    <!-- FORGOT PASSWORD MODAL -->
+    <div id="forgotModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Forgot Password</h3>
+            <p>
+            Enter your email address. The CHERM team will be notified and assist you.
+            </p>
+
+            <input
+                type="email"
+                id="forgotEmail"
+                placeholder="you@slsu.edu.ph"
+                required
+            />
+
+            <div class="modal-actions">
+                <button id="sendForgotRequest" class="btn-primary">Send Request</button>
+                <button id="closeForgotModal" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+                    
+
+
+    <script src="/JS/login.js"></script>
+</body>
+</html>

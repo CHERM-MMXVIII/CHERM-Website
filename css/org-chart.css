@@ -1,0 +1,334 @@
+/* Body Background */
+body {
+    background-color: #F5F5F5;  /* Light gray with a slight warmth */
+}
+
+.cherm-bg {
+    margin-top: 10.6%;
+    margin-bottom: 3%;
+    display: flex;
+    align-self: start;
+}
+
+.cherm-bg h1 {
+    color: #034955;
+    font-size: 3.75rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+/* Medium screens */
+@media (max-width: 1400px) {
+    .cherm-bg {
+        margin-top: 10%;
+    }
+    .cherm-bg h1 {
+        font-size: 3.5rem;
+    }
+}
+
+/* Medium screens */
+@media (max-width: 1100px) {
+    .cherm-bg {
+        margin-top: 10%;
+    }
+    .cherm-bg h1 {
+        font-size: 3.5rem;
+    }
+}
+
+/* Small screens */
+@media (max-width: 600px) {
+    .cherm-bg {
+        margin-top: 13%;
+        margin-bottom: 3%;
+    }
+    .cherm-bg h1 {
+        font-size: 2.8rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .cherm-bg {
+        margin-top: 16%;
+        margin-bottom: 5%;
+    }
+    .cherm-bg h1 {
+        font-size: 2rem;
+    }
+}
+
+/* Organizational Chart Container */
+.org-chart {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+}
+
+/* Each Level of the Org Chart */
+.org-level {
+    display: flex;
+    justify-content: center;
+    gap: 100px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+/* Card Styling */
+.org-level .card {
+    border-style: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    min-width: 340px;
+    max-width: 380px;
+    padding: 36px 20px;
+    font-size: 1.15rem;
+    transition: transform 0.2s;
+}
+
+.org-level .card:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 6px 24px rgba(13,110,253,0.15);
+}
+
+/* Image Styling */
+.org-level .card img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    object-fit: cover;
+    border: 4px solid #034955;
+    background: #fff;
+    margin-bottom: 12px;
+    width: 280px;
+    height: 280px;
+    box-shadow: -4px 2px 10px #939393ed;
+}
+
+/* Name and Title */
+.org-level .card h5 {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 4px;
+}
+.org-level .card small {
+    color: #555;
+    font-size: 0.95em;
+}
+
+/* Responsive Design */
+@media (max-width: 1399px) {
+    .org-level {
+        gap: 40px;
+        justify-content: space-around;
+    }
+    .org-level .card {
+        min-width: 320px;
+        max-width: 360px;
+        padding: 32px 18px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .org-level {
+        gap: 30px;
+        justify-content: space-around;
+    }
+    .org-level .card {
+        min-width: 300px;
+        max-width: 340px;
+        padding: 30px 16px;
+    }
+}
+
+@media (max-width: 992px) {
+    .org-level {
+        gap: 25px;
+        justify-content: space-around;
+    }
+    .org-level .card {
+        min-width: 280px;
+        max-width: 320px;
+        padding: 28px 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .org-level {
+        gap: 20px;
+        justify-content: space-around;
+    }
+    .org-level .card {
+        min-width: 260px;
+        max-width: 300px;
+        padding: 25px 14px;
+    }
+}
+
+@media (max-width: 600px) {
+    .org-level {
+        flex-direction: column;
+        align-items: center;
+        gap: 25px;
+        justify-content: center;
+    }
+    .org-level .card {
+        width: 85%;
+        min-width: unset;
+        max-width: unset;
+        padding: 24px 12px;
+    }
+}
+
+/* Special handling for SLSU and DOST sections */
+.org-level:first-of-type {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+}
+
+@media (max-width: 1199px) and (min-width: 601px) {
+    .org-level:first-of-type {
+        justify-content: space-around;
+        padding: 0 20px;
+    }
+    
+    .org-level:first-of-type .d-flex {
+        width: 100%;
+        justify-content: space-around;
+    }
+}
+
+@media (max-width: 1399px) {
+    .org-level .card img {
+        width: 260px;
+        height: 260px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .org-level .card img {
+        width: 240px;
+        height: 240px;
+    }
+}
+
+@media (max-width: 992px) {
+    .org-level .card img {
+        width: 220px;
+        height: 220px;
+    }
+}
+
+@media (max-width: 768px) {
+    .org-level .card img {
+        width: 200px;
+        height: 200px;
+    }
+}
+
+@media (max-width: 600px) {
+    .org-level .card img {
+        width: 180px;
+        height: 180px;
+    }
+}
+
+/* Section Heading Styles */
+.section-heading {
+    color: #034955;
+    font-weight: 700;
+    font-size: 1.6rem;
+    padding: 0.5rem 1.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    position: relative;
+    display: inline-block;
+    background-color: #fff;
+    border: 2px solid #034955;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(11, 91, 44, 0.1);
+    max-width: 90%;
+    line-height: 1.3;
+    box-shadow: -5px 3px 8px #939393ed;
+}
+
+/* CHERM Team Heading Specific Styles */
+.org-level:nth-of-type(3) .section-heading {
+    font-size: 2rem;
+    padding: 0.7rem 2.5rem;
+    max-width: 95%;
+}
+
+.section-heading::before,
+.section-heading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 25px;
+    height: 2px;
+    background-color: #0b5b2c;
+}
+
+.section-heading::before {
+    left: -35px;
+}
+
+.section-heading::after {
+    right: -35px;
+}
+
+@media (max-width: 768px) {
+    .section-heading {
+        font-size: 1.4rem;
+        padding: 0.4rem 1.2rem;
+        margin-bottom: 1.8rem;
+    }
+    
+    .org-level:nth-of-type(3) .section-heading {
+        font-size: 1.8rem;
+        padding: 0.6rem 2rem;
+    }
+    
+    .section-heading::before,
+    .section-heading::after {
+        width: 20px;
+    }
+    
+    .section-heading::before {
+        left: -30px;
+    }
+    
+    .section-heading::after {
+        right: -30px;
+    }
+}
+
+@media (max-width: 576px) {
+    .section-heading {
+        font-size: 1.2rem;
+        padding: 0.3rem 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .org-level:nth-of-type(3) .section-heading {
+        font-size: 1.6rem;
+        padding: 0.5rem 1.8rem;
+    }
+    
+    .section-heading::before,
+    .section-heading::after {
+        width: 15px;
+    }
+    
+    .section-heading::before {
+        left: -25px;
+    }
+    
+    .section-heading::after {
+        right: -25px;
+    }
+}
+  

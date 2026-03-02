@@ -1,0 +1,949 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Services</title>
+    <link rel="icon" type="image/png" href="../img/slsu-cherm-logo.png">
+    <link rel="stylesheet" href="../css/Style.css">
+    <link rel="stylesheet" href="../css/mapstyle.css">
+    <link rel="stylesheet" href="../css/stylesheet2.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="../css/map-form.css">
+
+    <style>
+        /* ============================= */
+        /* CLIENT TYPE TOGGLE (in-form)  */
+        /* ============================= */
+
+        .client-type-toggle-wrapper {
+            margin-bottom: 24px;
+        }
+
+        .client-type-toggle-wrapper label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #212529;
+            margin-bottom: 10px;
+        }
+
+        .client-type-pills {
+            display: flex;
+            gap: 10px;
+        }
+
+        .client-type-pill {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            background: #f8f9fa;
+            color: #495057;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .client-type-pill i {
+            font-size: 16px;
+        }
+
+        .client-type-pill:hover {
+            border-color: #008080;
+            background: rgba(0, 128, 128, 0.05);
+            color: #008080;
+        }
+
+        .client-type-pill.active {
+            border-color: #008080;
+            background: #008080;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(0, 128, 128, 0.3);
+        }
+
+        .client-type-pill.active i {
+            color: #ffffff;
+        }
+
+        /* Email hint */
+        .email-hint {
+            font-size: 12px;
+            color: #0369a1;
+            background: #e0f2fe;
+            border: 1px solid #bae6fd;
+            border-radius: 4px;
+            padding: 6px 10px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        .email-hint i {
+            margin-right: 4px;
+        }
+
+        @media (max-width: 480px) {
+            .client-type-pills {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar Section -->
+    <nav class="navbar navbar-expand-md navbar-light shadow-lg">
+        <div class="d-flex navbar-content justify-content-between">
+            <a class="navbar-brand" href="../index.html">
+                <img src="../img/slsu-cherm-logo.png" class="logo-pic" alt="Logo of SLSU CHERM">
+                <h3 class="logo-name">SLSU CHERM</h3>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="modal" data-bs-target="#navModal">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav text-white">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="services.html">Services</a>
+                    </li>
+                    <li class="nav-item dropdown" onmouseenter="document.getElementById('customDropdown').classList.add('show')" onmouseleave="setTimeout(() => { if (!document.getElementById('customDropdown').matches(':hover')) document.getElementById('customDropdown').classList.remove('show'); }, 100)">
+                        <a class="nav-link" href="./index.html#what-is-cherm" id="navbarDropdown">
+                            About Us <span class="dropdown-arrow">▼</span>
+                        </a>
+                        <div class="custom-dropdown-menu" id="customDropdown" onmouseenter="this.classList.add('show')" onmouseleave="this.classList.remove('show')">
+                            <div class="dropdown-menu-container">
+                                <div class="dropdown-link-container">
+                                    <div class="dropdown-link">
+                                        <a class="dropdown-item" href="../html/objectives.html">Objectives</a>
+                                        <a class="dropdown-item" href="../html/achievement.html">Achievements</a>
+                                        <a class="dropdown-item" href="../html/events.html">Events and Updates</a>
+                                        <a class="dropdown-item" href="../html/org.html">People behind CHERM</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact-us">Contact Us</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Custom Dropdown Menu -->
+    <div class="custom-dropdown-menu" id="customDropdown">
+        <div class="dropdown-menu-container">
+            <div class="slsu-cherm-partnership">
+                <div class="slsu">
+                    <img src="../img/slsu-logo.png" class="slsu">
+                </div>
+                <div class="dost-calabarzon">
+                    <img src="../img/dost-logo.png" class="dost">
+                </div>
+                <div class="slsu-office-of-research-services">
+                    <img src="../img/slsu-research-logo.png" class="ors">
+                </div>
+            </div>
+            <div class="dropdown-link-container">
+                <div class="dropdown-link">
+                    <a class="dropdown-item" href="objectives.html">Objectives</a>
+                    <a class="dropdown-item" href="achievement.html">Achievements</a>
+                    <a class="dropdown-item" href="events.html">Events and Updates</a>
+                    <a class="dropdown-item" href="org.html">People behind CHERM</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nav Modal (mobile) -->
+    <div class="modal fade" id="navModal" tabindex="-1" aria-labelledby="navModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div data-bs-theme="dark">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-content">
+                <div class="modal-body">
+                    <ul class="nav flex-column">
+                        <li class="nav-item"><a class="nav-link" href="#Home">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="services.html">Services</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#about-us">About Us</a></li>
+                        <li class="nav-item"><a class="nav-link" href="objectives.html">Objectives</a></li>
+                        <li class="nav-item"><a class="nav-link" href="achievement.html">Achievements</a></li>
+                        <li class="nav-item"><a class="nav-link" href="events.html">Events and Updates</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#contact-us">Contact Us</a></li>
+                        <li class="nav-item"><a class="nav-link" href="org.html">People Behind CHERM</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SVG Map Section -->
+    <div class="quezon-map-container-services">
+        <object id="quezon-map" type="image/svg+xml" data="../img/quezon_interactive_map.svg"></object>
+        <div class="map-tooltip" id="mapTooltip"></div>
+    </div>
+
+    <!-- Services Section -->
+    <section id="services">
+        <h2 class="title" data-aos="fade-right" data-aos-duration="2000">SERVICES</h2>
+        <div id="service" data-aos="fade-up" data-aos-duration="2000">
+
+            <div class="list-services">
+                <div class="icon-service">
+                    <img src="../img/services1-icon.png" alt="Icon">
+                </div>
+                <div class="services-con">
+                    <h2>GEOMAPPING SERVICES</h2>
+                    <p>Provision for evidence-based natural resource mapping made or acquired during
+                        activities of the center both in custom-printed and downloadable forms.</p>
+                    <button type="button" class="btn-open-guideline" onclick="openModal1()">View More...</button>
+                    <div class="inquiry-btn">
+                        <button type="button" class="btn-open-modal" onclick="showUserMapRequest()">Track Map</button>
+                        <button type="button" class="btn-open-modal" onclick="openModal3()">Request Map</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="list-services">
+                <div class="icon-service">
+                    <img src="../img/services2-icon.png" alt="Icon">
+                </div>
+                <div class="services-con">
+                    <h2>GEOSPATIAL CAPABILITY ENHANCEMENT TRAINING</h2>
+                    <p>A one-stop-shop where Common Operational Datasets (COD) for LGU's
+                        and the general public for data driven training, planning, and
+                        implementation whether for hazards, environmental mapping and other
+                        service requirements.</p>
+                    <button type="button" class="btn-open-guideline" onclick="openModal2()">View More...</button>
+                    <div class="inquiry-btn">
+                        <button type="button" class="btn-open-modal" onclick="openModal5()">Request Training</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="list-services">
+                <div class="icon-service">
+                    <img src="../img/services3-icon.png" alt="Icon">
+                </div>
+                <div class="services-con">
+                    <h2>GEOSPATIAL MANUSCRIPT REVIEW</h2>
+                    <p>The center will be the hub for research and development activities
+                        anchored in geospatial technology focused on new-real-time data
+                        acquisition, remote sensing, and artificial intelligence
+                        projects for cooperating agencies in the Region.</p>
+                    <button type="button" class="btn-open-guideline" onclick="openModal2()">View More...</button>
+                    <div class="inquiry-btn">
+                        <button type="button" class="btn-open-modal" onclick="showUserMapRequest()">Track Manuscript</button>
+                        <button type="button" class="btn-open-modal" onclick="openModal3()">Submit Manuscript</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="list-services">
+                <div class="icon-service">
+                    <img src="../img/services3-icon.png" alt="Icon">
+                </div>
+                <div class="services-con">
+                    <h2>PROVISION OF GEOSPATIAL DATA</h2>
+                    <p>The center will be the hub for research and development activities
+                        anchored in geospatial technology focused on new-real-time data
+                        acquisition, remote sensing, and artificial intelligence
+                        projects for cooperating agencies in the Region.</p>
+                    <button type="button" class="btn-open-guideline" onclick="openModal2()">View More...</button>
+                    <div class="inquiry-btn">
+                        <button type="button" class="btn-open-modal" onclick="showUserMapRequest()">Track Data</button>
+                        <button type="button" class="btn-open-modal" onclick="openModal3()">Request Data</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Modal 1 — GIS Mapping Requisition Guidelines -->
+    <div class="modal" id="serviceModal1" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modalheader">
+                    <h3 class="modal-title">GIS MAPPING REQUISITION</h3>
+                    <button type="button" class="close-btn" onclick="closeModal1()" aria-label="Close">&times;</button>
+                </div>
+                <span class="separator"></span>
+                <div class="modalbody">
+                    <p class="client-type"><strong>INTERNAL CLIENT</strong></p>
+                    <p>Guidelines for Submitting a Request for Mapping.</p>
+                    <div class="modal-details">
+                        <div class="qrcode">
+                            <p><strong>Scan Here:</strong></p>
+                            <img src="../img/qr-int-mapping.png" alt="QR Code">
+                            <p><strong>Form Link:</strong></p>
+                            <a href="https://tinyurl.com/CHERMGMInt"><p>https://tinyurl.com/CHERMGMInt</p></a>
+                        </div>
+                        <div class="guidelines">
+                            <p><strong>Address your Request to:</strong></p>
+                            <p>Dr. Nicanor L. Guinto <br /> <i>Director, Research Services</i></p>
+                            <p><strong>Thru:</strong></p>
+                            <p>Mr. Anthony L. Empamano <br /> <i>Center Chief, CHERM</i></p>
+                            <p><strong>File Name Format:</strong></p>
+                            <p>Name your file using this format: <br /><i> GISMR_OFFICEorCOLLEGE_YourInitials.pdf </i></p>
+                            <p><strong>Example:</strong></p>
+                            <p> GISMR_CHERM_JDC.pdf </p>
+                        </div>
+                    </div>
+                </div>
+                <span class="line-modal"></span>
+                <div class="modalbody">
+                    <p class="client-type"><strong>EXTERNAL CLIENT</strong></p>
+                    <p>Guidelines for Submitting a Request for Mapping.</p>
+                    <div class="modal-details">
+                        <div class="qrcode">
+                            <p><strong>Scan Here:</strong></p>
+                            <img src="../img/qr-ext-mapping.png" alt="QR Code">
+                            <p><strong>Form Link:</strong></p>
+                            <a href="https://tinyurl.com/CHERMGMExt"><p>https://tinyurl.com/CHERMGMExt</p></a>
+                        </div>
+                        <div class="guidelines">
+                            <p><strong>Address your Request to:</strong></p>
+                            <p>Dr. Frederick T. Villa <br /> <i>University President</i></p>
+                            <p><strong>Thru:</strong></p>
+                            <p>Dr. Nicanor L. Guinto <br /> <i>Director, Research Services</i></p>
+                            <p>Mr. Anthony L. Empamano <br /> <i>Center Chief, CHERM</i></p>
+                            <p><strong>File Name Format:</strong></p>
+                            <p>Name your file using this format: <br /><i> GISMR_AGENCY/OFFICE_YourInitials.pdf </i></p>
+                            <p><strong>Example:</strong></p>
+                            <p> GISMR_QZNPRV_JDC.pdf </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-close-modal" onclick="closeModal1()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2 — GIS Training Requisition Guidelines -->
+    <div class="modal" id="serviceModal2" tabindex="-2">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modalheader">
+                    <h3 class="modal-title">GIS TRAINING REQUISITION</h3>
+                    <button type="button" class="close-btn" onclick="closeModal2()" aria-label="Close">&times;</button>
+                </div>
+                <span class="separator"></span>
+                <div class="modalbody">
+                    <p class="client-type"><strong>INTERNAL CLIENT</strong></p>
+                    <p>Guidelines for Submitting a Request for Training.</p>
+                    <div class="modal-details">
+                        <div class="qrcode">
+                            <p><strong>Scan Here:</strong></p>
+                            <img src="../img/qr-int-training.png" alt="QR Code">
+                            <p><strong>Form Link:</strong></p>
+                            <a href="https://tinyurl.com/CHERMGTInt"><p>https://tinyurl.com/CHERMGTInt</p></a>
+                        </div>
+                        <div class="guidelines">
+                            <p><strong>Address your Request to:</strong></p>
+                            <p>Dr. Nicanor L. Guinto <br /> <i>Director, Research Services</i></p>
+                            <p><strong>Thru:</strong></p>
+                            <p>Mr. Anthony L. Empamano <br /> <i>Center Chief, CHERM</i></p>
+                            <p><strong>File Name Format:</strong></p>
+                            <p>Name your file using this format: <br /><i> GISTR_OFFICEorCOLLEGE_YourInitials.pdf </i></p>
+                            <p><strong>Example:</strong></p>
+                            <p> GISTR_CHERM_JDC.pdf </p>
+                        </div>
+                    </div>
+                </div>
+                <span class="line-modal"></span>
+                <div class="modalbody">
+                    <p class="client-type"><strong>EXTERNAL CLIENT</strong></p>
+                    <p>Guidelines for Submitting a Request for Training.</p>
+                    <div class="modal-details">
+                        <div class="qrcode">
+                            <p><strong>Scan Here:</strong></p>
+                            <img src="../img/qr-ext-training.png" alt="QR Code">
+                            <p><strong>Form Link:</strong></p>
+                            <a href="https://tinyurl.com/CHERMGTExt"><p>https://tinyurl.com/CHERMGTExt</p></a>
+                        </div>
+                        <div class="guidelines">
+                            <p><strong>Address your Request to:</strong></p>
+                            <p>Dr. Frederick T. Villa <br /> <i>University President</i></p>
+                            <p><strong>Thru:</strong></p>
+                            <p>Dr. Nicanor L. Guinto <br /> <i>Director, Research Services</i></p>
+                            <p>Mr. Anthony L. Empamano <br /> <i>Center Chief, CHERM</i></p>
+                            <p><strong>File Name Format:</strong></p>
+                            <p>Name your file using this format: <br /><i> GISTR_AGENCY/OFFICE_YourInitials.pdf </i></p>
+                            <p><strong>Example:</strong></p>
+                            <p> GISTR_QZNPRV_JDC.pdf </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-close-modal" onclick="closeModal2()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- Modal 4 — Map Request Form (with inline client type toggle)  -->
+    <!-- ============================================================ -->
+    <div class="modal" id="serviceModal4" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <div class="modalheader">
+                    <h3 class="modal-title">
+                        MAP REQUEST FORM &mdash; <span id="clientTypeLabel">INTERNAL CLIENT</span>
+                    </h3>
+                    <button type="button" class="close-btn" onclick="closeModal4()">&times;</button>
+                </div>
+
+                <span class="separator"></span>
+
+                <div class="modalbody">
+                    <div class="request-form-container">
+
+                        <div class="form-header">
+                            <h4>Request Details</h4>
+                            <p>Fill out all required fields to submit your map request.</p>
+                        </div>
+
+                        <form class="request-form-content" id="mapRequestForm">
+
+                            <!-- Hidden Client Type Value -->
+                            <input type="hidden" id="clientType" name="clientType" value="internal">
+
+                            <!-- ── CLIENT TYPE TOGGLE ── -->
+                            <div class="client-type-toggle-wrapper">
+                                <label>I am a(n):</label>
+                                <div class="client-type-pills">
+                                    <button type="button"
+                                            class="client-type-pill active"
+                                            data-type="internal"
+                                            onclick="selectClientType('internal')">
+                                        <i class="fas fa-university"></i>
+                                        Internal Client
+                                        <small style="font-weight:400; opacity:.8;">(SLSU Faculty / Staff / Student)</small>
+                                    </button>
+                                    <button type="button"
+                                            class="client-type-pill"
+                                            data-type="external"
+                                            onclick="selectClientType('external')">
+                                        <i class="fas fa-building"></i>
+                                        External Client
+                                        <small style="font-weight:400; opacity:.8;">(LGU / Agency / Organization)</small>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="form-group">
+                                <label>Email Address</label>
+                                <input type="email" id="email" name="email"
+                                    placeholder="email@example.com" required>
+                                <!-- Only shown when Internal is selected -->
+                                <div class="email-hint" id="emailHint">
+                                    <i class="fas fa-info-circle"></i>
+                                    Must use your institutional SLSU email (e.g. juan@slsu.edu.ph)
+                                </div>
+                            </div>
+
+                            <!-- Name -->
+                            <div class="form-row">
+                                <div>
+                                    <label>Surname</label>
+                                    <input type="text" id="surname" name="surname"
+                                        placeholder="Dela Cruz" required>
+                                </div>
+                                <div>
+                                    <label>First Name</label>
+                                    <input type="text" id="firstName" name="firstName"
+                                        placeholder="Juan" required>
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Office / Agency -->
+                            <div class="form-row-2">
+                                <div>
+                                    <label id="affiliationLabel">Office / College</label>
+                                    <input type="text" id="affiliation" name="affiliation"
+                                        placeholder="e.g. College of Engineering" required>
+                                </div>
+                                <div>
+                                    <label>Map Needed By
+                                        <span class="helper-text">(Completion may vary with data and map complexity)</span>
+                                    </label>
+                                    <input type="date" id="date" name="date" required>
+                                </div>
+                            </div>
+
+                            <!-- Map Type & Purpose -->
+                            <div class="form-row-2">
+                                <div>
+                                    <label>Type of Map Requested</label>
+                                    <select id="mapType" name="mapType" required onchange="handleMapTypeChange()">
+                                        <option value="">Select map type</option>
+                                        <option value="Topographic">Topographic Map</option>
+                                        <option value="Hazard">Hazard Map</option>
+                                        <option value="Land-use">Land Use Map</option>
+                                        <option value="Thematic">Thematic Map</option>
+                                        <option value="Other">Other (Specify)</option>
+                                    </select>
+                                    <input type="text"
+                                        id="customMapType"
+                                        name="customMapType"
+                                        placeholder="Please specify map type"
+                                        style="display: none; margin-top: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+                                </div>
+                                <div>
+                                    <label>Purpose</label>
+                                    <input type="text" id="purpose" name="purpose"
+                                        placeholder="e.g. Research, Planning, etc." required>
+                                </div>
+                            </div>
+
+                            <!-- Area -->
+                            <div class="form-group">
+                                <label>Area of Interest</label>
+                                <textarea id="areaOfInterest" name="areaOfInterest"
+                                        placeholder="Describe the specific area or location..."
+                                        required></textarea>
+                            </div>
+
+                            <!-- Size & Quantity -->
+                            <div class="form-row-2">
+                                <div>
+                                    <label>Size of Map</label>
+                                    <input type="text" id="mapSize" name="mapSize"
+                                        placeholder="e.g. A4, 12x18 inches" required>
+                                </div>
+                                <div>
+                                    <label>Quantity</label>
+                                    <input type="number" id="quantity" name="quantity"
+                                        value="1" min="1" required>
+                                </div>
+                            </div>
+
+                            <!-- Upload -->
+                            <div class="form-row-2">
+                                <div class="upload-wrapper">
+                                    <label>Request Letter (PDF)</label>
+                                    <p class="helper-text">Filename format: GISMR_OFFICE/COLLEGE_YourInitials.pdf.<br>Example: GISMR_CHERM_JDC.pdf.</p>
+                                    <div class="upload-area"
+                                        onclick="document.getElementById('requestLetter').click()">
+                                        <div class="upload-text">Click to upload PDF</div>
+                                    </div>
+                                    <input type="file" id="requestLetter" name="requestLetter" accept=".pdf">
+                                </div>
+                                <div class="upload-wrapper">
+                                    <label>Signature (PDF)</label>
+                                    <p class="helper-text">Filename format: Surname_Esign.pdf.<br>Example: DelaCruz_Esign.pdf.</p>
+                                    <div class="upload-area"
+                                        onclick="document.getElementById('signature').click()">
+                                        <div class="upload-text">Click to upload PDF</div>
+                                    </div>
+                                    <input type="file" id="signature" name="signature" accept=".pdf">
+                                </div>
+                            </div>
+
+                            <!-- Initial Data Upload (Optional) -->
+                            <div class="form-group">
+                                <label>
+                                    Initial Data
+                                    <span class="optional-badge">(Optional)</span>
+                                </label>
+                                <p class="helper-text">Upload any existing data relevant to your request (shapefiles, spreadsheets, images, etc.). Accepted formats: PDF, JPG, PNG, CSV, XLSX, ZIP, SHP.</p>
+                                <div class="upload-wrapper">
+                                    <div class="upload-area upload-area-wide"
+                                        onclick="document.getElementById('initialData').click()">
+                                        <div class="upload-text" id="initialDataText">Click to upload initial data</div>
+                                        <div class="upload-subtext">PDF, JPG, PNG, CSV, XLSX, ZIP, SHP &mdash; Max 10MB</div>
+                                    </div>
+                                    <input type="file" id="initialData" name="initialData"
+                                        accept=".pdf,.jpg,.jpeg,.png,.csv,.xlsx,.xls,.zip,.shp">
+                                </div>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="form-actions">
+                                <button type="button" class="btn-cancel" onclick="resetMapRequestForm()">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="btn-submit">
+                                    <span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+                                            <path d="M290.5 287.7L491.4 86.9 359 456.3 290.5 287.7zM457.4 53L256.6 253.8 88 185.3 457.4 53zM38.1 216.8l205.8 83.6 83.6 205.8c5.3 13.1 18.1 21.7 32.3 21.7 14.7 0 27.8-9.2 32.8-23.1L570.6 8c3.5-9.8 1-20.6-6.3-28s-18.2-9.8-28-6.3L39.4 151.7c-13.9 5-23.1 18.1-23.1 32.8 0 14.2 8.6 27 21.7 32.3z"/>
+                                        </svg>
+                                    </span>
+                                    Submit Request
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="serviceModal5" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <div class="modalheader">
+                    <h3 class="modal-title">
+                        TRAINING REQUEST FORM &mdash; <span id="clientTypeLabel">INTERNAL CLIENT</span>
+                    </h3>
+                    <button type="button" class="close-btn" onclick="closeModal5()">&times;</button>
+                </div>
+
+                <span class="separator"></span>
+
+                <div class="modalbody">
+                    <div class="request-form-container">
+
+                        <div class="form-header">
+                            <h4>Request Details</h4>
+                            <p>Fill out all required fields to request training.</p>
+                        </div>
+
+                        <!-- Form Content -->
+                        <div class="form-content">
+                            <form id="requestForm">
+
+                                <input type="hidden" id="clientType" name="clientType" value="internal">
+
+                                <!-- ── CLIENT TYPE TOGGLE ── -->
+                                <div class="client-type-toggle-wrapper">
+                                    <label>I am a(n):</label>
+                                    <div class="client-type-pills">
+                                        <button type="button"
+                                                class="client-type-pill active"
+                                                data-type="internal"
+                                                onclick="selectClientType('internal', 'serviceModal5' )">
+                                            <i class="fas fa-university"></i>
+                                            Internal Client
+                                            <small style="font-weight:400; opacity:.8;">(SLSU Faculty / Staff / Student)</small>
+                                        </button>
+                                        <button type="button"
+                                                class="client-type-pill"
+                                                data-type="external"
+                                                onclick="selectClientType('external', 'serviceModal5' )">
+                                            <i class="fas fa-building"></i>
+                                            External Client
+                                            <small style="font-weight:400; opacity:.8;">(LGU / Agency / Organization)</small>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Email Address -->
+                                <div class="form-group">
+                                    <label for="email">
+                                        Email Address <span style="color: #dc3545;">*</span>
+                                    </label>
+                                    <input 
+                                        type="email" 
+                                        id="email" 
+                                        name="email"
+                                        placeholder="email@example.com" 
+                                        required>
+                                    <div class="email-hint" id="emailHint">
+                                        <i class="fas fa-info-circle"></i>
+                                        Must use your institutional SLSU email (e.g. juan@slsu.edu.ph)
+                                    </div>
+                                </div>
+
+                                <!-- Name Fields -->
+                                <div class="form-row">
+                                    <div>
+                                        <label for="surname">
+                                            Surname <span style="color: #dc3545;">*</span>
+                                        </label>
+                                        <input 
+                                            type="text" 
+                                            id="surname" 
+                                            name="surname"
+                                            placeholder="Dela Cruz" 
+                                            required>
+                                    </div>
+                                    <div>
+                                        <label for="firstName">
+                                            First Name <span style="color: #dc3545;">*</span>
+                                        </label>
+                                        <input 
+                                            type="text" 
+                                            id="firstName" 
+                                            name="firstName"
+                                            placeholder="Juan" 
+                                            required>
+                                    </div>
+                                </div>
+
+                                <!-- Office/Agency/College -->
+                                <div class="form-group">
+                                    <label id="affiliationLabel">
+                                        Office / Agency / College <span style="color: #dc3545;">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        id="affiliation" 
+                                        name="affiliation"
+                                        placeholder="e.g. College of Engineering, LGU Lucena City" 
+                                        required>
+                                </div>
+
+                                <!-- Upload Request Letter -->
+                                <div class="form-group">
+                                    <label for="requestLetter">
+                                        Request Letter (PDF) <span style="color: #dc3545;">*</span>
+                                    </label>
+                                    <p class="helper-text">
+                                        Upload your official request letter in PDF format. Maximum file size: 5MB.
+                                    </p>
+                                    <div class="upload-area" onclick="document.getElementById('requestLetter').click()">
+                                        <div class="upload-icon">
+                                            <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #6c757d;"></i>
+                                        </div>
+                                        <div class="upload-text" id="uploadText">Click to upload PDF</div>
+                                        <div class="upload-subtext">Supported format: PDF (Max 5MB)</div>
+                                    </div>
+                                    <input 
+                                        type="file" 
+                                        id="requestLetter" 
+                                        name="requestLetter"
+                                        accept=".pdf" 
+                                        required
+                                        onchange="handleFileUpload(this)">
+                                </div>
+
+                                <!-- Form Actions -->
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-cancel" onclick="resetForm()">
+                                        <i class="fas fa-times"></i>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="btn btn-submit">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+                                                <path d="M290.5 287.7L491.4 86.9 359 456.3 290.5 287.7zM457.4 53L256.6 253.8 88 185.3 457.4 53zM38.1 216.8l205.8 83.6 83.6 205.8c5.3 13.1 18.1 21.7 32.3 21.7 14.7 0 27.8-9.2 32.8-23.1L570.6 8c3.5-9.8 1-20.6-6.3-28s-18.2-9.8-28-6.3L39.4 151.7c-13.9 5-23.1 18.1-23.1 32.8 0 14.2 8.6 27 21.7 32.3z"/>
+                                            </svg>
+                                        </span>
+                                        Submit Request
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <br><br><br><br>
+
+    <div id="userMapRequestContainer" style="display:none; padding: 20px; text-align:center;">
+        <h3>Check Your Map Request</h3>
+        <input type="text" id="requestCodeInput" placeholder="Enter your request code" style="padding:8px; width:250px;">
+        <button id="submitCodeBtn" style="padding:8px 12px;">Submit</button>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="alert-modal" id="successModal" style="display: none;">
+        <div class="alert-modal-backdrop" onclick="closeSuccessModal()"></div>
+        <div class="alert-modal-content success">
+            <div class="alert-icon-wrapper">
+                <div class="alert-icon-circle"><i class="fas fa-check"></i></div>
+            </div>
+            <h3 class="alert-title">Request Submitted Successfully!</h3>
+            <p class="alert-message">Your map request has been received. You'll receive updates via email.</p>
+            <div class="alert-code-box">
+                <label>Your Request Code:</label>
+                <div class="code-display">
+                    <span id="requestCodeDisplay">MR-2024-001</span>
+                    <button class="btn-copy" onclick="copyRequestCode()" title="Copy code">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <p class="code-hint">Save this code to track your request</p>
+            </div>
+            <button class="alert-btn primary" onclick="closeSuccessModal()">Got it, Thanks!</button>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="alert-modal" id="errorModal" style="display: none;">
+        <div class="alert-modal-backdrop" onclick="closeErrorModal()"></div>
+        <div class="alert-modal-content error">
+            <div class="alert-icon-wrapper">
+                <div class="alert-icon-circle"><i class="fas fa-exclamation-triangle"></i></div>
+            </div>
+            <h3 class="alert-title">Oops! Something Went Wrong</h3>
+            <p class="alert-message" id="errorMessage">We couldn't process your request. Please try again.</p>
+            <button class="alert-btn secondary" onclick="closeErrorModal()">Try Again</button>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div class="alert-modal" id="loadingModal" style="display: none;">
+        <div class="alert-modal-backdrop"></div>
+        <div class="alert-modal-content loading">
+            <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+            </div>
+            <h3 class="alert-title">Processing Your Request...</h3>
+            <p class="alert-message">Please wait while we submit your map request.</p>
+        </div>
+    </div>
+
+    <!-- Info Modal -->
+    <div class="alert-modal" id="infoModal" style="display: none;">
+        <div class="alert-modal-backdrop" onclick="closeInfoModal()"></div>
+        <div class="alert-modal-content info">
+            <div class="alert-icon-wrapper">
+                <div class="alert-icon-circle"><i class="fas fa-info-circle"></i></div>
+            </div>
+            <h3 class="alert-title" id="infoTitle">Information</h3>
+            <p class="alert-message" id="infoMessage">This is an informational message.</p>
+            <button class="alert-btn primary" onclick="closeInfoModal()">Okay</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="footer">
+        <div class="footer-container">
+            <div class="bagong-pilipinas">
+                <a href="https://www.bagongpilipinastayo.com/" target="_blank">
+                    <img src="../img/Hi-Res-BAGONG-PILIPINAS-LOGO-1474x1536.png" class="bagong-pilipinas-logo">
+                </a>
+            </div>
+            <div class="footer-col">
+                <div class="cherm">
+                    <img src="../img/slsu-cherm-logo.png" class="cherm-logo">
+                    <p class="text-center" style="font-size: 20px;">Southern Luzon State University</p>
+                    <p class="text-center" style="font-size: 30px;">Center for Hazard and <br>Environmental Resource Mapping<br>(CHERM)</p>
+                </div>
+            </div>
+            <div class="footer-col">
+                <div class="p-5 contact-us" id="contact-us">
+                    <p>Contact Us:</p>
+                    <div class="facebook">
+                        <a href="https://www.facebook.com/SLSU.CHERM" target="_blank"
+                            class="d-flex align-items-center text-decoration-none">
+                            <img src="../img/facebook.png" class="icon">
+                            <p class="mb-0">SLSU Center for Hazard and Environmental Resource Mapping(CHERM)</p>
+                        </a>
+                    </div>
+                    <div class="gmail">
+                        <a href="mailto:cherm4a@slsu.edu.ph" class="d-flex align-items-center text-decoration-none">
+                            <img src="../img/gmail.png" class="icon">
+                            <p class="mb-0">cherm4a@slsu.edu.ph</p>
+                        </a>
+                    </div>
+                    <div class="address">
+                        <p style="text-transform: uppercase;">Address:</p>
+                        <p>2F DOST-PSTC Quezon, SLSU Lucena Campus, Ibabang Dupay</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-col">
+                <div class="map">
+                    <iframe class="map-frame"
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3872.1698134828434!2d121.62914570000001!3d13.9484925!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x33bd4b5adf90d2e9%3A0xfdc797625c9f5ab1!2sDepartment%20of%20Science%20and%20Technology%20(DOST)%20-%20Quezon%20S%20and%20T%20Center!5e0!3m2!1sen!2sph!4v1742370723029!5m2!1sen!2sph"
+                        width="400" height="300" style="border:0;" allowfullscreen="" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <div style="width: 100%; background: #034955; color: #fdfdfd; text-align: center; padding: 8px 0 8px 0; font-size: 16px;">
+        &copy; 2025 SLSU - CHERM. All rights reserved.
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.10.2/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+    <script>
+        function goToAboutUs() {
+            window.location.href = "../index.html#what-is-cherm";
+            sessionStorage.setItem("scrollToWhatIsCherm", "true");
+        }
+
+        function openModal1() {
+            document.getElementById('serviceModal1').style.display = 'block';
+        }
+        function closeModal1() {
+            document.getElementById('serviceModal1').style.display = 'none';
+        }
+
+        function openModal2() {
+            document.getElementById('serviceModal2').style.display = 'block';
+        }
+        function closeModal2() {
+            document.getElementById('serviceModal2').style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            const modal1 = document.getElementById('serviceModal1');
+            const modal2 = document.getElementById('serviceModal2');
+            if (event.target === modal1) modal1.style.display = 'none';
+            if (event.target === modal2) modal2.style.display = 'none';
+        };
+
+        const aboutUs = document.getElementById('navbarDropdown');
+        const dropdown = document.getElementById('customDropdown');
+        if (aboutUs && dropdown) {
+            aboutUs.addEventListener('mouseenter', () => { dropdown.style.display = 'block'; });
+            dropdown.addEventListener('mouseleave', () => { dropdown.style.display = 'none'; });
+            dropdown.addEventListener('mouseenter', () => { dropdown.style.display = 'block'; });
+            aboutUs.addEventListener('mouseleave', () => {
+                setTimeout(() => {
+                    if (!dropdown.matches(':hover')) dropdown.style.display = 'none';
+                }, 200);
+            });
+        }
+
+        document.getElementById('submitCodeBtn').addEventListener('click', () => {
+            const code = document.getElementById('requestCodeInput').value.trim();
+            if (!code) { alert('Please enter your request code.'); return; }
+            window.location.href = `user-map-req.html?code=${encodeURIComponent(code)}`;
+        });
+
+        function showUserMapRequest() {
+            const container = document.getElementById('userMapRequestContainer');
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+    <script src="../JS/map-form.js"></script>
+    <script src="../JS/user-map-req.js"></script>
+</body>
+
+</html>

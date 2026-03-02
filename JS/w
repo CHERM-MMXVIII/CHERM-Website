@@ -1,0 +1,2032 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="icon" type="image/png" href="/img/slsu-cherm-logo.png">
+        <title>CHERM Admin</title>
+        <link rel="stylesheet" href="/css/Style.css">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+            integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+        <link rel="stylesheet" href="/css/mapstyle.css"/>
+        <link rel="stylesheet" href="../css/stylesheet2.css">
+        <link rel="stylesheet" href="../css/admin-events-form.css">
+    </head>
+    <body>
+        <!-- SVG Background -->
+        <!-- Dynamically loads the SVG map of the Philippines -->
+        <div id="svg-bg"></div>
+
+        <!-- Navbar -->
+        <!-- Contains navigation links and dropdown menu -->
+        <nav class="navbar navbar-expand-md navbar-light shadow-lg">
+            <div class="d-flex navbar-content justify-content-between">
+                <a class="navbar-brand" href="./index.html">
+                    <img src="/img/slsu-cherm-logo.png" class="logo-pic" alt="Logo of SLSU CHERM">
+                    <h3 class="logo-name">SLSU CHERM</h3>
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="modal" data-bs-target="#navModal">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse">
+                    <ul class="navbar-nav text-white">
+                        <li class="nav-item">
+                            <a class="nav-link" href="./index.html">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="./html/services.html">Services</a>
+                        </li>
+                        <li class="nav-item dropdown" onmouseenter="document.getElementById('customDropdown').classList.add('show')" onmouseleave="setTimeout(() => { if (!document.getElementById('customDropdown').matches(':hover')) document.getElementById('customDropdown').classList.remove('show'); }, 100)">
+                            <a class="nav-link" href="./index.html#what-is-cherm" id="navbarDropdown">
+                                About Us <span class="dropdown-arrow">▼</span>
+                            </a>
+                            <div class="custom-dropdown-menu" id="customDropdown" onmouseenter="this.classList.add('show')" onmouseleave="this.classList.remove('show')">
+                                <div class="dropdown-menu-container">
+                                    <div class="dropdown-link-container">
+                                        <div class="dropdown-link">
+                                            <a class="dropdown-item" href="./html/objectives.html">Objectives</a>
+                                            <a class="dropdown-item" href="./html/achievement.html">Achievements</a>
+                                            <a class="dropdown-item" href="./html/events.html">Events and Updates</a>
+                                            <a class="dropdown-item" href="./html/org.html">People behind CHERM</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#contact-us">Contact Us</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div id="customDropdown" class="custom-dropdown-menu">
+            <div class="dropdown-menu-container">
+                <div class="slsu-cherm-partnership">
+                    <div class="slsu">
+                        <img src="../img/slsu-logo.png" class="slsu">
+                    </div>
+                    <div class="dost-calabarzon">
+                        <img src="../img/dost-logo.png" class="dost">
+                    </div>
+                    <div class="slsu-office-of-research-services">
+                        <img src="../img/slsu-research-logo.png" class="ors">
+                    </div>
+                </div>
+                <div class="dropdown-link-container">
+                    <div class="dropdown-link">
+                        <a class="dropdown-item" href="objectives.html">Objectives</a>
+                        <a class="dropdown-item" href="events.html">Events and Updates</a>
+                        <a class="dropdown-item" href="org.html">People behind CHERM</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Navigation -->
+        <div class="modal fade" id="navModal" tabindex="-1" aria-labelledby="navModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div data-bs-theme="dark">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link" href="#Home">Home</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="services.html">Services</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#about-us">About Us</a>
+                            </li>
+                            <li class="nav-item">
+                            <li><a class="nav-link" href="objectives.html">Objectives</a></li>
+                            </li>
+                            <li class="nav-item">
+                            <li><a class="nav-link" href="achievement.html">Achievements</a></li>
+                            </li>
+                            <li class="nav-item">
+                            <li><a class="nav-link" href="events.html">Events and Updates</a></li>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#contact-us">Contact Us</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="org.html">People Behind CHERM</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="events-form">
+            <h2 class="title">Add New Event and Update</h2>
+
+            <div>
+                <form method="POST" action="/admin/add" enctype="multipart/form-data">
+                
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" name="title" placeholder="Enter title of post">
+                </div>
+                                
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" name="post_date" required>
+                </div>
+                
+                <div class="image-upload-wrapper">
+                    <div class="image-upload">
+                        <label for="image_file" class="upload-box" id="uploadBox">
+                            <div class="upload-placeholder" id="uploadPlaceholder">
+                                <div class="upload-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16">
+                                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                                        <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/>
+                                    </svg>
+                                </div>
+                                <p class="upload-title">Upload Image</p>
+                                <p class="upload-subtitle">PNG or JPG, up to 5MB</p>
+                            </div>
+
+                            <img id="imagePreview" alt="Image preview" />
+                        </label>
+
+                        <input type="file" id="image_file" name="image_file" accept="image/*" hidden>
+                    </div>
+                </div>
+                
+                <div class="fb-card">
+                    <div class="fb-header">
+                        <div class="fb-text">
+                        <p class="fb-title">Include Facebook Post</p>
+                        <p class="fb-subtitle">Embed a post from the Facebook page</p>
+                        </div>
+
+                        <!-- TOGGLE TO ADD FB LINK-->
+                        <button type="button" class="fb-toggle" aria-pressed="false" id="fbToggle">
+                            <span class="toggle-knob"></span>
+                        </button>
+                    </div>
+
+                    <!-- FACEBOOK HIDDEN INPUT -->
+                    <div class="fb-input" id="fbInput">
+                        <label for="fb_link">Facebook Post URL</label>
+                        <input type="text" id="fb_link" name="fb_link" placeholder="https://facebook.com/...">
+                    </div>
+                </div>
+                <!-- <p style="text-align:center">If FB link is provided, title & image auto-fill from RSS.</p> -->
+
+                <button type="submit" class="create-event-btn">Add Event</button>
+            </form>
+        </div>
+
+        <div id="successModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-icon">✅</div>
+                <h3>Event Posted</h3>
+                <p>The event has been successfully published.</p>
+                <button id="closeModal">OK</button>
+            </div>
+        </div>
+
+
+        <script>
+            // Toggle to show fb input field
+            const toggle = document.getElementById('fbToggle');
+            const inputBox = document.getElementById('fbInput');
+
+            toggle.addEventListener('click', () => {
+                const isActive = toggle.classList.toggle('active');
+                toggle.setAttribute('aria-pressed', isActive);
+                inputBox.style.display = isActive ? 'block' : 'none';
+            });
+
+            // Preview image
+            const input = document.getElementById('image_file');
+            const preview = document.getElementById('imagePreview');
+            const placeholder = document.getElementById('uploadPlaceholder');
+
+            input.addEventListener('change', () => {
+                const file = input.files[0];
+                if (!file || !file.type.startsWith('image/')) return;
+
+                preview.src = URL.createObjectURL(file);
+                preview.onload = () => {
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+                };  
+            });
+
+            const params = new URLSearchParams(window.location.search);
+            const modal = document.getElementById('successModal');
+            const closeBtn = document.getElementById('closeModal');
+
+            if (params.get('success') === '1') {
+                modal.classList.remove('hidden');
+
+                // Remove query param so refresh doesn't show modal again
+                history.replaceState({}, document.title, "/admin");
+            }
+
+            closeBtn.addEventListener('click', () => {
+                modal.classList.add('hidden');
+            });
+
+        </script>
+
+    </body>
+        
+</html>
+
+
+const express = require('express');
+const { Pool } = require('pg');
+const fs = require('fs');
+const path = require('path');
+const Parser = require('rss-parser');
+const multer = require('multer');
+
+const app = express();
+const PORT = 3000;
+
+/* ---------- DATABASE CONFIG ---------- */
+const pool = new Pool({
+  user: 'postgres',
+  host: 'localhost',
+  database: 'cherm_website',
+  password: 'PgPass123!',
+  port: 5433,
+});
+
+/* ---------- STATIC + FORM MIDDLEWARE ---------- */
+app.use(express.urlencoded({ extended: true }));
+
+/* ---------- MULTER IMAGE UPLOAD CONFIG ---------- */
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads'),
+  filename: (req, file, cb) => {
+    const uniqueName = Date.now() + '-' + file.originalname;
+    cb(null, uniqueName);
+  }
+});
+const upload = multer({ storage });
+
+/* ---------- FACEBOOK POST ID EXTRACTOR ---------- */
+function extractFbPostId(url) {
+
+  // Format 1: /posts/{id}
+  let match = url.match(/\/posts\/([^\/\?]+)/);
+  if (match) return match[1];
+
+  // Format 2: story.php?story_fbid={id}
+  match = url.match(/story_fbid=([^&]+)/);
+  if (match) return match[1];
+
+  // Format 3: pfbid... (RSS format)
+  match = url.match(/(pfbid[^\/\?]+)/);
+  if (match) return match[1];
+
+  // ✅ NEW Format 4: /share/p/{shortcode}
+  match = url.match(/\/share\/p\/([^\/\?]+)/);
+  if (match) return match[1];
+
+  return null;
+}
+
+
+/* ---------- RSS IMPORT FUNCTION (OPTIONAL AUTO IMPORT) ---------- */
+async function importRSS() {
+  try {
+    const parser = new Parser();
+    const feed = await parser.parseURL('https://rss.app/feeds/prVwaD4E2lxxoong.xml');
+
+    for (const item of feed.items) {
+
+      const fb_post_id = extractFbPostId(item.link);
+      if (!fb_post_id) continue;
+
+      let imageUrl = null;
+      if (item['media:content']?.url) {
+        imageUrl = item['media:content'].url;
+      } else {
+        const match = item.content?.match(/<img[^>]+src="([^">]+)"/);
+        if (match) imageUrl = match[1];
+      }
+
+      await pool.query(
+        `INSERT INTO articles (fb_post_id, title, image_url, post_date, fb_link, published)
+        VALUES ($1, $2, $3, $4, $5, FALSE)
+        ON CONFLICT (fb_post_id) DO NOTHING`,
+        [
+          fb_post_id,
+          item.title,
+          imageUrl,
+          item.pubDate,
+          item.link
+        ]
+      );
+
+
+    }
+
+    console.log("✅ RSS Import Completed");
+
+  } catch (err) {
+    console.error("❌ RSS Import Error:", err.message);
+  }
+}
+
+/* Uncomment if you ever want auto-import on startup */
+// importRSS();
+
+
+/* ---------- FRONTEND ROUTE ---------- */
+/* ---------- FRONTEND ROUTE ---------- */
+app.get('/', async (req, res) => {
+  try {
+    let html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+    
+    // Remove the card generation - just send the HTML as-is
+    // The JavaScript will load the data via API
+    
+    res.send(html);
+
+  } catch (err) {
+    console.error("Database Error:", err.message);
+    res.send("Database error");
+  }
+});
+
+/* ---------- ADMIN PAGE ---------- */
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'admin.html'));
+});
+
+
+/* ---------- ADMIN FORM HANDLER ---------- */
+app.post('/admin/add', upload.single('image_file'), async (req, res) => {
+  try {
+    const { title, post_date, fb_link } = req.body;
+
+    let final_title = title;
+    let final_fb_link = fb_link || null;
+    let image_url = null;
+
+    /* Case 1: Manual image upload */
+    if (req.file) {
+      image_url = '/uploads/' + req.file.filename;
+    }
+
+    /* Case 2: Facebook link provided */
+    if (fb_link && fb_link.trim() !== '') {
+
+      const inputPostId = extractFbPostId(fb_link.trim());
+      if (!inputPostId) {
+        return res.send("❌ Invalid Facebook post link.");
+      }
+
+      const parser = new Parser();
+      const feed = await parser.parseURL('https://rss.app/feeds/prVwaD4E2lxxoong.xml');
+
+      const matchedItem = feed.items.find(item =>
+        extractFbPostId(item.link) === inputPostId
+      );
+
+      if (!matchedItem) {
+        return res.send("❌ Facebook post not found in RSS feed.");
+      }
+
+      if (!final_title || final_title.trim() === '') {
+        final_title = matchedItem.title;
+      }
+
+      if (!image_url) {
+        if (matchedItem['media:content']?.url) {
+          image_url = matchedItem['media:content'].url;
+        } else {
+          const match = matchedItem.content?.match(/<img[^>]+src="([^">]+)"/);
+          if (match) image_url = match[1];
+        }
+      }
+
+      final_fb_link = matchedItem.link;
+    }
+
+    /* Validation */
+    if (!final_title || !image_url || !post_date) {
+      return res.send("❌ Title, Date, and Image are required.");
+    }
+
+    /* Insert into DB */
+    await pool.query(
+      `INSERT INTO articles (fb_post_id, title, image_url, post_date, fb_link, published)
+      VALUES ($1, $2, $3, $4, $5, TRUE)`,
+      [
+        extractFbPostId(final_fb_link || '') || ('manual_' + Date.now()),
+        final_title,
+        image_url,
+        post_date,
+        final_fb_link
+      ]
+    );
+
+
+    console.log("✅ Post successfully added by Admin");
+    res.redirect('/admin');
+
+  } catch (err) {
+    console.error("Admin Insert Error:", err.message);
+    res.send("Insert error: " + err.message);
+  }
+});
+
+/* ---------- API ENDPOINT FOR EVENTS ---------- */
+app.get('/api/events', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT title, image_url, post_date, fb_link
+      FROM articles
+      WHERE published = TRUE
+      ORDER BY post_date DESC
+      LIMIT 20`
+    );
+    
+    res.json({ rows: result.rows });
+  } catch (err) {
+    console.error("Database Error:", err.message);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+app.use(express.static(__dirname));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+/* ---------- START SERVER ---------- */
+app.listen(PORT, () => {
+  console.log(`🚀 Website running at http://localhost:${PORT}`);
+});
+
+<!-- new server.js -->
+ const express = require('express');
+const { Pool } = require('pg');
+const fs = require('fs');
+const path = require('path');
+const Parser = require('rss-parser');
+const multer = require('multer');
+
+const app = express();
+const PORT = 3000;
+
+/* ---------- DATABASE CONFIG ---------- */
+const pool = new Pool({
+  user: 'postgres',
+  host: 'localhost',
+  database: 'cherm_website',
+  password: 'PgPass123!',
+  port: 5433,
+});
+
+/* ---------- STATIC + FORM MIDDLEWARE ---------- */
+app.use(express.urlencoded({ extended: true }));
+
+/* ---------- MULTER IMAGE UPLOAD CONFIG ---------- */
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads'),
+  filename: (req, file, cb) => {
+    const uniqueName = Date.now() + '-' + file.originalname;
+    cb(null, uniqueName);
+  }
+});
+const upload = multer({ storage });
+
+/* ---------- FACEBOOK POST ID EXTRACTOR ---------- */
+function extractFbPostId(url) {
+  let match = url.match(/\/posts\/([^\/\?]+)/);
+  if (match) return match[1];
+
+  match = url.match(/story_fbid=([^&]+)/);
+  if (match) return match[1];
+
+  match = url.match(/(pfbid[^\/\?]+)/);
+  if (match) return match[1];
+
+  match = url.match(/\/share\/p\/([^\/\?]+)/);
+  if (match) return match[1];
+
+  return null;
+}
+
+
+/* ---------- RSS IMPORT FUNCTION (OPTIONAL AUTO IMPORT) ---------- */
+async function importRSS() {
+  try {
+    const parser = new Parser();
+    const feed = await parser.parseURL('https://rss.app/feeds/prVwaD4E2lxxoong.xml');
+
+    for (const item of feed.items) {
+
+      const fb_post_id = extractFbPostId(item.link);
+      if (!fb_post_id) continue;
+
+      let imageUrl = null;
+      if (item['media:content']?.url) {
+        imageUrl = item['media:content'].url;
+      } else {
+        const match = item.content?.match(/<img[^>]+src="([^">]+)"/);
+        if (match) imageUrl = match[1];
+      }
+
+      await pool.query(
+        `INSERT INTO articles (fb_post_id, title, image_url, post_date, fb_link, published)
+        VALUES ($1, $2, $3, $4, $5, FALSE)
+        ON CONFLICT (fb_post_id) DO NOTHING`,
+        [
+          fb_post_id,
+          item.title,
+          imageUrl,
+          item.pubDate,
+          item.link
+        ]
+      );
+
+
+    }
+
+    console.log("✅ RSS Import Completed");
+
+  } catch (err) {
+    console.error("❌ RSS Import Error:", err.message);
+  }
+}
+
+/* Uncomment if you ever want auto-import on startup */
+// importRSS();
+
+
+/* ---------- FRONTEND ROUTE ---------- */
+app.get('/', async (req, res) => {
+  try {
+    let html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+    
+    res.send(html);
+
+  } catch (err) {
+    console.error("Database Error:", err.message);
+    res.send("Database error");
+  }
+});
+
+/* ---------- ADMIN PAGE ---------- */
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'admin.html'));
+});
+
+
+/* ---------- ADMIN FORM HANDLER ---------- */
+app.post('/admin/add', upload.single('image_file'), async (req, res) => {
+  try {
+    const { title, post_date, fb_link } = req.body;
+
+    let final_title = title;
+    let final_fb_link = fb_link || null;
+    let image_url = null;
+
+    /* Case 1: Manual image upload */
+    if (req.file) {
+      image_url = '/uploads/' + req.file.filename;
+    }
+
+    /* Case 2: Facebook link provided */
+    if (fb_link && fb_link.trim() !== '') {
+
+      const inputPostId = extractFbPostId(fb_link.trim());
+      if (!inputPostId) {
+        return res.send("❌ Invalid Facebook post link.");
+      }
+
+      const parser = new Parser();
+      const feed = await parser.parseURL('https://rss.app/feeds/prVwaD4E2lxxoong.xml');
+
+      const matchedItem = feed.items.find(item =>
+        extractFbPostId(item.link) === inputPostId
+      );
+
+      if (!matchedItem) {
+        return res.send("Facebook post not found in RSS feed.");
+      }
+
+      if (!final_title || final_title.trim() === '') {
+        final_title = matchedItem.title;
+      }
+
+      if (!image_url) {
+        if (matchedItem['media:content']?.url) {
+          image_url = matchedItem['media:content'].url;
+        } else {
+          const match = matchedItem.content?.match(/<img[^>]+src="([^">]+)"/);
+          if (match) image_url = match[1];
+        }
+      }
+
+      final_fb_link = matchedItem.link;
+    }
+
+    if (!final_title || !image_url || !post_date) {
+      return res.send("Title, Date, and Image are required.");
+    }
+
+    /* Insert into DB */
+    await pool.query(
+      `INSERT INTO articles (fb_post_id, title, image_url, post_date, fb_link, published)
+      VALUES ($1, $2, $3, $4, $5, TRUE)`,
+      [
+        extractFbPostId(final_fb_link || '') || ('manual_' + Date.now()),
+        final_title,
+        image_url,
+        post_date,
+        final_fb_link
+      ]
+    );
+
+
+    console.log("✅ Post successfully added by Admin");
+    res.redirect('/admin?success=1');
+
+  } catch (err) {
+    console.error("Admin Insert Error:", err.message);
+    res.send("Insert error: " + err.message);
+  }
+});
+
+/* ---------- API ENDPOINT FOR EVENTS ---------- */
+app.get('/api/events', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || null; 
+    const limit = parseInt(req.query.limit) || null; 
+
+    if (!page && !limit) {
+      // No pagination params: Return all events (for index page)
+      const result = await pool.query(
+        `SELECT * FROM articles WHERE published = TRUE ORDER BY post_date DESC`
+      );
+      res.json({
+        rows: result.rows,
+        total: result.rows.length,
+        page: 1,
+        limit: result.rows.length,
+        totalPages: 1
+      });
+    } else {
+      const actualPage = page || 1;
+      const actualLimit = limit || 3;
+      const offset = (actualPage - 1) * actualLimit;
+
+      const eventsQuery = `SELECT * FROM articles WHERE published = TRUE ORDER BY post_date DESC LIMIT $1 OFFSET $2`;
+      const countQuery = `SELECT COUNT(*) FROM articles WHERE published = TRUE`;
+
+      const [events, count] = await Promise.all([
+        pool.query(eventsQuery, [actualLimit, offset]),
+        pool.query(countQuery)
+      ]);
+
+      const total = parseInt(count.rows[0].count);
+      res.json({
+        rows: events.rows,
+        total,
+        page: actualPage,
+        limit: actualLimit,
+        totalPages: Math.ceil(total / actualLimit)
+      });
+    }
+  } catch (err) {
+    console.error("Database Error:", err.message);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+/* ---------- EVENTS PAGE ---------- */
+app.get('/events', (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'events.html'));
+});
+
+app.use(express.static(__dirname));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+/* ---------- START SERVER ---------- */
+app.listen(PORT, () => {
+  console.log(`🚀 Website running at http://localhost:${PORT}`);
+});
+
+<!-- New server.js as of Feb 3; 10:27am -->
+ document.addEventListener('DOMContentLoaded', () => {
+  loadEvents();
+  setupSearch();
+  setupSorting();
+  setupScrollDetection();
+  setupPagination();
+});
+
+/* =========================
+   PAGINATION STATE
+   ========================= */
+let allEvents = [];
+let filteredEvents = [];
+let currentPage = 1;
+let itemsPerPage = 10;
+
+/* =========================
+   LOAD EVENTS
+   ========================= */
+async function loadEvents() {
+  try {
+    const res = await fetch('/api/events');
+    const data = await res.json();
+    allEvents = data.rows || [];
+    filteredEvents = [...allEvents];
+    currentPage = 1;
+    renderPaginatedEvents();
+  } catch (err) {
+    console.error('Failed to load events:', err);
+  }
+}
+
+/* =========================
+   RENDER PAGINATED EVENTS
+   ========================= */
+function renderPaginatedEvents() {
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const eventsToDisplay = filteredEvents.slice(startIndex, endIndex);
+  
+  renderEvents(eventsToDisplay);
+  updatePaginationControls();
+}
+
+/* =========================
+   RENDER TABLE
+   ========================= */
+function renderEvents(events) {
+  const tbody = document.getElementById('eventsTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if (events.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5">No events found</td>
+      </tr>
+    `;
+    return;
+  }
+
+  events.forEach(event => {
+    const tr = document.createElement('tr');
+
+    const fbColumn = event.fb_link
+      ? `<a href="${event.fb_link}" target="_blank" class="fb-link">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M290.4 19.8C295.4 7.8 307.1 0 320 0L480 0c17.7 0 32 14.3 32 32l0 160c0 12.9-7.8 24.6-19.8 29.6s-25.7 2.2-34.9-6.9L400 157.3 246.6 310.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L354.7 112 297.4 54.6c-9.2-9.2-11.9-22.9-6.9-34.9zM0 176c0-44.2 35.8-80 80-80l80 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-80 0c-8.8 0-16 7.2-16 16l0 256c0 8.8 7.2 16 16 16l256 0c8.8 0 16-7.2 16-16l0-80c0-17.7 14.3-32 32-32s32 14.3 32 32l0 80c0 44.2-35.8 80-80 80L80 512c-44.2 0-80-35.8-80-80L0 176z"/></svg>
+          <span>View Post</span>
+        </a>`
+      : `<span style="color:#9ca3af;">—</span>`;
+
+    tr.innerHTML = `
+      <td>${event.title}</td>
+      <td data-date="${event.post_date}">${new Date(event.post_date).toLocaleDateString()}</td>
+      <td>${event.venue}</td>
+      <td>${fbColumn}</td>
+      <td>
+        <button class="view-btn" data-id="${event.id}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M288 80C222.8 80 169.2 109.6 128.1 147.7 89.6 183.5 63 226 49.4 256 63 286 89.6 328.5 128.1 364.3 169.2 402.4 222.8 432 288 432s118.8-29.6 159.9-67.7C486.4 328.5 513 286 526.6 256 513 226 486.4 183.5 447.9 147.7 406.8 109.6 353.2 80 288 80zM95.4 112.6C142.5 68.8 207.2 32 288 32s145.5 36.8 192.6 80.6c46.8 43.5 78.1 95.4 93 131.1 3.3 7.9 3.3 16.7 0 24.6-14.9 35.7-46.2 87.7-93 131.1-47.1 43.7-111.8 80.6-192.6 80.6S142.5 443.2 95.4 399.4c-46.8-43.5-78.1-95.4-93-131.1-3.3-7.9-3.3-16.7 0-24.6 14.9-35.7 46.2-87.7 93-131.1zM288 336c44.2 0 80-35.8 80-80 0-29.6-16.1-55.5-40-69.3-1.4 59.7-49.6 107.9-109.3 109.3 13.8 23.9 39.7 40 69.3 40zm-79.6-88.4c2.5 .3 5 .4 7.6 .4 35.3 0 64-28.7 64-64 0-2.6-.2-5.1-.4-7.6-37.4 3.9-67.2 33.7-71.1 71.1zm45.6-115c10.8-3 22.2-4.5 33.9-4.5 8.8 0 17.5 .9 25.8 2.6 .3 .1 .5 .1 .8 .2 57.9 12.2 101.4 63.7 101.4 125.2 0 70.7-57.3 128-128 128-61.6 0-113-43.5-125.2-101.4-1.8-8.6-2.8-17.5-2.8-26.6 0-11 1.4-21.8 4-32 .2-.7 .3-1.3 .5-1.9 11.9-43.4 46.1-77.6 89.5-89.5z"/></svg>
+        </button>
+        <button class="edit-btn" data-id="${event.id}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M441 58.9L453.1 71c9.4 9.4 9.4 24.6 0 33.9L424 134.1 377.9 88 407 58.9c9.4-9.4 24.6-9.4 33.9 0zM209.8 256.2L344 121.9 390.1 168 255.8 302.2c-2.9 2.9-6.5 5-10.4 6.1l-58.5 16.7 16.7-58.5c1.1-3.9 3.2-7.5 6.1-10.4zM373.1 25L175.8 222.2c-8.7 8.7-15 19.4-18.3 31.1l-28.6 100c-2.4 8.4-.1 17.4 6.1 23.6s15.2 8.5 23.6 6.1l100-28.6c11.8-3.4 22.5-9.7 31.1-18.3L487 138.9c28.1-28.1 28.1-73.7 0-101.8L474.9 25C446.8-3.1 401.2-3.1 373.1 25zM88 64C39.4 64 0 103.4 0 152L0 424c0 48.6 39.4 88 88 88l272 0c48.6 0 88-39.4 88-88l0-112c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 112c0 22.1-17.9 40-40 40L88 464c-22.1 0-40-17.9-40-40l0-272c0-22.1 17.9-40 40-40l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L88 64z"/></svg>
+        </button>
+        <button class="delete-btn" data-id="${event.id}" data-title="${event.title.replace(/"/g, '&quot;')}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M166.2-16c-13.3 0-25.3 8.3-30 20.8L120 48 24 48C10.7 48 0 58.7 0 72S10.7 96 24 96l400 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-96 0-16.2-43.2C307.1-7.7 295.2-16 281.8-16L166.2-16zM32 144l0 304c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-304-48 0 0 304c0 8.8-7.2 16-16 16L96 464c-8.8 0-16-7.2-16-16l0-304-48 0zm160 72c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 176c0 13.3 10.7 24 24 24s24-10.7 24-24l0-176zm112 0c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 176c0 13.3 10.7 24 24 24s24-10.7 24-24l0-176z"/></svg>
+        </button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+
+  attachRowActions();
+}
+
+/* =========================
+   PAGINATION SETUP
+   ========================= */
+function setupPagination() {
+  // Items per page selector
+  const itemsSelect = document.getElementById('itemsPerPage');
+  if (itemsSelect) {
+    itemsSelect.addEventListener('change', (e) => {
+      itemsPerPage = parseInt(e.target.value);
+      currentPage = 1;
+      renderPaginatedEvents();
+    });
+  }
+
+  // Navigation buttons
+  document.getElementById('firstPageBtn')?.addEventListener('click', () => goToPage(1));
+  document.getElementById('prevPageBtn')?.addEventListener('click', () => goToPage(currentPage - 1));
+  document.getElementById('nextPageBtn')?.addEventListener('click', () => goToPage(currentPage + 1));
+  document.getElementById('lastPageBtn')?.addEventListener('click', () => {
+    const totalPages = Math.ceil(filteredEvents.length / itemsPerPage);
+    goToPage(totalPages);
+  });
+}
+
+/* =========================
+   PAGINATION CONTROLS
+   ========================= */
+function updatePaginationControls() {
+  const totalItems = filteredEvents.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
+
+  // Update info text
+  const infoElement = document.getElementById('paginationInfo');
+  if (infoElement) {
+    if (totalItems === 0) {
+      infoElement.textContent = 'Showing 0 to 0 of 0 entries';
+    } else {
+      infoElement.textContent = `Showing ${startIndex} to ${endIndex} of ${totalItems} entries`;
+    }
+  }
+
+  // Update navigation buttons state
+  const firstBtn = document.getElementById('firstPageBtn');
+  const prevBtn = document.getElementById('prevPageBtn');
+  const nextBtn = document.getElementById('nextPageBtn');
+  const lastBtn = document.getElementById('lastPageBtn');
+
+  if (firstBtn) firstBtn.disabled = currentPage === 1;
+  if (prevBtn) prevBtn.disabled = currentPage === 1;
+  if (nextBtn) nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+  if (lastBtn) lastBtn.disabled = currentPage === totalPages || totalPages === 0;
+
+  // Update page numbers
+  renderPageNumbers(totalPages);
+}
+
+function renderPageNumbers(totalPages) {
+  const container = document.getElementById('paginationNumbers');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  if (totalPages <= 1) return;
+
+  const maxVisible = 5;
+  let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+  let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+
+  if (endPage - startPage < maxVisible - 1) {
+    startPage = Math.max(1, endPage - maxVisible + 1);
+  }
+
+  // Add first page and ellipsis if needed
+  if (startPage > 1) {
+    addPageButton(container, 1);
+    if (startPage > 2) {
+      const ellipsis = document.createElement('span');
+      ellipsis.className = 'pagination-ellipsis';
+      ellipsis.textContent = '...';
+      container.appendChild(ellipsis);
+    }
+  }
+
+  // Add page numbers
+  for (let i = startPage; i <= endPage; i++) {
+    addPageButton(container, i);
+  }
+
+  // Add last page and ellipsis if needed
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) {
+      const ellipsis = document.createElement('span');
+      ellipsis.className = 'pagination-ellipsis';
+      ellipsis.textContent = '...';
+      container.appendChild(ellipsis);
+    }
+    addPageButton(container, totalPages);
+  }
+}
+
+function addPageButton(container, pageNum) {
+  const button = document.createElement('button');
+  button.className = 'pagination-number';
+  button.textContent = pageNum;
+  
+  if (pageNum === currentPage) {
+    button.classList.add('active');
+  }
+  
+  button.addEventListener('click', () => goToPage(pageNum));
+  container.appendChild(button);
+}
+
+function goToPage(pageNum) {
+  const totalPages = Math.ceil(filteredEvents.length / itemsPerPage);
+  if (pageNum < 1 || pageNum > totalPages) return;
+  
+  currentPage = pageNum;
+  renderPaginatedEvents();
+  
+  // Scroll to top of table
+  document.querySelector('.table-wrapper')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* =========================
+   SEARCH (UPDATED FOR PAGINATION)
+   ========================= */
+function setupSearch() {
+  const searchInput = document.getElementById('eventSearch');
+  if (!searchInput) {
+    console.warn('Search input #eventSearch not found');
+    return;
+  }
+
+  searchInput.addEventListener('input', function () {
+    const query = this.value.toLowerCase().trim();
+
+    if (!query) {
+      filteredEvents = [...allEvents];
+    } else {
+      filteredEvents = allEvents.filter(event => {
+        const title = (event.title || '').toLowerCase();
+        const venue = (event.venue || '').toLowerCase();
+        return title.includes(query) || venue.includes(query);
+      });
+    }
+
+    currentPage = 1;
+    renderPaginatedEvents();
+  });
+}
+
+/* =========================
+   SORTING (UPDATED FOR PAGINATION)
+   ========================= */
+function setupSorting() {
+  const sortableHeaders = document.querySelectorAll('th[data-sort]');
+  
+  sortableHeaders.forEach(header => {
+    header.style.cursor = 'pointer';
+    header.addEventListener('click', () => {
+      const column = header.dataset.sort;
+      const currentOrder = header.dataset.order || 'asc';
+      const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+      
+      // Reset all other headers
+      sortableHeaders.forEach(h => {
+        if (h !== header) {
+          h.dataset.order = 'asc';
+          h.classList.remove('sorted-asc', 'sorted-desc');
+          const ascIcon = h.querySelector('.sort-icon-asc');
+          const descIcon = h.querySelector('.sort-icon-desc');
+          if (ascIcon) ascIcon.style.display = '';
+          if (descIcon) descIcon.style.display = 'none';
+        }
+      });
+      
+      // Update current header
+      header.dataset.order = newOrder;
+      header.classList.remove('sorted-asc', 'sorted-desc');
+      header.classList.add(`sorted-${newOrder}`);
+      
+      // Toggle icons
+      const ascIcon = header.querySelector('.sort-icon-asc');
+      const descIcon = header.querySelector('.sort-icon-desc');
+      
+      if (newOrder === 'asc') {
+        ascIcon.style.display = '';
+        descIcon.style.display = 'none';
+      } else {
+        ascIcon.style.display = 'none';
+        descIcon.style.display = '';
+      }
+      
+      sortFilteredEvents(column, newOrder);
+    });
+  });
+}
+
+function sortFilteredEvents(column, order) {
+  filteredEvents.sort((a, b) => {
+    let aValue, bValue;
+    
+    if (column === 'date') {
+      aValue = new Date(a.post_date);
+      bValue = new Date(b.post_date);
+      return order === 'asc' ? aValue - bValue : bValue - aValue;
+    } else {
+      const key = column === 'title' ? 'title' : 'venue';
+      aValue = a[key].toLowerCase();
+      bValue = b[key].toLowerCase();
+      
+      if (order === 'asc') {
+        return aValue.localeCompare(bValue);
+      } else {
+        return bValue.localeCompare(aValue);
+      }
+    }
+  });
+  
+  renderPaginatedEvents();
+}
+
+/* =========================
+   BUTTON ACTIONS
+   ========================= */
+function attachRowActions() {
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      viewEvent(btn.dataset.id);
+    });
+  });
+
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      deleteEvent(btn.dataset.id, btn.dataset.title);
+    });
+  });
+
+  document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      editEvent(btn.dataset.id);
+    });
+  });
+}
+
+/* =========================
+   VIEW EVENT (MODAL)
+   ========================= */
+async function viewEvent(id) {
+  try {
+    const event = allEvents.find(e => e.id == id);
+
+    if (!event) {
+      alert('Event not found');
+      return;
+    }
+
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'event-modal-overlay';
+    modalOverlay.innerHTML = `
+      <div class="event-modal-container event-view-modal">
+        <button class="event-modal-close">&times;</button>
+        <h2>${event.title}</h2>
+        ${event.image_url ? `<img src="${event.image_url}" alt="${event.title}" class="event-modal-image">` : ''}
+        <div class="event-modal-details">
+          <p class="event-modal-description">${event.content}</p>
+          <div class="event-modal-meta">
+            <p><strong>Date:</strong> ${new Date(event.post_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <p><strong>Location:</strong> ${event.venue}</p>
+          </div>
+          ${event.fb_link ? `
+            <a href="${event.fb_link}" target="_blank" class="event-modal-fb-link">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20" height="20">
+                <path fill="currentColor" d="M512 256C512 114.6 397.4 0 256 0S0 114.6 0 256C0 376 82.7 476.8 194.2 504.5V334.2H141.4V256h52.8V222.3c0-87.1 39.4-127.5 125-127.5c16.2 0 44.2 3.2 55.7 6.4V172c-6-.6-16.5-1-29.6-1c-42 0-58.2 15.9-58.2 57.2V256h83.6l-14.4 78.2H287V510.1C413.8 494.8 512 386.9 512 256h0z"/>
+              </svg>
+              View Facebook Post
+            </a>
+          ` : ''}
+          <p class="event-modal-updated"><em>Last updated: ${new Date(event.updated_at || event.post_date).toLocaleString()}</em></p>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modalOverlay);
+
+    const closeBtn = modalOverlay.querySelector('.event-modal-close');
+    closeBtn.addEventListener('click', () => modalOverlay.remove());
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) modalOverlay.remove();
+    });
+
+  } catch (err) {
+    console.error('View failed:', err);
+    alert('Failed to load event details');
+  }
+}
+
+/* =========================
+   DELETE EVENT (MODAL)
+   ========================= */
+async function deleteEvent(id, title) {
+  const modalOverlay = document.createElement('div');
+  modalOverlay.className = 'event-modal-overlay';
+  modalOverlay.innerHTML = `
+    <div class="event-modal-container event-delete-modal">
+      <button class="event-modal-close">&times;</button>
+      <div class="event-delete-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="40" height="40"><!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+        <path d="M256 512a256 256 0 1 1 0-512 256 256 0 1 1 0 512zm0-192a32 32 0 1 0 0 64 32 32 0 1 0 0-64zm0-192c-18.2 0-32.7 15.5-31.4 33.7l7.4 104c.9 12.6 11.4 22.3 23.9 22.3 12.6 0 23-9.7 23.9-22.3l7.4-104c1.3-18.2-13.1-33.7-31.4-33.7z"/>
+        </svg>
+      </div>
+      <h2>Delete Event?</h2>
+      <p class="event-delete-message">
+        Are you sure you want to delete <strong>"${title}"</strong>?
+      </p>
+      <p class="event-delete-warning">
+        This action cannot be undone.
+      </p>
+      <div class="event-form-actions delete-modal-actions">
+        <button type="button" class="event-btn-cancel">Cancel</button>
+        <button type="button" class="event-btn-delete">Delete Event</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modalOverlay);
+
+  const deleteBtn = modalOverlay.querySelector('.event-btn-delete');
+  const cancelBtn = modalOverlay.querySelector('.event-btn-cancel');
+  const closeBtn = modalOverlay.querySelector('.event-modal-close');
+
+  deleteBtn.addEventListener('click', async () => {
+    deleteBtn.disabled = true;
+    deleteBtn.textContent = 'Deleting...';
+
+    try {
+      await fetch(`/admin/events/${id}`, { method: 'DELETE' });
+      modalOverlay.remove();
+      loadEvents();
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert('Failed to delete event');
+      deleteBtn.disabled = false;
+      deleteBtn.textContent = 'Delete Event';
+    }
+  });
+
+  cancelBtn.addEventListener('click', () => modalOverlay.remove());
+  closeBtn.addEventListener('click', () => modalOverlay.remove());
+  modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) modalOverlay.remove();
+  });
+}
+
+/* =========================
+   EDIT EVENT (MODAL)
+   ========================= */
+async function editEvent(id) {
+  try {
+    const event = allEvents.find(e => e.id == id);
+
+    if (!event) {
+      alert('Event not found');
+      return;
+    }
+
+    const isFbLinked = !!event.fb_link;
+
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'event-modal-overlay';
+    modalOverlay.innerHTML = `
+      <div class="event-modal-container event-edit-modal">
+        <button class="event-modal-close">&times;</button>
+        <h2>Edit Event</h2>
+        <form id="editEventForm" class="event-modal-form">
+          <div class="event-form-group">
+            <label for="eventTitle">Event Title</label>
+            <input type="text" id="eventTitle" class="event-form-input" value="${event.title}" required>
+          </div>
+          
+          <div class="event-form-group">
+            <label for="eventContent">Content / Description</label>
+            <textarea id="eventContent" class="event-form-textarea" rows="5" required>${event.content}</textarea>
+          </div>
+          
+          <div class="event-form-row">
+            <div class="event-form-group">
+              <label for="eventDate">Date</label>
+              <input type="date" id="eventDate" class="event-form-input" value="${event.post_date.slice(0, 10)}" required>
+            </div>
+            
+            <div class="event-form-group">
+              <label for="eventVenue">Location</label>
+              <input type="text" id="eventVenue" class="event-form-input" value="${event.venue}" required>
+            </div>
+          </div>
+          
+          <div class="event-form-group">
+            <label for="eventImage">Event Image (Optional)</label>
+            <div class="event-image-upload-wrapper">
+              ${event.image_url ? `
+                <div class="event-current-image">
+                  <img src="${event.image_url}" alt="Current image">
+                  <button type="button" class="event-remove-image">Remove Image</button>
+                </div>
+              ` : ''}
+              <input type="file" id="eventImage" class="event-form-file" accept="image/*">
+              <label for="eventImage" class="event-file-label">
+                <span class="event-file-label-text">Choose Image</span>
+              </label>
+              <div class="event-image-preview" style="display: none;">
+                <img src="" alt="Preview">
+                <button type="button" class="event-remove-preview">Remove</button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="event-form-group">
+            <label for="eventFbLink">Facebook Post Link (Optional)</label>
+            <input type="url" id="eventFbLink" class="event-form-input" value="${event.fb_link || ''}">
+          </div>
+          
+          <div class="event-form-actions">
+            <button type="button" class="event-btn-cancel">Cancel</button>
+            <button type="submit" class="event-btn-save">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    document.body.appendChild(modalOverlay);
+
+    if (isFbLinked) {
+      modalOverlay.querySelectorAll(
+        '#eventTitle, #eventDate, #eventImage, #eventFbLink, .event-remove-image'
+      ).forEach(el => {
+        if (el) el.disabled = true;
+      });
+
+      const fileLabel = modalOverlay.querySelector('.event-file-label');
+      if (fileLabel) {
+        fileLabel.style.pointerEvents = 'none';
+        fileLabel.style.opacity = '0.5';
+      }
+
+      const hint = document.createElement('p');
+      hint.className = 'event-form-hint';
+      hint.style.color = '#dc2626';
+      hint.textContent =
+        'This event is linked to Facebook. Only content and location can be edited.';
+      modalOverlay.querySelector('.event-modal-form').prepend(hint);
+    }
+
+    const fileInput = modalOverlay.querySelector('#eventImage');
+    const fileLabelText = modalOverlay.querySelector('.event-file-label-text');
+    const imagePreview = modalOverlay.querySelector('.event-image-preview');
+    const previewImg = imagePreview.querySelector('img');
+    const removePreviewBtn = modalOverlay.querySelector('.event-remove-preview');
+    const currentImageDiv = modalOverlay.querySelector('.event-current-image');
+    const removeImageBtn = modalOverlay.querySelector('.event-remove-image');
+
+    let imageToUpload = null;
+    let removeCurrentImage = false;
+
+    if (fileInput) {
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          imageToUpload = file;
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            previewImg.src = e.target.result;
+            imagePreview.style.display = 'block';
+            fileLabelText.textContent = file.name;
+            if (currentImageDiv) currentImageDiv.style.display = 'none';
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    if (removePreviewBtn) {
+      removePreviewBtn.addEventListener('click', () => {
+        fileInput.value = '';
+        imageToUpload = null;
+        imagePreview.style.display = 'none';
+        fileLabelText.textContent = 'Choose Image';
+        if (currentImageDiv && !removeCurrentImage) currentImageDiv.style.display = 'block';
+      });
+    }
+
+    if (removeImageBtn) {
+      removeImageBtn.addEventListener('click', () => {
+        removeCurrentImage = true;
+        currentImageDiv.style.display = 'none';
+      });
+    }
+
+    const form = modalOverlay.querySelector('#editEventForm');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData();
+      formData.append('content', document.getElementById('eventContent').value.trim());
+      formData.append('venue', document.getElementById('eventVenue').value.trim());
+
+      if (!isFbLinked) {
+        formData.append('title', document.getElementById('eventTitle').value.trim());
+        formData.append('post_date', document.getElementById('eventDate').value);
+        formData.append('fb_link', document.getElementById('eventFbLink').value.trim());
+      }
+
+      if (imageToUpload && !isFbLinked) {
+        formData.append('image_file', imageToUpload);
+      } else if (removeCurrentImage && !isFbLinked) {
+        formData.append('remove_image', 'true');
+      }
+
+      try {
+        const saveBtn = form.querySelector('.event-btn-save');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+
+        await fetch(`/admin/events/${id}`, {
+          method: 'PUT',
+          body: formData
+        });
+
+        modalOverlay.remove();
+        loadEvents();
+      } catch (err) {
+        console.error('Update failed:', err);
+        alert('Failed to update event');
+      }
+    });
+
+    modalOverlay.querySelector('.event-modal-close')
+      .addEventListener('click', () => modalOverlay.remove());
+
+    modalOverlay.querySelector('.event-btn-cancel')
+      .addEventListener('click', () => modalOverlay.remove());
+
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) modalOverlay.remove();
+    });
+
+  } catch (err) {
+    console.error('Edit failed:', err);
+    alert('Failed to load event for editing');
+  }
+}
+
+function setupScrollDetection() {
+    const scrollContainer = document.querySelector('.table-scroll-container');
+    const wrapper = document.querySelector('.table-wrapper');
+    
+    if (!scrollContainer || !wrapper) return;
+    
+    function checkScroll() {
+        const hasHorizontalScroll = scrollContainer.scrollWidth > scrollContainer.clientWidth;
+        
+        if (hasHorizontalScroll) {
+            wrapper.classList.add('has-scroll');
+        } else {
+            wrapper.classList.remove('has-scroll');
+        }
+    }
+    
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    
+    scrollContainer.addEventListener('scroll', function() {
+        if (this.scrollLeft > 10) {
+            wrapper.classList.remove('has-scroll');
+        }
+    });
+}
+
+<!-- server.js as of Feb 3; 3:05pm -->
+ const express = require('express');
+const { Pool } = require('pg');
+const fs = require('fs');
+const path = require('path');
+const Parser = require('rss-parser');
+const multer = require('multer');
+
+const app = express();
+const PORT = 3000;
+
+/* ---------- DATABASE CONFIG ---------- */
+const pool = new Pool({
+  user: 'postgres',
+  host: 'localhost',
+  database: 'cherm_website',
+  password: 'PgPass123!',
+  port: 5433,
+});
+
+/* ---------- ENSURE UPLOADS DIR EXISTS ---------- */
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
+
+/* ---------- MIDDLEWARE ---------- */
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+/* ---------- MULTER CONFIG ---------- */
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => {
+    const uniqueName = Date.now() + '-' + file.originalname;
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Only image files allowed'));
+    }
+    cb(null, true);
+  }
+});
+
+/* ---------- FACEBOOK POST ID EXTRACTOR ---------- */
+function extractFbPostId(url) {
+  if (!url) return null;
+
+  let match = url.match(/\/posts\/([^\/\?]+)/);
+  if (match) return match[1];
+
+  match = url.match(/story_fbid=([^&]+)/);
+  if (match) return match[1];
+
+  match = url.match(/(pfbid[^\/\?]+)/);
+  if (match) return match[1];
+
+  match = url.match(/\/share\/p\/([^\/\?]+)/);
+  if (match) return match[1];
+
+  return null;
+}
+
+/* ---------- FRONTEND ROUTES ---------- */
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/events', (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'events.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'admin.html'));
+});
+
+app.get('/admin/events', (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'events-crud.html'));
+});
+
+/* ---------- ADMIN ADD EVENT ---------- */
+app.post('/admin/add', upload.single('image_file'), async (req, res) => {
+  try {
+    const { title, post_date, venue, content, fb_link } = req.body;
+
+    let final_title = title?.trim() || null;
+    let final_content = content?.trim() || null;
+    let final_venue = venue?.trim() || null;
+    let final_fb_link = fb_link?.trim() || null;
+    let final_post_date = post_date ? new Date(post_date) : null;
+    let image_url = null;
+
+    if (req.file) {
+      image_url = '/uploads/' + req.file.filename;
+    }
+
+    /* ---------- FACEBOOK AUTO-FILL ---------- */
+    if (final_fb_link) {
+      const postId = extractFbPostId(final_fb_link);
+      if (!postId) return res.send('❌ Invalid Facebook post URL.');
+
+      const parser = new Parser();
+      const feed = await parser.parseURL(
+        'https://rss.app/feeds/fe90KLPC6zF9aBIM.xml'
+      );
+
+      const matchedItem = feed.items.find(
+        item => extractFbPostId(item.link) === postId
+      );
+
+      if (!matchedItem) return res.send('Facebook post not found.');
+
+      if (!final_title) final_title = matchedItem.title;
+      if (!final_post_date && matchedItem.pubDate) {
+        final_post_date = new Date(matchedItem.pubDate);
+      }
+
+      if (!image_url) {
+        if (matchedItem['media:content']?.url) {
+          image_url = matchedItem['media:content'].url;
+        } else {
+          const match = matchedItem.content?.match(/<img[^>]+src="([^">]+)"/);
+          if (match) image_url = match[1];
+        }
+      }
+
+      if (!final_content) {
+        final_content =
+          matchedItem.contentSnippet ||
+          matchedItem.content?.replace(/<[^>]+>/g, '').trim() ||
+          null;
+      }
+
+      final_fb_link = matchedItem.link;
+    }
+
+    if (!final_title || !final_content || !final_venue || !final_post_date || !image_url) {
+      return res.redirect('/admin?error=incomplete');
+    }
+
+    await pool.query(
+      `
+      INSERT INTO articles
+      (fb_post_id, title, venue, content, image_url, post_date, fb_link, published)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,TRUE)
+      `,
+      [
+        final_fb_link ? extractFbPostId(final_fb_link) : null,
+        final_title,
+        final_venue,
+        final_content,
+        image_url,
+        final_post_date,
+        final_fb_link
+      ]
+    );
+
+    res.redirect('/admin?success=1');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Insert failed');
+  }
+});
+
+/* ---------- EVENTS API ---------- */
+/* ---------- EVENTS API ---------- */
+app.get('/api/events', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;  // Default to page 1
+    const limit = parseInt(req.query.limit) || 3;  // Default to 6 (matches EVENT_PER_PAGE in events.js)
+    const offset = (page - 1) * limit;  // Calculate offset for SQL
+
+    // Get total count of published events
+    const totalResult = await pool.query(
+      `SELECT COUNT(*) AS total FROM articles WHERE published = TRUE`
+    );
+    const total = parseInt(totalResult.rows[0].total);
+    const totalPages = Math.ceil(total / limit);  // Calculate total pages
+
+    // Fetch paginated events
+    const result = await pool.query(
+      `SELECT * FROM articles WHERE published = TRUE ORDER BY post_date DESC LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    );
+
+    // Return in the format events.js expects
+    res.json({
+      rows: result.rows,
+      page,
+      totalPages
+    });
+  } catch (err) {
+    console.error('API Error:', err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+/* ---------- DELETE EVENT ---------- */
+app.delete('/admin/events/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `SELECT image_url FROM articles WHERE id = $1`,
+      [id]
+    );
+
+    const imageUrl = result.rows[0]?.image_url;
+    if (imageUrl && imageUrl.startsWith('/uploads/')) {
+      const imagePath = path.join(__dirname, imageUrl);
+      if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
+    }
+
+    await pool.query(`DELETE FROM articles WHERE id = $1`, [id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Delete failed' });
+  }
+});
+
+/* ---------- UPDATE EVENT (LOCK FB LINK + FB IMAGE) ---------- */
+app.put('/admin/events/:id', upload.single('image_file'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { venue, content, post_date, remove_image } = req.body;
+
+    const current = await pool.query(
+      `SELECT title, post_date, image_url FROM articles WHERE id = $1`,
+      [id]
+    );
+
+    if (current.rows.length === 0) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    const {
+      title: currentTitle,
+      post_date: currentDate,
+      image_url: currentImageUrl
+    } = current.rows[0];
+
+    const isFbImage =
+      currentImageUrl && !currentImageUrl.startsWith('/uploads/');
+
+    let image_url = currentImageUrl;
+
+    // allow image change ONLY for uploaded images
+    if (req.file && !isFbImage) {
+      image_url = '/uploads/' + req.file.filename;
+
+      if (currentImageUrl?.startsWith('/uploads/')) {
+        const oldPath = path.join(__dirname, currentImageUrl);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      }
+    }
+
+    if (remove_image === 'true' && !isFbImage) {
+      if (currentImageUrl?.startsWith('/uploads/')) {
+        const oldPath = path.join(__dirname, currentImageUrl);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      }
+      image_url = null;
+    }
+
+    await pool.query(
+      `
+      UPDATE articles
+      SET title = $1,
+          venue = $2,
+          content = $3,
+          post_date = $4,
+          image_url = $5,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $6
+      `,
+      [
+        currentTitle,                
+        venue?.trim(),
+        content?.trim(),
+        post_date || currentDate,     
+        image_url,
+        id
+      ]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Update failed' });
+  }
+});
+
+/* ---------- STATIC FILES ---------- */
+app.use(express.static(__dirname));
+app.use('/uploads', express.static(uploadsDir));
+
+/* ---------- START SERVER ---------- */
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
+});
+
+<!-- server.js as of Feb 5; 8:35am -->
+ const express = require('express');
+const { Pool } = require('pg');
+const fs = require('fs');
+const path = require('path');
+const Parser = require('rss-parser');
+const multer = require('multer');
+
+const app = express();
+const PORT = 3000;
+
+/* ---------- DATABASE CONFIG ---------- */
+const pool = new Pool({
+  user: 'postgres',
+  host: 'localhost',
+  database: 'cherm_website',
+  password: 'PgPass123!',
+  port: 5433,
+});
+
+/* ---------- ENSURE UPLOADS DIR EXISTS ---------- */
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
+
+/* ---------- MIDDLEWARE ---------- */
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+/* ---------- MULTER CONFIG ---------- */
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => {
+    const uniqueName = Date.now() + '-' + file.originalname;
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Only image files allowed'));
+    }
+    cb(null, true);
+  }
+});
+
+/* ---------- FACEBOOK POST ID EXTRACTOR ---------- */
+function extractFbPostId(url) {
+  if (!url) return null;
+
+  let match = url.match(/\/posts\/([^\/\?]+)/);
+  if (match) return match[1];
+
+  match = url.match(/story_fbid=([^&]+)/);
+  if (match) return match[1];
+
+  match = url.match(/(pfbid[^\/\?]+)/);
+  if (match) return match[1];
+
+  match = url.match(/\/share\/p\/([^\/\?]+)/);
+  if (match) return match[1];
+
+  return null;
+}
+
+/* ---------- FRONTEND ROUTES ---------- */
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/events', (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'events.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'admin.html'));
+});
+
+app.get('/admin/events', (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'events-crud.html'));
+});
+
+/* ---------- ADMIN ADD EVENT ---------- */
+app.post('/admin/add', upload.single('image_file'), async (req, res) => {
+  try {
+    const { title, post_date, venue, content, fb_link } = req.body;
+
+    let final_title = title?.trim() || null;
+    let final_content = content?.trim() || null;
+    let final_venue = venue?.trim() || null;
+    let final_fb_link = fb_link?.trim() || null;
+    let final_post_date = post_date ? new Date(post_date) : null;
+    let image_url = null;
+
+    if (req.file) {
+      image_url = '/uploads/' + req.file.filename;
+    }
+
+    /* ---------- FACEBOOK AUTO-FILL ---------- */
+    if (final_fb_link) {
+      const postId = extractFbPostId(final_fb_link);
+      if (!postId) return res.send('❌ Invalid Facebook post URL.');
+
+      const parser = new Parser();
+      const feed = await parser.parseURL(
+        'https://rss.app/feeds/fe90KLPC6zF9aBIM.xml'
+      );
+
+      const matchedItem = feed.items.find(
+        item => extractFbPostId(item.link) === postId
+      );
+
+      if (!matchedItem) return res.send('Facebook post not found.');
+
+      if (!final_title) final_title = matchedItem.title;
+      if (!final_post_date && matchedItem.pubDate) {
+        final_post_date = new Date(matchedItem.pubDate);
+      }
+
+      if (!image_url) {
+        if (matchedItem['media:content']?.url) {
+          image_url = matchedItem['media:content'].url;
+        } else {
+          const match = matchedItem.content?.match(/<img[^>]+src="([^">]+)"/);
+          if (match) image_url = match[1];
+        }
+      }
+
+      if (!final_content) {
+        final_content =
+          matchedItem.contentSnippet ||
+          matchedItem.content?.replace(/<[^>]+>/g, '').trim() ||
+          null;
+      }
+
+      final_fb_link = matchedItem.link;
+    }
+
+    if (!final_title || !final_content || !final_venue || !final_post_date || !image_url) {
+      return res.redirect('/admin?error=incomplete');
+    }
+
+    await pool.query(
+      `
+      INSERT INTO articles
+      (fb_post_id, title, venue, content, image_url, post_date, fb_link, published)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,TRUE)
+      `,
+      [
+        final_fb_link ? extractFbPostId(final_fb_link) : null,
+        final_title,
+        final_venue,
+        final_content,
+        image_url,
+        final_post_date,
+        final_fb_link
+      ]
+    );
+
+    res.redirect('/admin?success=1');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Insert failed');
+  }
+});
+
+/* ---------- EVENTS API ---------- */
+app.get('/api/events', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+
+    // If no pagination params (e.g., carousel fetch), return ALL events
+    if (isNaN(page) || isNaN(limit)) {
+      const result = await pool.query(
+        `SELECT * FROM articles WHERE published = TRUE ORDER BY post_date DESC`
+      );
+      return res.json({ rows: result.rows });  // No pagination, return all
+    }
+
+    // Otherwise, handle pagination (for events.js)
+    const offset = (page - 1) * limit;
+    const totalResult = await pool.query(
+      `SELECT COUNT(*) AS total FROM articles WHERE published = TRUE`
+    );
+    const total = parseInt(totalResult.rows[0].total);
+    const totalPages = Math.ceil(total / limit);
+
+    const result = await pool.query(
+      `SELECT * FROM articles WHERE published = TRUE ORDER BY post_date DESC LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    );
+
+    res.json({
+      rows: result.rows,
+      page,
+      totalPages
+    });
+  } catch (err) {
+    console.error('API Error:', err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
+
+/* ---------- DELETE EVENT ---------- */
+app.delete('/admin/events/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `SELECT image_url FROM articles WHERE id = $1`,
+      [id]
+    );
+
+    const imageUrl = result.rows[0]?.image_url;
+    if (imageUrl && imageUrl.startsWith('/uploads/')) {
+      const imagePath = path.join(__dirname, imageUrl);
+      if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
+    }
+
+    await pool.query(`DELETE FROM articles WHERE id = $1`, [id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Delete failed' });
+  }
+});
+
+/* ---------- UPDATE EVENT (LOCK FB LINK + FB IMAGE) ---------- */
+app.put('/admin/events/:id', upload.single('image_file'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { venue, content, post_date, remove_image } = req.body;
+
+    const current = await pool.query(
+      `SELECT title, post_date, image_url FROM articles WHERE id = $1`,
+      [id]
+    );
+
+    if (current.rows.length === 0) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    const {
+      title: currentTitle,
+      post_date: currentDate,
+      image_url: currentImageUrl
+    } = current.rows[0];
+
+    const isFbImage =
+      currentImageUrl && !currentImageUrl.startsWith('/uploads/');
+
+    let image_url = currentImageUrl;
+
+    // allow image change ONLY for uploaded images
+    if (req.file && !isFbImage) {
+      image_url = '/uploads/' + req.file.filename;
+
+      if (currentImageUrl?.startsWith('/uploads/')) {
+        const oldPath = path.join(__dirname, currentImageUrl);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      }
+    }
+
+    if (remove_image === 'true' && !isFbImage) {
+      if (currentImageUrl?.startsWith('/uploads/')) {
+        const oldPath = path.join(__dirname, currentImageUrl);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      }
+      image_url = null;
+    }
+
+    await pool.query(
+      `
+      UPDATE articles
+      SET title = $1,
+          venue = $2,
+          content = $3,
+          post_date = $4,
+          image_url = $5,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $6
+      `,
+      [
+        currentTitle,                
+        venue?.trim(),
+        content?.trim(),
+        post_date || currentDate,     
+        image_url,
+        id
+      ]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Update failed' });
+  }
+});
+
+/* ---------- STATIC FILES ---------- */
+app.use(express.static(__dirname));
+app.use('/uploads', express.static(uploadsDir));
+
+/* ---------- START SERVER ---------- */
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
+});

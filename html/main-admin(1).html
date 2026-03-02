@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>SLSU CHERM Admin</title>
+    <link rel="icon" type="image/png" href="../img/slsu-cherm-logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="/css/main-admin(1).css">
+</head>
+<body>
+
+<!-- ===== LAYOUT SHELL — wraps both panels so they float together ===== -->
+<div class="layout-shell">
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <img src="../img/cherm-logo.png" alt="CHERM Logo">
+                </div>
+                <div class="logo-text">
+                    <h2>SLSU CHERM</h2>
+                    <p>Admin Panel</p>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="nav-item active">
+                    <a href="#dashboard">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/" target="_blank">
+                        <i class="fa-solid fa-globe"></i>
+                        <span>SLSU Cherm Website</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="user-info">
+                    <h4 id="userFullName">Loading</h4>
+                    <p id="userEmail">Loading...</p>
+                </div>
+            </div>
+            <form action="/logout" method="POST" id="logoutForm">
+                <button class="logout-btn" type="button">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="main-content">
+
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="breadcrumb">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Scrollable Content -->
+        <div class="content-scroll">
+            <div class="dashboard-container">
+
+                <!-- Welcome Section -->
+                <section class="welcome-section">
+                    <div class="welcome-content">
+                        <div class="welcome-text">
+                            <h1>Welcome back, <span class="highlight" id="userFirstName">Loading!</span></h1>
+                            <p>Choose an action below to manage your events, banners, and content</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Quick Actions Section -->
+                <section class="quick-actions-section">
+                    <div class="section-header">
+                        <h2>Quick Actions</h2>
+                        <p>Manage your content efficiently</p>
+                    </div>
+
+                    <div class="actions-grid">
+                        <div class="action-card" data-action="banner">
+                            <div class="action-icon-wrapper">
+                                <div class="action-icon banner-icon">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                            </div>
+                            <div class="action-content">
+                                <h3>Update Hero Banner</h3>
+                                <p>Change the main banner image and content</p>
+                            </div>
+                            <button class="action-btn" onclick="location.href='/admin/banner'">
+                                <span>Update Now</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <div class="action-card featured" data-action="new-event">
+                            <div class="featured-badge">
+                                <i class="fas fa-star"></i>
+                                <span>Most Used</span>
+                            </div>
+                            <div class="action-icon-wrapper">
+                                <div class="action-icon event-icon">
+                                    <i class="fas fa-plus-circle"></i>
+                                </div>
+                            </div>
+                            <div class="action-content">
+                                <h3>Add New Event and Update</h3>
+                                <p>Post new event with images and details</p>
+                            </div>
+                            <button class="action-btn" onclick="location.href='/admin'">
+                                <span>Create Event</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <div class="action-card" data-action="view-events">
+                            <div class="action-icon-wrapper">
+                                <div class="action-icon view-icon">
+                                    <i class="fas fa-list-ul"></i>
+                                </div>
+                            </div>
+                            <div class="action-content">
+                                <h3>View All Events and Updates</h3>
+                                <p>Browse and manage all published events</p>
+                            </div>
+                            <button class="action-btn" onclick="location.href='/admin/events'">
+                                <span>View Events</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <div class="action-card" data-action="view-banners">
+                            <div class="action-icon-wrapper">
+                                <div class="action-icon banners-icon">
+                                    <i class="fas fa-eye"></i>
+                                </div>
+                            </div>
+                            <div class="action-content">
+                                <h3>View All Banners</h3>
+                                <p>Browse and manage banner gallery</p>
+                            </div>
+                            <button class="action-btn" onclick="location.href='/admin/manage-banners'">
+                                <span>View Banners</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <div class="action-card" data-action="map-requests">
+                            <div class="action-icon-wrapper">
+                                <div class="action-icon map-icon">
+                                    <i class="fas fa-map-marked-alt"></i>
+                                </div>
+                            </div>
+                            <div class="action-content">
+                                <h3>View Map Requests</h3>
+                                <p>Review and manage submitted location map requests</p>
+                            </div>
+                            <button class="action-btn" onclick="location.href='/admin/map-requests'">
+                                <span>View Requests</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Recent Activity -->
+                <section class="recent-activity">
+                    <div class="section-header">
+                        <h2>Recent Activity</h2>
+                        <button class="view-all-btn">View All <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                    <div class="activity-list" id="recentActivity">
+                        <!-- JS will populate this dynamically -->
+                    </div>
+                </section>
+
+            </div><!-- /dashboard-container -->
+
+            <!-- Copyright inside the floating panel, at the bottom of the scroll area -->
+            <div class="copyright">
+                © 2026 Southern Luzon State University - CHERM. All rights reserved.
+            </div>
+
+        </div><!-- /content-scroll -->
+    </main><!-- /main-content -->
+
+</div><!-- /layout-shell -->
+
+<div class="toast" id="toast">
+    <i class="fas fa-check-circle"></i>
+    <span>Action completed successfully!</span>
+</div>
+
+<script src="/JS/admin-dashboard.js"></script>
+<script src="/JS/login.js"></script>
+</body>
+</html>
