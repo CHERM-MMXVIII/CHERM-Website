@@ -678,6 +678,10 @@ body {
     background: linear-gradient(135deg, #1ebdbd 0%, #008080 100%);
     color: white;
 }
+.action-icon.training-icon {
+    background: linear-gradient(135deg, #1ebdbd 0%, #008080 100%);
+    color: white;
+}
 
 .action-content h3 {
     font-size: 1.125rem;

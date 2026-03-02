@@ -254,7 +254,7 @@
                     <button type="button" class="btn-open-guideline" onclick="openModal2()">View More...</button>
                     <div class="inquiry-btn">
                         <button type="button" class="btn-open-modal" onclick="showUserMapRequest()">Track Manuscript</button>
-                        <button type="button" class="btn-open-modal" onclick="openModal3()">Submit Manuscript</button>
+                        <button type="button" class="btn-open-modal" onclick="openModal6()">Submit Manuscript</button>
                     </div>
                 </div>
             </div>
@@ -632,7 +632,7 @@
                         <div class="form-content">
                             <form id="requestForm">
 
-                                <input type="hidden" id="clientType" name="clientType" value="internal">
+                                <input type="hidden" id="tr-clientType" name="clientType" value="internal">
 
                                 <!-- ── CLIENT TYPE TOGGLE ── -->
                                 <div class="client-type-toggle-wrapper">
@@ -662,13 +662,8 @@
                                     <label for="email">
                                         Email Address <span style="color: #dc3545;">*</span>
                                     </label>
-                                    <input 
-                                        type="email" 
-                                        id="email" 
-                                        name="email"
-                                        placeholder="email@example.com" 
-                                        required>
-                                    <div class="email-hint" id="emailHint">
+                                    <input type="email" id="tr-email" name="email" placeholder="email@example.com" required>
+                                    <div class="email-hint" id="tr-emailHint">
                                         <i class="fas fa-info-circle"></i>
                                         Must use your institutional SLSU email (e.g. juan@slsu.edu.ph)
                                     </div>
@@ -680,37 +675,23 @@
                                         <label for="surname">
                                             Surname <span style="color: #dc3545;">*</span>
                                         </label>
-                                        <input 
-                                            type="text" 
-                                            id="surname" 
-                                            name="surname"
-                                            placeholder="Dela Cruz" 
-                                            required>
+                                        <input type="text" id="tr-surname" name="surname" placeholder="Dela Cruz" required>
                                     </div>
                                     <div>
                                         <label for="firstName">
                                             First Name <span style="color: #dc3545;">*</span>
                                         </label>
-                                        <input 
-                                            type="text" 
-                                            id="firstName" 
-                                            name="firstName"
-                                            placeholder="Juan" 
-                                            required>
+                                        <input type="text" id="tr-firstName" name="firstName" placeholder="Juan" required>
                                     </div>
                                 </div>
 
                                 <!-- Office/Agency/College -->
                                 <div class="form-group">
-                                    <label id="affiliationLabel">
+                                    <label id="tr-affiliationLabel">
                                         Office / Agency / College <span style="color: #dc3545;">*</span>
                                     </label>
-                                    <input 
-                                        type="text" 
-                                        id="affiliation" 
-                                        name="affiliation"
-                                        placeholder="e.g. College of Engineering, LGU Lucena City" 
-                                        required>
+                                    <input type="text" id="tr-affiliation" name="affiliation"
+                                        placeholder="e.g. College of Engineering, LGU Lucena City" required>
                                 </div>
 
                                 <!-- Upload Request Letter -->
@@ -721,18 +702,18 @@
                                     <p class="helper-text">
                                         Upload your official request letter in PDF format. Maximum file size: 5MB.
                                     </p>
-                                    <div class="upload-area" onclick="document.getElementById('requestLetter').click()">
+                                    <div class="upload-area" onclick="document.getElementById('tr-requestLetter').click()">
                                         <div class="upload-icon">
                                             <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #6c757d;"></i>
                                         </div>
-                                        <div class="upload-text" id="uploadText">Click to upload PDF</div>
+                                        <div class="upload-text" id="tr-uploadText">Click to upload PDF</div>
                                         <div class="upload-subtext">Supported format: PDF (Max 5MB)</div>
                                     </div>
-                                    <input 
-                                        type="file" 
-                                        id="requestLetter" 
+                                    <input
+                                        type="file"
+                                        id="tr-requestLetter"
                                         name="requestLetter"
-                                        accept=".pdf" 
+                                        accept=".pdf"
                                         required
                                         onchange="handleFileUpload(this)">
                                 </div>
@@ -750,6 +731,159 @@
                                             </svg>
                                         </span>
                                         Submit Request
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="serviceModal6" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <div class="modalheader">
+                    <h3 class="modal-title">
+                        MANUSCRIPT REVIEW FORM &mdash; <span id="mr-clientTypeLabel">INTERNAL CLIENT</span>
+                    </h3>
+                    <button type="button" class="close-btn" onclick="closeModal6()">&times;</button>
+                </div>
+
+                <span class="separator"></span>
+
+                <div class="modalbody">
+                    <div class="request-form-container">
+
+                        <div class="form-header">
+                            <h4>Request Details</h4>
+                            <p>Fill out all required fields to submit your manuscript for review.</p>
+                        </div>
+
+                        <div class="request-form-content">
+                            <form id="manuscriptReviewForm">
+
+                                <input type="hidden" id="mr-clientType" name="clientType" value="internal">
+
+                                <!-- ── CLIENT TYPE TOGGLE ── -->
+                                <div class="client-type-toggle-wrapper">
+                                    <label>I am a(n):</label>
+                                    <div class="client-type-pills">
+                                        <button type="button"
+                                                class="client-type-pill active"
+                                                data-type="internal"
+                                                onclick="selectManuscriptClientType('internal')">
+                                            <i class="fas fa-university"></i>
+                                            Internal Client
+                                            <small style="font-weight:400; opacity:.8;">(SLSU Faculty / Staff / Student)</small>
+                                        </button>
+                                        <button type="button"
+                                                class="client-type-pill"
+                                                data-type="external"
+                                                onclick="selectManuscriptClientType('external')">
+                                            <i class="fas fa-building"></i>
+                                            External Client
+                                            <small style="font-weight:400; opacity:.8;">(LGU / Agency / Organization)</small>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Email -->
+                                <div class="form-group">
+                                    <label for="mr-email">
+                                        Email Address <span style="color: #dc3545;">*</span>
+                                    </label>
+                                    <input type="email" id="mr-email" name="email"
+                                        placeholder="email@example.com" required>
+                                    <div class="email-hint" id="mr-emailHint">
+                                        <i class="fas fa-info-circle"></i>
+                                        Must use your institutional SLSU email (e.g. juan@slsu.edu.ph)
+                                    </div>
+                                </div>
+
+                                <!-- Name -->
+                                <div class="form-row">
+                                    <div>
+                                        <label for="mr-surname">
+                                            Surname <span style="color: #dc3545;">*</span>
+                                        </label>
+                                        <input type="text" id="mr-surname" name="surname"
+                                            placeholder="Dela Cruz" required>
+                                    </div>
+                                    <div>
+                                        <label for="mr-firstName">
+                                            First Name <span style="color: #dc3545;">*</span>
+                                        </label>
+                                        <input type="text" id="mr-firstName" name="firstName"
+                                            placeholder="Juan" required>
+                                    </div>
+                                </div>
+
+                                <!-- Office / Agency / College -->
+                                <div class="form-group">
+                                    <label id="mr-affiliationLabel">
+                                        Office / Agency / College <span style="color: #dc3545;">*</span>
+                                    </label>
+                                    <input type="text" id="mr-affiliation" name="affiliation"
+                                        placeholder="e.g. College of Engineering" required>
+                                </div>
+
+                                <!-- Upload Soft Copy -->
+                                <div class="form-group">
+                                    <label for="mr-manuscriptFile">
+                                        Soft Copy of Manuscript <span style="color: #dc3545;">*</span>
+                                    </label>
+                                    <p class="helper-text">
+                                        Upload your manuscript file in PDF, DOC, or DOCX format. Maximum file size: 25MB.
+                                    </p>
+                                    <div class="upload-area" onclick="document.getElementById('mr-manuscriptFile').click()">
+                                        <div class="upload-icon">
+                                            <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #6c757d;"></i>
+                                        </div>
+                                        <div class="upload-text" id="mr-uploadText">Click to upload file</div>
+                                        <div class="upload-subtext">Accepted formats: PDF, DOC, DOCX &mdash; Max 25MB</div>
+                                    </div>
+                                    <input
+                                        type="file"
+                                        id="mr-manuscriptFile"
+                                        name="manuscriptFile"
+                                        accept=".pdf,.doc,.docx"
+                                        required
+                                        onchange="handleManuscriptFileUpload(this)">
+                                </div>
+
+                                <!-- File Link -->
+                                <div class="form-group">
+                                    <label for="mr-fileLink">
+                                        File Link <span style="color: #dc3545;">*</span>
+                                    </label>
+                                    <p class="helper-text">
+                                        Provide a shareable link to the manuscript (e.g. Google Docs, OneDrive, Dropbox).
+                                        Make sure the link is set to <strong>allow viewing</strong>.
+                                    </p>
+                                    <div style="position: relative;">
+                                        <i class="fas fa-link" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#adb5bd; font-size:13px; pointer-events:none;"></i>
+                                        <input type="text"  id="mr-fileLink" name="fileLink"
+                                            placeholder="https://docs.google.com/document/d/..."
+                                            style="padding-left: 34px;"
+                                            required>
+                                    </div>
+                                </div>
+
+                                <!-- Form Actions -->
+                                <div class="form-actions">
+                                    <button type="button" class="btn-cancel" onclick="resetManuscriptReviewForm()">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="btn-submit">
+                                        <span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+                                                <path d="M290.5 287.7L491.4 86.9 359 456.3 290.5 287.7zM457.4 53L256.6 253.8 88 185.3 457.4 53zM38.1 216.8l205.8 83.6 83.6 205.8c5.3 13.1 18.1 21.7 32.3 21.7 14.7 0 27.8-9.2 32.8-23.1L570.6 8c3.5-9.8 1-20.6-6.3-28s-18.2-9.8-28-6.3L39.4 151.7c-13.9 5-23.1 18.1-23.1 32.8 0 14.2 8.6 27 21.7 32.3z"/>
+                                            </svg>
+                                        </span>
+                                        Submit Manuscript
                                     </button>
                                 </div>
                             </form>

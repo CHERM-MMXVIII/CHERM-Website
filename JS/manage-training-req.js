@@ -52,7 +52,8 @@ async function fetchRequests() {
         const res  = await fetch('/api/training-requests');
         if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
-        State.allRequests = data;
+        // Server returns { requests: [...] }
+        State.allRequests = Array.isArray(data) ? data : (data.requests || []);
         applyFiltersAndRender();
     } catch (err) {
         console.error('Failed to fetch training requests:', err);
@@ -102,12 +103,12 @@ function applyFiltersAndRender() {
         }
 
         // Client type filter
-        if (clientType.length && !clientType.includes(r.client_type)) return false;
+        if (clientType.length && !clientType.map(c => c.toLowerCase()).includes((r.client_type || "").toLowerCase())) return false;
 
         // Status filter
         if (status.length) {
             const norm = (r.status || '').toLowerCase().replace(/[\s-]/g, '-');
-            if (!status.includes(norm)) return false;
+            if (!status.map(s => s.toLowerCase()).includes(norm)) return false;
         }
 
         // Date range filter
@@ -295,11 +296,11 @@ function renderTableBody(rows) {
             <td>${escHtml(r.request_code || '—')}</td>
             <td>
                 <div class="requester-info">
-                    <span class="requester-name">${escHtml(r.surname + ', ' + r.first_name)}</span>
+                    <span class="requester-name">${r.first_name} ${r.surname}</span>
                     <span class="requester-affiliation">${escHtml(r.affiliation || '—')}</span>
                 </div>
             </td>
-            <td>${escHtml(r.client_type || '—')}</td>
+            <td>${escHtml(r.client_type ? r.client_type.charAt(0).toUpperCase() + r.client_type.slice(1).toLowerCase() : '—')}</td>
             <td class="email-cell">${escHtml(r.email || '—')}</td>
             <td>${formatDate(r.created_at)}</td>
             <td><span class="status-badge ${statusClass(r.status)}">${escHtml(r.status || 'Pending')}</span></td>
@@ -328,8 +329,9 @@ async function openViewModal(id) {
     let r = State.allRequests.find(x => x.id === id);
     if (!r) {
         try {
-            const res = await fetch(`/api/training-requests/${id}`);
-            r = await res.json();
+            const res  = await fetch(`/api/training-requests/${id}`);
+            const data = await res.json();
+            r = data.request || data;
         } catch (err) {
             console.error('Failed to load request:', err);
             return;
@@ -342,7 +344,7 @@ async function openViewModal(id) {
     document.getElementById('modalName').textContent         = `${r.surname}, ${r.first_name}`;
     document.getElementById('modalEmail').textContent        = r.email || '—';
     document.getElementById('modalAffiliation').textContent  = r.affiliation || '—';
-    document.getElementById('modalClientType').textContent   = r.client_type || '—';
+    document.getElementById('modalClientType').textContent   = r.client_type ? r.client_type.charAt(0).toUpperCase() + r.client_type.slice(1).toLowerCase() : '—';
     document.getElementById('modalDate').textContent         = formatDate(r.created_at);
 
     // Status badge
@@ -397,7 +399,7 @@ async function saveRequestUpdates() {
 
     try {
         const res = await fetch(`/api/training-requests/${State.currentRequestId}`, {
-            method:  'PATCH',
+            method:  'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status, admin_notes: adminNotes }),
         });
@@ -431,7 +433,7 @@ function downloadDocument(type) {
         if (path) {
             window.open(path, '_blank');
         } else {
-            showToast('No request letter available.', 'error');
+            showToast('No request letter available for this request.', 'error');
         }
     }
 }
@@ -522,6 +524,7 @@ function buildFilterDropdown() {
         <button class="filter-dropdown-toggle" id="filterToggleBtn" onclick="toggleFilterPanel()">
             <i class="fas fa-filter"></i>
             <span>Filter</span>
+            <span class="filter-active-badge" id="filterActiveBadge" style="display:none"></span>
             <i class="fas fa-chevron-down filter-chevron" id="filterChevron"></i>
         </button>
         <div class="filter-dropdown-panel" id="filterPanel">
@@ -556,11 +559,11 @@ function buildFilterDropdown() {
                     <div class="filter-date-inputs">
                         <div class="filter-date-row">
                             <span class="filter-date-label">From</span>
-                            <input type="date" class="filter-date-input" id="dateFrom">
+                            <input type="date" class="filter-date-input" id="dateFrom" onchange="applyFilterPanel()">
                         </div>
                         <div class="filter-date-row">
                             <span class="filter-date-label">To</span>
-                            <input type="date" class="filter-date-input" id="dateTo">
+                            <input type="date" class="filter-date-input" id="dateTo" onchange="applyFilterPanel()">
                         </div>
                     </div>
                 </div>
@@ -569,7 +572,7 @@ function buildFilterDropdown() {
                 <button class="filter-clear-btn" onclick="clearFilters()">
                     <i class="fas fa-times"></i> Clear
                 </button>
-                <button class="filter-apply-btn" onclick="applyFilterPanel()">Apply</button>
+                
             </div>
         </div>`;
 
@@ -582,7 +585,7 @@ function buildFilterDropdown() {
 function checkboxRow(group, value, label) {
     return `
         <label class="filter-checkbox-label">
-            <input type="checkbox" class="filter-checkbox" data-group="${group}" value="${value}">
+            <input type="checkbox" class="filter-checkbox" data-group="${group}" value="${value}" onchange="applyFilterPanel()">
             <span class="filter-checkbox-custom"></span>
             <span class="filter-checkbox-text">${label}</span>
         </label>`;
@@ -628,16 +631,7 @@ function applyFilterPanel() {
     // Update badge
     const activeCount = clientType.length + status.length
         + (State.activeFilters.dateFrom || State.activeFilters.dateTo ? 1 : 0);
-    const toggleBtn = document.getElementById('filterToggleBtn');
-    if (toggleBtn) {
-        const badge = activeCount ? `<span class="filter-active-badge">${activeCount}</span>` : '';
-        toggleBtn.innerHTML = `
-            <i class="fas fa-filter"></i>
-            <span>Filter</span>
-            ${badge}
-            <i class="fas fa-chevron-down filter-chevron" id="filterChevron" style="transform:rotate(180deg)"></i>`;
-        toggleBtn.classList.toggle('has-filters', !!activeCount);
-    }
+    updateFilterBadge(activeCount);
 
     State.page = 1;
     applyFiltersAndRender();
@@ -652,14 +646,7 @@ function clearFilters() {
 
     State.activeFilters = { clientType: [], status: [], dateFrom: '', dateTo: '', dateField: 'created_at' };
 
-    const toggleBtn = document.getElementById('filterToggleBtn');
-    if (toggleBtn) {
-        toggleBtn.innerHTML = `
-            <i class="fas fa-filter"></i>
-            <span>Filter</span>
-            <i class="fas fa-chevron-down filter-chevron" id="filterChevron"></i>`;
-        toggleBtn.classList.remove('has-filters');
-    }
+    updateFilterBadge(0);
 
     State.page = 1;
     applyFiltersAndRender();
@@ -668,6 +655,20 @@ function clearFilters() {
 /* ================================================
    TOAST
    ================================================ */
+
+function updateFilterBadge(count) {
+    const badge    = document.getElementById('filterActiveBadge');
+    const toggleBtn = document.getElementById('filterToggleBtn');
+    if (badge) {
+        if (count > 0) {
+            badge.textContent   = count;
+            badge.style.display = 'inline-flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+    if (toggleBtn) toggleBtn.classList.toggle('has-filters', count > 0);
+}
 
 function showToast(message, type = 'success') {
     const existing = document.getElementById('cherm-toast');

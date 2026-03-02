@@ -62,6 +62,16 @@ if (!fs.existsSync(bannersDir)) {
   fs.mkdirSync(bannersDir);
 }
 
+const trainingRequestDir = path.join(uploadsDir, 'training-requests');
+if (!fs.existsSync(trainingRequestDir)) {
+  fs.mkdirSync(trainingRequestDir);
+}
+
+const manuscriptRequestDir = path.join(uploadsDir, 'manuscript-requests');
+if (!fs.existsSync(manuscriptRequestDir)) {
+  fs.mkdirSync(manuscriptRequestDir);
+}
+
 /* ---------- MIDDLEWARE ---------- */
 app.use(express.json({ limit: '500mb' }));
 app.use(express.urlencoded({ limit: '500mb', extended: true }));
@@ -126,6 +136,45 @@ const bannerUpload = multer({
   }
 });
 
+const trainingUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, trainingRequestDir),
+    filename: (req, file, cb) => {
+      const uniqueName = Date.now() + '-' + file.originalname;
+      cb(null, uniqueName);
+    }
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype !== 'application/pdf') {
+      return cb(new Error('Only PDF files are allowed'));
+    }
+    cb(null, true);
+  }
+});
+
+const manuscriptUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, manuscriptRequestDir),
+    filename: (req, file, cb) => {
+      const uniqueName = Date.now() + '-' + file.originalname;
+      cb(null, uniqueName);
+    }
+  }),
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB
+  fileFilter: (req, file, cb) => {
+    const allowed = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    if (!allowed.includes(file.mimetype)) {
+      return cb(new Error('Only PDF, DOC, or DOCX files are allowed'));
+    }
+    cb(null, true);
+  }
+});
+
 /* ---------- ADMIN MAPS DIR ---------- */
 const adminMapsDir = path.join(uploadsDir, 'admin-maps');
 
@@ -184,6 +233,13 @@ function generateTrainingRequestId() {
     .padStart(4, '0');
 
   return `${datePart}-CHERM-TR-${hexPart}`;
+}
+
+function generateManuscriptRequestId() {
+  const now = new Date();
+  const datePart = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+  const hexPart = crypto.randomBytes(3).toString('hex').toUpperCase();
+  return `${datePart}-CHERM-MR-${hexPart}`;
 }
 
 /* ---------- FACEBOOK POST ID EXTRACTOR ---------- */
@@ -279,6 +335,14 @@ app.get('/api/activity/recent', requireAuth, async (req, res) => {
 // Serve the manage-map-request.html page (admin-only)
 app.get('/admin/map-requests', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'html', 'manage-map-request.html'));
+});
+
+app.get('/admin/training-requests', requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'manage-training-req.html'));
+});
+
+app.get('/admin/manuscript-requests', requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'manage-manuscript-req.html'));
 });
 
 // LOGIN SETUP 
@@ -1177,18 +1241,16 @@ app.post('/api/training-requests', trainingUpload.single('requestLetter'), async
 
     while (exists) {
       requestCode = generateTrainingRequestId();
-
       const check = await pool.query(
         'SELECT id FROM training_requests WHERE request_code = $1',
         [requestCode]
       );
-
-      if (check.rows.length === 0) {
-        exists = false;
-      }
+      if (check.rows.length === 0) exists = false;
     }
 
-    // Insert into database (MATCHES YOUR TABLE EXACTLY)
+    // ✅ Store as a URL path, not an absolute filesystem path
+    const requestLetterPath = '/uploads/training-requests/' + req.file.filename;
+
     await pool.query(
       `INSERT INTO training_requests
         (request_code, client_type, email, surname, first_name, affiliation, request_letter_path)
@@ -1201,18 +1263,336 @@ app.post('/api/training-requests', trainingUpload.single('requestLetter'), async
         surname,
         firstName,
         affiliation,
-        req.file.path
+        requestLetterPath   // ✅ was: req.file.path (absolute — wrong)
       ]
     );
 
     res.status(201).json({
       success: true,
-      requestCode: requestCode
+      requestCode
     });
 
   } catch (err) {
     console.error('Training request error:', err);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/training-requests', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+         id,
+         request_code,
+         client_type,
+         email,
+         surname,
+         first_name,
+         affiliation,
+         request_letter_path,
+         status,
+         created_at
+       FROM training_requests
+       ORDER BY created_at DESC`
+    );
+    res.json({ requests: result.rows });
+  } catch (err) {
+    console.error('Fetch training requests error:', err);
+    res.status(500).json({ error: 'Failed to fetch training requests' });
+  }
+});
+
+app.get('/api/training-requests/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT * FROM training_requests WHERE id = $1`,
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+    res.json({ request: result.rows[0] });
+  } catch (err) {
+    console.error('Fetch single training request error:', err);
+    res.status(500).json({ error: 'Failed to fetch request' });
+  }
+});
+
+/* PUT — update status (and optional admin_notes if column exists) */
+app.put('/api/training-requests/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { status, admin_notes } = req.body;
+
+  if (!status) {
+    return res.status(400).json({ error: 'Status is required' });
+  }
+
+  try {
+    await pool.query(
+      `UPDATE training_requests
+       SET status = $1
+       WHERE id = $2`,
+      [status, id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Update training request error:', err);
+    res.status(500).json({ error: 'Failed to update request' });
+  }
+});
+
+/* DELETE training request + its uploaded file */
+app.delete('/api/training-requests/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT request_letter_path FROM training_requests WHERE id = $1`,
+      [id]
+    );
+
+    if (result.rows.length > 0) {
+      const { request_letter_path } = result.rows[0];
+      if (request_letter_path) {
+        // request_letter_path is stored as the full file system path from multer (req.file.path)
+        // Try both: as-is (absolute) and relative to __dirname
+        if (fs.existsSync(request_letter_path)) {
+          fs.unlinkSync(request_letter_path);
+        } else {
+          const relative = path.join(__dirname, request_letter_path);
+          if (fs.existsSync(relative)) fs.unlinkSync(relative);
+        }
+      }
+    }
+
+    await pool.query(`DELETE FROM training_requests WHERE id = $1`, [id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Delete training request error:', err);
+    res.status(500).json({ error: 'Failed to delete request' });
+  }
+});
+
+// ----------------------------------------------------------------
+// 5. POST — Submit manuscript review request (public)
+//    Place after: app.post('/api/training-requests', ...)
+// ----------------------------------------------------------------
+
+app.post('/api/manuscript-requests', manuscriptUpload.single('manuscriptFile'), async (req, res) => {
+  try {
+    const {
+      clientType,
+      email,
+      surname,
+      firstName,
+      affiliation,
+      fileLink
+    } = req.body;
+
+    // Validate required fields
+    if (!clientType || !email || !surname || !firstName || !affiliation || !fileLink) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'Manuscript file is required' });
+    }
+
+    // Generate unique request code (collision-safe loop)
+    let requestCode;
+    let exists = true;
+
+    while (exists) {
+      requestCode = generateManuscriptRequestId();
+      const check = await pool.query(
+        'SELECT id FROM manuscript_review_requests WHERE request_code = $1',
+        [requestCode]
+      );
+      if (check.rows.length === 0) exists = false;
+    }
+
+    const manuscriptFilePath = '/uploads/manuscript-requests/' + req.file.filename;
+
+    await pool.query(
+      `INSERT INTO manuscript_review_requests
+        (request_code, client_type, email, surname, first_name, affiliation, manuscript_file_path, file_link)
+       VALUES
+        ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        requestCode,
+        clientType,
+        email,
+        surname,
+        firstName,
+        affiliation,
+        manuscriptFilePath,
+        fileLink
+      ]
+    );
+
+    // Notify CHERM admin
+    await transporter.sendMail({
+      from: `"CHERM Manuscript Review" <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_USER,
+      subject: `New Manuscript Review Request - ${requestCode}`,
+      html: `
+        <h3>New Manuscript Review Request Submitted</h3>
+        <p><strong>Request Code:</strong> ${requestCode}</p>
+        <p><strong>Client Type:</strong> ${clientType}</p>
+        <p><strong>Name:</strong> ${firstName} ${surname}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Affiliation:</strong> ${affiliation}</p>
+        <p><strong>File Link:</strong> <a href="${fileLink}">${fileLink}</a></p>
+        <p><strong>Uploaded File:</strong> ${req.file.originalname}</p>
+      `
+    });
+
+    // Confirm to the submitter
+    await transporter.sendMail({
+      from: `"CHERM Manuscript Review" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `Your CHERM Manuscript Review Request - ${requestCode}`,
+      html: `
+        <h2>CHERM Manuscript Review Confirmation</h2>
+        <p>Dear ${firstName} ${surname},</p>
+        <p>Thank you for submitting your manuscript for review.</p>
+        <p><strong>Your Request Code:</strong></p>
+        <h3 style="color:#2c3e50;">${requestCode}</h3>
+        <p>Please keep this code to track the status of your request.</p>
+        <p>We will get back to you via email once the review is complete.</p>
+      `
+    });
+
+    res.status(201).json({
+      success: true,
+      requestCode
+    });
+
+  } catch (err) {
+    console.error('Manuscript request error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// ----------------------------------------------------------------
+// 6. GET ALL — Admin list view (protected)
+//    Place after: app.get('/api/training-requests', ...)
+// ----------------------------------------------------------------
+
+app.get('/api/manuscript-requests', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+         id,
+         request_code,
+         client_type,
+         email,
+         surname,
+         first_name,
+         affiliation,
+         manuscript_file_path,
+         file_link,
+         status,
+         created_at
+       FROM manuscript_review_requests
+       ORDER BY created_at DESC`
+    );
+    res.json({ requests: result.rows });
+  } catch (err) {
+    console.error('Fetch manuscript requests error:', err);
+    res.status(500).json({ error: 'Failed to fetch requests' });
+  }
+});
+
+
+// ----------------------------------------------------------------
+// 7. GET ONE — Admin detail/modal view (protected)
+//    Place after: app.get('/api/training-requests/:id', ...)
+// ----------------------------------------------------------------
+
+app.get('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT * FROM manuscript_review_requests WHERE id = $1`,
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+    res.json({ request: result.rows[0] });
+  } catch (err) {
+    console.error('Fetch single manuscript request error:', err);
+    res.status(500).json({ error: 'Failed to fetch request' });
+  }
+});
+
+
+// ----------------------------------------------------------------
+// 8. PUT — Update status (protected)
+//    Place after: app.put('/api/training-requests/:id', ...)
+// ----------------------------------------------------------------
+
+app.put('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!status) {
+    return res.status(400).json({ error: 'Status is required' });
+  }
+
+  try {
+    await pool.query(
+      `UPDATE manuscript_review_requests
+       SET status = $1
+       WHERE id = $2`,
+      [status, id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Update manuscript request error:', err);
+    res.status(500).json({ error: 'Failed to update request' });
+  }
+});
+
+
+// ----------------------------------------------------------------
+// 9. DELETE — Remove request + uploaded file (protected)
+//    Place after: app.delete('/api/training-requests/:id', ...)
+// ----------------------------------------------------------------
+
+app.delete('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT manuscript_file_path FROM manuscript_review_requests WHERE id = $1`,
+      [id]
+    );
+
+    if (result.rows.length > 0) {
+      const { manuscript_file_path } = result.rows[0];
+      if (manuscript_file_path) {
+        // Try relative path first (stored as /uploads/manuscript-requests/...)
+        const relative = path.join(__dirname, manuscript_file_path);
+        if (fs.existsSync(relative)) {
+          fs.unlinkSync(relative);
+        } else if (fs.existsSync(manuscript_file_path)) {
+          // Fallback: absolute path
+          fs.unlinkSync(manuscript_file_path);
+        }
+      }
+    }
+
+    await pool.query(
+      `DELETE FROM manuscript_review_requests WHERE id = $1`,
+      [id]
+    );
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error('Delete manuscript request error:', err);
+    res.status(500).json({ error: 'Failed to delete request' });
   }
 });
 
