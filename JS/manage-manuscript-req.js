@@ -46,16 +46,18 @@ function closeErrorModal() {
     document.getElementById('errorModal')?.remove();
 }
 
-function mapreqShowDeleteModal(title, itemName, onConfirm) {
-    // Remove any existing instance
-    document.getElementById('mapreq-confirm-modal')?.remove();
-    document.getElementById('mapreq-confirm-styles')?.remove();
+// ===============================
+// DELETE CONFIRM MODAL
+// ===============================
 
-    // Inject scoped styles with unique ID — overrides everything
+function mrShowDeleteModal(title, itemName, onConfirm) {
+    document.getElementById('mr-confirm-modal')?.remove();
+    document.getElementById('mr-confirm-styles')?.remove();
+
     const styleEl = document.createElement('style');
-    styleEl.id = 'mapreq-confirm-styles';
+    styleEl.id = 'mr-confirm-styles';
     styleEl.textContent = `
-        #mapreq-confirm-modal {
+        #mr-confirm-modal {
             position: fixed !important;
             inset: 0 !important;
             background: rgba(0,0,0,0.70) !important;
@@ -63,13 +65,10 @@ function mapreqShowDeleteModal(title, itemName, onConfirm) {
             align-items: center !important;
             justify-content: center !important;
             z-index: 99999 !important;
-            animation: mapreqFadeIn 0.2s ease !important;
+            animation: mrFadeIn 0.2s ease !important;
         }
-        @keyframes mapreqFadeIn {
-            from { opacity: 0; }
-            to   { opacity: 1; }
-        }
-        #mapreq-confirm-modal .mapreq-box {
+        @keyframes mrFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #mr-confirm-modal .mr-box {
             background: #ffffff !important;
             border-radius: 12px !important;
             padding: 32px !important;
@@ -78,170 +77,85 @@ function mapreqShowDeleteModal(title, itemName, onConfirm) {
             text-align: center !important;
             position: relative !important;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3) !important;
-            animation: mapreqSlideUp 0.3s ease !important;
-            /* Reset anything Bootstrap might inject */
+            animation: mrSlideUp 0.3s ease !important;
             display: block !important;
-            flex-direction: unset !important;
         }
-        @keyframes mapreqSlideUp {
-            from { transform: translateY(30px); opacity: 0; }
-            to   { transform: translateY(0);    opacity: 1; }
+        @keyframes mrSlideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        #mr-confirm-modal .mr-close-btn {
+            position: absolute !important; top: 14px !important; right: 16px !important;
+            background: none !important; border: none !important; font-size: 30px !important;
+            color: #999 !important; cursor: pointer !important; line-height: 1 !important;
+            padding: 2px 6px !important; box-shadow: none !important;
         }
-        #mapreq-confirm-modal .mapreq-close-btn {
-            position: absolute !important;
-            top: 14px !important;
-            right: 16px !important;
-            background: none !important;
-            border: none !important;
-            font-size: 30px !important;
-            color: #999 !important;
-            cursor: pointer !important;
-            line-height: 1 !important;
-            padding: 2px 6px !important;
-            box-shadow: none !important;
-            transition: color 0.2s !important;
+        #mr-confirm-modal .mr-close-btn:hover { color: #333 !important; }
+        #mr-confirm-modal .mr-icon-wrap {
+            margin: 0 auto 20px !important; width: 56px !important; height: 56px !important;
+            background: #fee2e2 !important; border-radius: 50% !important;
+            display: flex !important; align-items: center !important; justify-content: center !important;
         }
-        #mapreq-confirm-modal .mapreq-close-btn:hover {
-            color: #333 !important;
+        #mr-confirm-modal .mr-icon-wrap svg { fill: #dc2626 !important; }
+        #mr-confirm-modal .mr-title { margin: 0 0 14px 0 !important; font-size: 22px !important; font-weight: 700 !important; color: #1a1a1a !important; font-family: inherit !important; }
+        #mr-confirm-modal .mr-msg { font-size: 15px !important; color: #555 !important; margin: 0 0 8px 0 !important; line-height: 1.5 !important; font-family: inherit !important; }
+        #mr-confirm-modal .mr-msg strong { color: #1a1a1a !important; }
+        #mr-confirm-modal .mr-warn { font-size: 13px !important; color: #dc2626 !important; font-weight: 500 !important; margin: 0 0 28px 0 !important; font-family: inherit !important; }
+        #mr-confirm-modal .mr-actions { display: flex !important; justify-content: center !important; gap: 12px !important; }
+        #mr-confirm-modal .mr-btn-cancel {
+            padding: 10px 24px !important; border: none !important; border-radius: 6px !important;
+            font-size: 14px !important; font-weight: 500 !important; cursor: pointer !important;
+            background: #f0f0f0 !important; color: #555 !important; transition: background 0.2s !important; font-family: inherit !important; box-shadow: none !important;
         }
-        #mapreq-confirm-modal .mapreq-icon-wrap {
-            margin: 0 auto 20px !important;
-            width: 56px !important;
-            height: 56px !important;
-            background: #fee2e2 !important;
-            border-radius: 50% !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
+        #mr-confirm-modal .mr-btn-cancel:hover { background: #e0e0e0 !important; }
+        #mr-confirm-modal .mr-btn-delete {
+            padding: 10px 24px !important; border: none !important; border-radius: 6px !important;
+            font-size: 14px !important; font-weight: 500 !important; cursor: pointer !important;
+            background: #dc2626 !important; color: #ffffff !important; transition: background 0.2s !important; font-family: inherit !important; box-shadow: none !important;
         }
-        #mapreq-confirm-modal .mapreq-icon-wrap svg {
-            fill: #dc2626 !important;
-        }
-        #mapreq-confirm-modal .mapreq-title {
-            margin: 0 0 14px 0 !important;
-            font-size: 22px !important;
-            font-weight: 700 !important;
-            color: #1a1a1a !important;
-            font-family: inherit !important;
-        }
-        #mapreq-confirm-modal .mapreq-msg {
-            font-size: 15px !important;
-            color: #555 !important;
-            margin: 0 0 8px 0 !important;
-            line-height: 1.5 !important;
-            font-family: inherit !important;
-        }
-        #mapreq-confirm-modal .mapreq-msg strong {
-            color: #1a1a1a !important;
-        }
-        #mapreq-confirm-modal .mapreq-warn {
-            font-size: 13px !important;
-            color: #dc2626 !important;
-            font-weight: 500 !important;
-            margin: 0 0 28px 0 !important;
-            font-family: inherit !important;
-        }
-        #mapreq-confirm-modal .mapreq-actions {
-            display: flex !important;
-            justify-content: center !important;
-            gap: 12px !important;
-        }
-        #mapreq-confirm-modal .mapreq-btn-cancel {
-            padding: 10px 24px !important;
-            border: none !important;
-            border-radius: 6px !important;
-            font-size: 14px !important;
-            font-weight: 500 !important;
-            cursor: pointer !important;
-            background: #f0f0f0 !important;
-            color: #555 !important;
-            transition: background 0.2s !important;
-            font-family: inherit !important;
-            box-shadow: none !important;
-        }
-        #mapreq-confirm-modal .mapreq-btn-cancel:hover {
-            background: #e0e0e0 !important;
-        }
-        #mapreq-confirm-modal .mapreq-btn-delete {
-            padding: 10px 24px !important;
-            border: none !important;
-            border-radius: 6px !important;
-            font-size: 14px !important;
-            font-weight: 500 !important;
-            cursor: pointer !important;
-            background: #dc2626 !important;
-            color: #ffffff !important;
-            transition: background 0.2s !important;
-            font-family: inherit !important;
-            box-shadow: none !important;
-        }
-        #mapreq-confirm-modal .mapreq-btn-delete:hover {
-            background: #b91c1c !important;
-        }
-        #mapreq-confirm-modal .mapreq-btn-delete:disabled {
-            background: #fca5a5 !important;
-            cursor: not-allowed !important;
-        }
+        #mr-confirm-modal .mr-btn-delete:hover { background: #b91c1c !important; }
         @media (max-width: 480px) {
-            #mapreq-confirm-modal .mapreq-actions {
-                flex-direction: column-reverse !important;
-            }
-            #mapreq-confirm-modal .mapreq-btn-cancel,
-            #mapreq-confirm-modal .mapreq-btn-delete {
-                width: 100% !important;
-            }
+            #mr-confirm-modal .mr-actions { flex-direction: column-reverse !important; }
+            #mr-confirm-modal .mr-btn-cancel,
+            #mr-confirm-modal .mr-btn-delete { width: 100% !important; }
         }
     `;
     document.head.appendChild(styleEl);
 
     const modalEl = document.createElement('div');
-    modalEl.id = 'mapreq-confirm-modal';
+    modalEl.id = 'mr-confirm-modal';
     modalEl.innerHTML = `
-        <div class="mapreq-box">
-            <button class="mapreq-close-btn" onclick="mapreqCloseDeleteModal()">&times;</button>
-
-            <div class="mapreq-icon-wrap">
+        <div class="mr-box">
+            <button class="mr-close-btn" onclick="mrCloseDeleteModal()">&times;</button>
+            <div class="mr-icon-wrap">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="26" height="26">
                     <path d="M256 512a256 256 0 1 1 0-512 256 256 0 1 1 0 512zm0-192a32 32 0 1 0 0 64 32 32 0 1 0 0-64zm0-192c-18.2 0-32.7 15.5-31.4 33.7l7.4 104c.9 12.6 11.4 22.3 23.9 22.3 12.6 0 23-9.7 23.9-22.3l7.4-104c1.3-18.2-13.1-33.7-31.4-33.7z"/>
                 </svg>
             </div>
-
-            <h2 class="mapreq-title">${title}</h2>
-
-            <p class="mapreq-msg">
-                Are you sure you want to delete <strong>"${itemName}"</strong>?
-            </p>
-            <p class="mapreq-warn">This action cannot be undone.</p>
-
-            <div class="mapreq-actions">
-                <button type="button" class="mapreq-btn-cancel" onclick="mapreqCloseDeleteModal()">Cancel</button>
-                <button type="button" class="mapreq-btn-delete" onclick="mapreqConfirmAction()">Delete Request</button>
+            <h2 class="mr-title">${title}</h2>
+            <p class="mr-msg">Are you sure you want to delete <strong>"${itemName}"</strong>?</p>
+            <p class="mr-warn">This action cannot be undone.</p>
+            <div class="mr-actions">
+                <button type="button" class="mr-btn-cancel" onclick="mrCloseDeleteModal()">Cancel</button>
+                <button type="button" class="mr-btn-delete" onclick="mrConfirmAction()">Delete Request</button>
             </div>
-        </div>
-    `;
+        </div>`;
 
-    // Close on backdrop click
-    modalEl.addEventListener('click', e => {
-        if (e.target === modalEl) mapreqCloseDeleteModal();
-    });
-
+    modalEl.addEventListener('click', e => { if (e.target === modalEl) mrCloseDeleteModal(); });
     document.body.appendChild(modalEl);
     document.body.classList.add('modal-open');
-    window.confirmModalCallback = onConfirm;
+    window.mrConfirmCallback = onConfirm;
 }
 
-function mapreqCloseDeleteModal() {
-    document.getElementById('mapreq-confirm-modal')?.remove();
-    document.getElementById('mapreq-confirm-styles')?.remove();
+function mrCloseDeleteModal() {
+    document.getElementById('mr-confirm-modal')?.remove();
+    document.getElementById('mr-confirm-styles')?.remove();
     if (!document.getElementById('viewRequestModal')?.classList.contains('active')) {
         document.body.classList.remove('modal-open');
     }
-    window.confirmModalCallback = null;
+    window.mrConfirmCallback = null;
 }
 
-function mapreqConfirmAction() {
-    if (window.confirmModalCallback) window.confirmModalCallback();
-    mapreqCloseDeleteModal();
+function mrConfirmAction() {
+    if (window.mrConfirmCallback) window.mrConfirmCallback();
+    mrCloseDeleteModal();
 }
 
 // ===============================
@@ -257,11 +171,7 @@ let currentPage      = 1;
 // SORTING
 // ===============================
 
-const sortState = {
-    column: null,   // active column key
-    dir:    'asc',  // 'asc' | 'desc'
-};
-
+const sortState = { column: null, dir: 'asc' };
 const SORT_DATE_COLS = ['created_at', 'date_needed'];
 
 function sortBy(column) {
@@ -287,22 +197,17 @@ function updateSortHeaders() {
 
 function applySorting(list) {
     if (!sortState.column) return list;
-
     const col    = sortState.column;
     const isDate = SORT_DATE_COLS.includes(col);
     const dir    = sortState.dir === 'asc' ? 1 : -1;
-
     return [...list].sort((a, b) => {
         let valA = a[col] ?? '';
         let valB = b[col] ?? '';
-
         if (isDate) {
             valA = valA ? new Date(valA).getTime() : 0;
             valB = valB ? new Date(valB).getTime() : 0;
             return (valA - valB) * dir;
         }
-
-        // String sort
         return valA.toString().toLowerCase().localeCompare(valB.toString().toLowerCase()) * dir;
     });
 }
@@ -317,50 +222,35 @@ const FILTER_CONFIG = [
         label:   'Status',
         icon:    'fa-circle-half-stroke',
         options: [
-            { value: 'pending',     label: 'Pending'     },
-            { value: 'in-progress', label: 'In Progress' },
-            { value: 'completed',   label: 'Completed'   },
-            { value: 'rejected',    label: 'Rejected'    },
-            { value: 'terminated',  label: 'Terminated'  },
-        ],
-    },
-    {
-        key:     'map_type',
-        label:   'Map Type',
-        icon:    'fa-map',
-        options: [
-            { value: 'topographic', label: 'Topographic' },
-            { value: 'hazard',      label: 'Hazard'      },
-            { value: 'land-use',    label: 'Land Use'    },
-            { value: 'thematic',    label: 'Thematic'    },
-            { value: 'other',       label: 'Other'       },
+            { value: 'pending',      label: 'Pending'      },
+            { value: 'in progress',  label: 'In Progress'  },
+            { value: 'under review', label: 'Under Review' },
+            { value: 'completed',    label: 'Completed'    },
+            { value: 'declined',     label: 'Declined'     },
         ],
     },
     {
         key:     'client_type',
         label:   'Client Type',
         icon:    'fa-user-tag',
-        options: [], // populated dynamically from data
+        options: [], // populated from data
     },
     {
         key:     'date_range',
         label:   'Date Range',
         icon:    'fa-calendar-days',
-        options: [], // rendered as date inputs, not checkboxes
+        options: [], // rendered as date inputs
     },
 ];
 
-// Tracks active checkbox selections and date range
 const activeFilters = {
     status:      new Set(),
-    map_type:    new Set(),
     client_type: new Set(),
-    date_field:  'created_at', // 'created_at' or 'date_needed'
+    date_field:  'created_at',
     date_from:   null,
     date_to:     null,
 };
 
-/** Build the filter dropdown HTML and inject it into #filterDropdownWrapper */
 function buildFilterDropdown() {
     const wrapper = document.getElementById('filterDropdownWrapper');
     if (!wrapper) return;
@@ -372,10 +262,10 @@ function buildFilterDropdown() {
             <span class="filter-active-badge" id="filterActiveBadge" style="display:none">0</span>
             <i class="fas fa-chevron-down filter-chevron" id="filterChevron"></i>
         </div>
-
         <div class="filter-dropdown-panel" id="filterDropdownPanel">
             <div class="filter-panel-inner">
-                ${FILTER_CONFIG.map(group => `
+                ${FILTER_CONFIG.map((group, idx) => `
+                    ${idx > 0 ? '<div class="filter-group-divider"></div>' : ''}
                     <div class="filter-group" id="filterGroup-${group.key}">
                         <div class="filter-group-header">
                             <i class="fas ${group.icon}"></i>
@@ -385,31 +275,21 @@ function buildFilterDropdown() {
                             ${group.key === 'date_range' ? renderDateRange() : group.options.map(opt => renderCheckbox(group.key, opt)).join('')}
                         </div>
                     </div>
-                `).join('<div class="filter-group-divider"></div>')}
+                `).join('')}
             </div>
-
             <div class="filter-panel-footer">
                 <button class="filter-clear-btn" onclick="clearAllFilters()">
                     <i class="fas fa-rotate-left"></i> Clear all
                 </button>
-                <button class="filter-apply-btn" onclick="closeFilterDropdown()">
-                    Done
-                </button>
+                <button class="filter-apply-btn" onclick="closeFilterDropdown()">Done</button>
             </div>
-        </div>
-    `;
+        </div>`;
 }
 
 function renderCheckbox(groupKey, opt) {
     return `
         <label class="filter-checkbox-label">
-            <input
-                type="checkbox"
-                class="filter-checkbox"
-                data-group="${groupKey}"
-                value="${opt.value}"
-                onchange="onCheckboxChange(this)"
-            >
+            <input type="checkbox" class="filter-checkbox" data-group="${groupKey}" value="${opt.value}" onchange="onCheckboxChange(this)">
             <span class="filter-checkbox-custom"></span>
             <span class="filter-checkbox-text">${opt.label}</span>
         </label>`;
@@ -418,8 +298,8 @@ function renderCheckbox(groupKey, opt) {
 function renderDateRange() {
     return `
         <div class="filter-date-field-toggle">
-            <button class="date-field-btn active" data-field="created_at"  onclick="setDateField(this, 'created_at')">Date Created</button>
-            <button class="date-field-btn"        data-field="date_needed" onclick="setDateField(this, 'date_needed')">Date Needed</button>
+            <button class="date-field-btn active" data-field="created_at"  onclick="setDateField(this,'created_at')">Date Submitted</button>
+            <button class="date-field-btn"        data-field="date_needed" onclick="setDateField(this,'date_needed')">Review By</button>
         </div>
         <div class="filter-date-inputs">
             <div class="filter-date-row">
@@ -451,13 +331,10 @@ function onDateChange() {
     applyFilters();
 }
 
-/** Populate dynamic options for client_type from loaded data */
 function populateDynamicFilterOptions() {
     const clientTypes = [...new Set(allRequests.map(r => r.client_type).filter(Boolean))].sort();
-
     const clientTypeGroup = FILTER_CONFIG.find(g => g.key === 'client_type');
     clientTypeGroup.options = clientTypes.map(v => ({ value: v.toLowerCase(), label: capitalize(v) }));
-
     const el = document.getElementById('filterOptions-client_type');
     if (el) el.innerHTML = clientTypeGroup.options.map(opt => renderCheckbox('client_type', opt)).join('');
 }
@@ -479,11 +356,8 @@ function closeFilterDropdown() {
 function onCheckboxChange(checkbox) {
     const group = checkbox.dataset.group;
     const val   = checkbox.value;
-    if (checkbox.checked) {
-        activeFilters[group].add(val);
-    } else {
-        activeFilters[group].delete(val);
-    }
+    if (checkbox.checked) activeFilters[group].add(val);
+    else activeFilters[group].delete(val);
     updateActiveBadge();
     currentPage = 1;
     applyFilters();
@@ -491,7 +365,6 @@ function onCheckboxChange(checkbox) {
 
 function clearAllFilters() {
     activeFilters.status.clear();
-    activeFilters.map_type.clear();
     activeFilters.client_type.clear();
     activeFilters.date_from  = null;
     activeFilters.date_to    = null;
@@ -501,7 +374,6 @@ function clearAllFilters() {
     const dateTo   = document.getElementById('dateTo');
     if (dateFrom) dateFrom.value = '';
     if (dateTo)   dateTo.value   = '';
-    // Reset field toggle buttons
     document.querySelectorAll('.date-field-btn').forEach(b => b.classList.remove('active'));
     document.querySelector('.date-field-btn[data-field="created_at"]')?.classList.add('active');
     updateActiveBadge();
@@ -510,17 +382,16 @@ function clearAllFilters() {
 }
 
 function updateActiveBadge() {
-    const checkboxTotal = activeFilters.status.size + activeFilters.map_type.size + activeFilters.client_type.size;
-    const dateTotal     = (activeFilters.date_from ? 1 : 0) + (activeFilters.date_to ? 1 : 0);
-    const total         = checkboxTotal + dateTotal;
+    const total = activeFilters.status.size + activeFilters.client_type.size
+                + (activeFilters.date_from ? 1 : 0) + (activeFilters.date_to ? 1 : 0);
     const badge = document.getElementById('filterActiveBadge');
     if (!badge) return;
     if (total > 0) {
-        badge.textContent    = total;
-        badge.style.display  = 'inline-flex';
+        badge.textContent   = total;
+        badge.style.display = 'inline-flex';
         document.getElementById('filterToggleBtn')?.classList.add('has-filters');
     } else {
-        badge.style.display  = 'none';
+        badge.style.display = 'none';
         document.getElementById('filterToggleBtn')?.classList.remove('has-filters');
     }
 }
@@ -533,32 +404,26 @@ document.addEventListener('DOMContentLoaded', () => {
     buildFilterDropdown();
     loadRequests();
 
-    // Close view modal on backdrop click
     const viewModal = document.getElementById('viewRequestModal');
     if (viewModal) {
-        viewModal.addEventListener('click', e => {
-            if (e.target === viewModal) closeViewModal();
-        });
+        viewModal.addEventListener('click', e => { if (e.target === viewModal) closeViewModal(); });
     }
 
-    // Escape key closes any open modal or dropdown
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
             closeFilterDropdown();
             closeViewModal();
-            mapreqCloseDeleteModal();
+            mrCloseDeleteModal();
             closeErrorModal();
             closeSuccessModal();
         }
     });
 
-    // Click outside closes filter dropdown
     document.addEventListener('click', e => {
         const wrapper = document.getElementById('filterDropdownWrapper');
         if (wrapper && !wrapper.contains(e.target)) closeFilterDropdown();
     });
 
-    // Scroll indicator on mobile
     document.querySelector('.requests-table-container')?.addEventListener('scroll', function () {
         this.classList.toggle('scrolled-end', this.scrollLeft + this.clientWidth >= this.scrollWidth - 10);
     });
@@ -597,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadRequests() {
     try {
-        const res = await fetch('/api/map-requests');
+        const res = await fetch('/api/manuscript-requests');
         if (!res.ok) throw new Error('Failed to load requests');
         const data = await res.json();
         allRequests = data.requests || [];
@@ -617,24 +482,11 @@ function applyFilters() {
     const query = (document.getElementById('requestSearchInput')?.value || '').trim().toLowerCase();
 
     filteredRequests = allRequests.filter(req => {
+
         // Status filter
         if (activeFilters.status.size > 0) {
-            const normalised = (req.status || '').toLowerCase().replace(/\s+/g, '-');
+            const normalised = (req.status || '').toLowerCase();
             if (!activeFilters.status.has(normalised)) return false;
-        }
-
-        // Map type filter
-        if (activeFilters.map_type.size > 0) {
-            const standardTypes = ['topographic', 'hazard', 'land-use', 'thematic'];
-            const reqMapType = (req.map_type || '').toLowerCase();
-
-            if (activeFilters.map_type.has('other')) {
-                // If "Other" is selected, show requests where mapType is NOT a standard type
-                if (standardTypes.includes(reqMapType)) return false;
-            } else {
-                // Standard filter for named types
-                if (!activeFilters.map_type.has(reqMapType)) return false;
-            }
         }
 
         // Client type filter
@@ -659,13 +511,13 @@ function applyFilters() {
                 req.surname,
                 `${req.first_name} ${req.surname}`,
                 req.email,
-                req.map_type,
                 req.affiliation,
                 req.client_type,
                 req.status,
-                req.area_of_interest,
-                req.purpose,
-            ].join(' ').toLowerCase();
+                req.target_publisher,
+                req.manuscript_title,
+                req.abstract,
+            ].filter(Boolean).join(' ').toLowerCase();
             if (!haystack.includes(query)) return false;
         }
 
@@ -695,7 +547,6 @@ function updatePaginationInfo() {
     const total = filteredRequests.length;
     const start = total === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
     const end   = Math.min(currentPage * PAGE_SIZE, total);
-
     const infoEl = document.getElementById('paginationInfo');
     if (infoEl) {
         infoEl.textContent = total === 0
@@ -718,7 +569,6 @@ function renderPaginationControls(totalPages) {
     const container = document.getElementById('paginationNumbers');
     if (!container) return;
     container.innerHTML = '';
-
     if (totalPages <= 1) return;
 
     getPageRange(currentPage, totalPages).forEach(p => {
@@ -773,6 +623,13 @@ function populateTable(requests) {
     }
 
     requests.forEach(req => {
+        const statusClass  = (req.status || 'pending').toLowerCase().replace(/\s+/g, '-');
+        const titlePreview = req.manuscript_title
+            ? (req.manuscript_title.length > 48
+                ? req.manuscript_title.slice(0, 48) + '…'
+                : req.manuscript_title)
+            : '<span style="color:#a0aec0; font-style:italic;">—</span>';
+
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${req.request_code}</td>
@@ -784,13 +641,13 @@ function populateTable(requests) {
             </td>
             <td>${req.client_type ? capitalize(req.client_type) : 'N/A'}</td>
             <td>${formatDate(req.created_at)}</td>
-            <td>${formatDate(req.date_needed)}</td>
-            <td>${req.map_type}</td>
-            <td><span class="status-badge status-${(req.status || '').toLowerCase().replace(/\s+/g, '-')}">${formatStatus(req.status)}</span></td>
+            <td>${req.date_needed ? formatDate(req.date_needed) : '<span style="color:#a0aec0;">—</span>'}</td>
+            <td title="${escapeHtml(req.manuscript_title || '')}">${titlePreview}</td>
+            <td><span class="status-badge status-${statusClass}">${formatStatus(req.status)}</span></td>
             <td>
                 <div class="action-buttons">
-                    <button class="btn-action btn-view"   onclick="viewRequest(${req.id})"                            title="View"><i class="fa-solid fa-pen"></i></button>
-                    <button class="btn-action btn-delete" onclick="deleteRequest(${req.id}, '${req.request_code}')"   title="Delete"><i class="fas fa-trash"></i></button>
+                    <button class="btn-action btn-view"   onclick="viewRequest(${req.id})"                                        title="View / Edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn-action btn-delete" onclick="deleteRequest(${req.id}, '${escapeHtml(req.request_code)}')"   title="Delete"><i class="fas fa-trash"></i></button>
                 </div>
             </td>`;
         tbody.appendChild(row);
@@ -803,27 +660,33 @@ function populateTable(requests) {
 
 function formatDate(dateStr) {
     if (!dateStr) return '—';
-    const d = new Date(dateStr);
-    if (isNaN(d)) return dateStr;
-    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
+    return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
 }
 
 function capitalize(str) {
     if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-/**
- * formatStatus — single source of truth for status display formatting.
- * Normalizes any casing from the DB (e.g. "pending", "PENDING", "Pending",
- * "in-progress", "In Progress") into consistent Title Case for display.
- */
+function escapeHtml(str) {
+    return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function formatStatus(status) {
     if (!status) return 'Pending';
-    return status
-        .toLowerCase()
-        .replace(/[-_]/g, ' ')
-        .replace(/\b\w/g, c => c.toUpperCase());
+    const map = {
+        'pending':      'Pending',
+        'in progress':  'In Progress',
+        'under review': 'Under Review',
+        'completed':    'Completed',
+        'declined':     'Declined',
+    };
+    return map[status.toLowerCase()] || status;
 }
 
 // ===============================
@@ -832,55 +695,63 @@ function formatStatus(status) {
 
 async function viewRequest(id) {
     try {
-        const res = await fetch(`/api/map-requests/${id}`);
+        const res = await fetch(`/api/manuscript-requests/${id}`);
         if (!res.ok) throw new Error('Failed to fetch request details');
         const req = (await res.json()).request;
         if (!req) return showErrorModal('Not Found', 'Request not found.');
 
-        const modalIdEl         = document.getElementById('modalRequestId');
-        modalIdEl.textContent   = req.request_code;
-        modalIdEl.dataset.id    = req.id;
+        // Header
+        const modalIdEl       = document.getElementById('modalRequestId');
+        modalIdEl.textContent = req.request_code;
+        modalIdEl.dataset.id  = req.id;
+        document.getElementById('modalSubmittedDate').textContent = formatDate(req.created_at);
 
-        document.getElementById('modalSubmittedDate').textContent  = formatDate(req.created_at);
-        document.getElementById('modalName').textContent           = `${req.first_name} ${req.surname}`;
-        document.getElementById('modalEmail').textContent          = req.email;
-        document.getElementById('modalOffice').textContent         = req.affiliation;
-        document.getElementById('modalDate').textContent           = formatDate(req.date_needed);
-        document.getElementById('modalMapType').textContent        = req.map_type;
-        document.getElementById('modalPurpose').textContent        = req.purpose;
-        document.getElementById('modalAreaOfInterest').textContent = req.area_of_interest;
-        document.getElementById('modalSize').textContent           = req.map_size;
-        document.getElementById('modalQuantity').textContent       = req.quantity;
+        // Info rows
+        document.getElementById('modalName').textContent       = `${req.first_name} ${req.surname}`;
+        document.getElementById('modalEmail').textContent      = req.email;
+        document.getElementById('modalOffice').textContent     = req.affiliation;
+        document.getElementById('modalClientType').textContent = capitalize(req.client_type || '');
+        document.getElementById('modalDateNeeded').textContent = req.date_needed ? formatDate(req.date_needed) : '—';
+        document.getElementById('modalTargetPublisher').textContent     = req.target_publisher;
+        document.getElementById('reviewedFileUrl').value = req.reviewed_file_url || '';
 
-        // Status badge — always use formatStatus() for consistent display
         const statusBadge       = document.getElementById('modalStatus');
         statusBadge.textContent = formatStatus(req.status);
-        statusBadge.className   = `status-badge status-${(req.status || '').toLowerCase().replace(/\s+/g, '-')}`;
+        statusBadge.className   = `status-badge status-${(req.status || 'pending').toLowerCase().replace(/\s+/g, '-')}`;
 
-        // Status dropdown — normalize to lowercase for value matching
-        document.getElementById('statusSelect').value = (req.status || 'pending').toLowerCase().replace(/\s+/g, '-');
+        // Status select — sync with current value
+        const statusSelect = document.getElementById('statusSelect');
+        const matchingOption = [...statusSelect.options].find(
+            o => o.value.toLowerCase() === (req.status || '').toLowerCase()
+        );
+        statusSelect.value = matchingOption ? matchingOption.value : 'Pending';
 
-        const letterBtn      = document.querySelector('.btn-document:nth-child(1)');
-        const signatureBtn   = document.querySelector('.btn-document:nth-child(2)');
-        const initialDataBtn = document.querySelector('.btn-document:nth-child(3)');
-        letterBtn.style.display      = req.request_letter_url ? 'flex' : 'none';
-        signatureBtn.style.display   = req.signature_url      ? 'flex' : 'none';
-        initialDataBtn.style.display = req.initial_data_url   ? 'flex' : 'none';
-        if (req.request_letter_url) letterBtn.onclick    = () => window.open(req.request_letter_url, '_blank');
-        if (req.signature_url)      signatureBtn.onclick = () => window.open(req.signature_url, '_blank');
-        if (req.initial_data_url)   initialDataBtn.onclick = () => window.open(req.initial_data_url, '_blank');
+        // Admin notes
+        document.getElementById('adminNotes').value = req.admin_notes || '';
 
-        const mapPreview   = document.getElementById('mapPreview');
-        const mapContainer = document.getElementById('mapPreviewContainer');
-        if (req.map_file_url) {
-            mapPreview.src             = req.map_file_url;
-            mapContainer.style.display = 'block';
+        // Manuscript details
+        document.getElementById('modalTitle').textContent    = req.manuscript_title || '—';
+        document.getElementById('modalAbstract').textContent = req.abstract          || '—';
+
+        // Document buttons
+        const btnFile = document.getElementById('btnManuscriptFile');
+        const btnLink = document.getElementById('btnFileLink');
+
+        if (req.manuscript_file_path) {
+            btnFile.style.display = 'flex';
+            btnFile.onclick = () => window.open(req.manuscript_file_path, '_blank');
         } else {
-            mapPreview.src             = '';
-            mapContainer.style.display = 'none';
+            btnFile.style.display = 'none';
         }
 
-        await loadUploadHistory(req.id);
+        if (req.file_link) {
+            btnLink.style.display = 'flex';
+            btnLink.onclick = () => window.open(req.file_link, '_blank');
+        } else {
+            btnLink.style.display = 'none';
+        }
+
+        mrResetModalTabs();
         openViewModal();
     } catch (err) {
         console.error(err);
@@ -896,7 +767,6 @@ function openViewModal() {
 function closeViewModal() {
     document.getElementById('viewRequestModal')?.classList.remove('active');
     document.body.classList.remove('modal-open');
-    removeMapUpload();
 }
 
 // ===============================
@@ -904,47 +774,49 @@ function closeViewModal() {
 // ===============================
 
 async function saveRequestUpdates() {
-    const id      = document.getElementById('modalRequestId').dataset.id;
-    const status  = document.getElementById('statusSelect').value;
-    const mapFile = document.getElementById('mapProgressUpload').files[0];
+    const id             = document.getElementById('modalRequestId').dataset.id;
+    const status         = document.getElementById('statusSelect').value;
+    const notes          = document.getElementById('adminNotes').value.trim();
+    const reviewedFileUrl = document.getElementById('reviewedFileUrl').value.trim();
 
     if (!status) return showErrorModal('Missing Status', 'Please select a status.');
 
     try {
-        const res = await fetch(`/api/map-requests/${id}`, {
+        const res = await fetch(`/api/manuscript-requests/${id}`, {
             method:  'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ status }),
+            body:    JSON.stringify({
+                status,
+                admin_notes:        notes,
+                reviewed_file_url:  reviewedFileUrl || null
+            }),
         });
-        if (!res.ok) throw new Error('Failed to update status');
+        if (!res.ok) throw new Error('Failed to update');
 
-        if (mapFile) {
-            const formData = new FormData();
-            formData.append('mapFile', mapFile);
-            const uploadRes = await fetch(`/api/map-requests/${id}/upload`, { method: 'POST', body: formData });
-            if (!uploadRes.ok) throw new Error('Failed to upload file');
+        // Update local state so table refreshes correctly
+        const record = allRequests.find(r => r.id == id);
+        if (record) {
+            record.status             = status;
+            record.admin_notes        = notes;
+            record.reviewed_file_url  = reviewedFileUrl || null;
         }
 
-        // Store raw lowercase value in state — formatStatus() handles display
-        const record = allRequests.find(r => r.id == id);
-        if (record) record.status = status;
-
-        showSuccessModal('Saved', 'Request updated successfully!');
+        showSuccessModal('Saved', 'Manuscript request updated successfully!');
         applyFilters();
         closeViewModal();
     } catch (err) {
         console.error(err);
-        showErrorModal('Save Failed', 'Failed to save updates.');
+        showErrorModal('Save Failed', 'Failed to save updates. Please try again.');
     }
 }
 
 function deleteRequest(id, requestCode) {
-    mapreqShowDeleteModal('Delete Request?', requestCode, async () => {
+    mrShowDeleteModal('Delete Request?', requestCode, async () => {
         try {
-            const res = await fetch(`/api/map-requests/${id}`, { method: 'DELETE' });
+            const res = await fetch(`/api/manuscript-requests/${id}`, { method: 'DELETE' });
             if (!res.ok) throw new Error('Delete failed');
             allRequests = allRequests.filter(r => r.id != id);
-            showSuccessModal('Deleted', 'Request deleted successfully.');
+            showSuccessModal('Deleted', 'Manuscript request deleted successfully.');
             applyFilters();
         } catch (err) {
             console.error(err);
@@ -952,175 +824,6 @@ function deleteRequest(id, requestCode) {
         }
     });
 }
-
-// ===============================
-// MAP FILE PREVIEW
-// ===============================
-
-function handleMapUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (file.size > 20 * 1024 * 1024) {
-        showErrorModal('File Too Large', 'File must be under 20 MB.');
-        event.target.value = '';
-        return;
-    }
-
-    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
-    if (!validTypes.includes(file.type)) {
-        showErrorModal('Invalid File', 'Please upload a PNG, JPG, or PDF file.');
-        event.target.value = '';
-        return;
-    }
-
-    const preview   = document.getElementById('mapPreview');
-    const container = document.getElementById('mapPreviewContainer');
-
-    if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = e => { preview.src = e.target.result; container.style.display = 'block'; };
-        reader.readAsDataURL(file);
-    } else {
-        preview.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"%3E%3Crect fill="%23f8f9fa" width="200" height="200"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%236c757d" font-family="Arial" font-size="16"%3EPDF Uploaded%3C/text%3E%3C/svg%3E';
-        container.style.display = 'block';
-    }
-}
-
-function removeMapUpload() {
-    const input = document.getElementById('mapProgressUpload');
-    if (input) input.value = '';
-    const container = document.getElementById('mapPreviewContainer');
-    if (container) container.style.display = 'none';
-    const preview = document.getElementById('mapPreview');
-    if (preview) preview.src = '';
-}
-
-// ===============================
-// UPLOAD HISTORY
-// ===============================
-
-let lightboxImages = [];
-let lightboxIndex  = 0;
-
-async function loadUploadHistory(requestId) {
-    const grid = document.getElementById('uploadHistoryGrid');
-    if (!grid) return;
-
-    grid.innerHTML = `
-        <div class="upload-history-loading">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span>Loading history…</span>
-        </div>`;
-
-    try {
-        const res = await fetch(`/api/map-requests/${requestId}/uploads`);
-        if (!res.ok) throw new Error('Failed to fetch upload history');
-        const data = await res.json();
-        const uploads = data.uploads || [];
-
-        if (uploads.length === 0) {
-            grid.innerHTML = `
-                <div class="upload-history-empty">
-                    <i class="fas fa-images"></i>
-                    <span>No uploads yet</span>
-                </div>`;
-            return;
-        }
-
-        // Build image list for lightbox
-        lightboxImages = uploads.map(u => ({
-            url:        u.file_url,
-            label:      u.file_name || 'Uploaded file',
-            uploadedAt: u.uploaded_at ? formatDate(u.uploaded_at) : '',
-        }));
-
-        grid.innerHTML = uploads.map((u, i) => {
-            const isPdf = (u.file_url || '').toLowerCase().includes('.pdf')
-                       || (u.file_name || '').toLowerCase().endsWith('.pdf');
-            const thumb = isPdf
-                ? `<div class="history-thumb-pdf"><i class="fas fa-file-pdf"></i></div>`
-                : `<img src="${u.file_url}" alt="Upload ${i + 1}" loading="lazy">`;
-
-            return `
-                <div class="history-thumb" onclick="openLightbox(${i})" title="${u.file_name || ''}">
-                    ${thumb}
-                    <div class="history-thumb-overlay">
-                        <i class="fas fa-expand-alt"></i>
-                    </div>
-                    <div class="history-thumb-date">${u.uploaded_at ? formatDate(u.uploaded_at) : ''}</div>
-                </div>`;
-        }).join('');
-
-    } catch (err) {
-        console.error(err);
-        grid.innerHTML = `
-            <div class="upload-history-empty error">
-                <i class="fas fa-exclamation-circle"></i>
-                <span>Failed to load history</span>
-            </div>`;
-    }
-}
-
-function openLightbox(index) {
-    if (!lightboxImages.length) return;
-    lightboxIndex = index;
-    renderLightboxSlide();
-    document.getElementById('imgLightbox').classList.add('active');
-    document.body.classList.add('modal-open');
-}
-
-function closeLightbox() {
-    document.getElementById('imgLightbox').classList.remove('active');
-    // Don't remove modal-open — the view modal may still be open
-}
-
-function lightboxNav(e, dir) {
-    e.stopPropagation();
-    lightboxIndex = (lightboxIndex + dir + lightboxImages.length) % lightboxImages.length;
-    renderLightboxSlide();
-}
-
-function renderLightboxSlide() {
-    const item = lightboxImages[lightboxIndex];
-    const img  = document.getElementById('lightboxImg');
-    const meta = document.getElementById('lightboxMeta');
-    const prev = document.getElementById('lightboxPrev');
-    const next = document.getElementById('lightboxNext');
-
-    const isPdf = (item.url || '').toLowerCase().includes('.pdf');
-
-    if (isPdf) {
-        img.style.display = 'none';
-        meta.innerHTML = `
-            <div class="lightbox-pdf-placeholder">
-                <i class="fas fa-file-pdf"></i>
-                <span>${item.label}</span>
-                <a href="${item.url}" target="_blank" class="lightbox-open-link">
-                    <i class="fas fa-external-link-alt"></i> Open PDF
-                </a>
-            </div>`;
-    } else {
-        img.style.display = 'block';
-        img.src = item.url;
-        meta.innerHTML = `
-            <span class="lightbox-filename">${item.label}</span>
-            <span class="lightbox-date">${item.uploadedAt}</span>
-            <span class="lightbox-counter">${lightboxIndex + 1} / ${lightboxImages.length}</span>`;
-    }
-
-    prev.style.display = lightboxImages.length > 1 ? 'flex' : 'none';
-    next.style.display = lightboxImages.length > 1 ? 'flex' : 'none';
-}
-
-// Keyboard nav for lightbox
-document.addEventListener('keydown', e => {
-    const lb = document.getElementById('imgLightbox');
-    if (!lb?.classList.contains('active')) return;
-    if (e.key === 'ArrowLeft')  { lightboxNav(e, -1); }
-    if (e.key === 'ArrowRight') { lightboxNav(e,  1); }
-    if (e.key === 'Escape')     { closeLightbox(); }
-});
 
 // ===============================
 // EXPORT TO CSV
@@ -1139,14 +842,14 @@ function exportToCSV() {
         { key: 'email',            label: 'Email'            },
         { key: 'affiliation',      label: 'Office'           },
         { key: 'client_type',      label: 'Client Type'      },
-        { key: 'created_at',       label: 'Date Created'     },
-        { key: 'date_needed',      label: 'Date Needed'      },
-        { key: 'map_type',         label: 'Map Type'         },
-        { key: 'map_size',         label: 'Map Size'         },
-        { key: 'quantity',         label: 'Quantity'         },
-        { key: 'area_of_interest', label: 'Area of Interest' },
-        { key: 'purpose',          label: 'Purpose'          },
+        { key: 'created_at',       label: 'Date Submitted'   },
+        { key: 'date_needed',      label: 'Review By'        },
+        { key: 'target_publisher', label: 'Target Publisher' },
+        { key: 'manuscript_title', label: 'Manuscript Title' },
+        { key: 'abstract',         label: 'Abstract'         },
+        { key: 'file_link',        label: 'File Link'        },
         { key: 'status',           label: 'Status'           },
+        { key: 'admin_notes',      label: 'Admin Notes'      },
     ];
 
     function escapeCell(val) {
@@ -1157,27 +860,24 @@ function exportToCSV() {
         return str;
     }
 
-    const header = columns.map(c => escapeCell(c.label)).join(',');
-
-    const dataRows = filteredRequests.map(req => {
-        return columns.map(col => {
+    const header   = columns.map(c => escapeCell(c.label)).join(',');
+    const dataRows = filteredRequests.map(req =>
+        columns.map(col => {
             let val = req[col.key] ?? '';
             if ((col.key === 'created_at' || col.key === 'date_needed') && val) val = formatDate(val);
             if (col.key === 'client_type' && val) val = capitalize(val);
-            if (col.key === 'status'      && val) val = formatStatus(val);  // consistent in CSV too
+            if (col.key === 'status'      && val) val = formatStatus(val);
             return escapeCell(val);
-        }).join(',');
-    });
+        }).join(',')
+    );
 
     const csvContent = [header, ...dataRows].join('\n');
-
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
 
     const isFiltered = (
         activeFilters.status.size > 0 ||
-        activeFilters.map_type.size > 0 ||
         activeFilters.client_type.size > 0 ||
         activeFilters.date_from ||
         activeFilters.date_to ||
@@ -1186,8 +886,8 @@ function exportToCSV() {
 
     const timestamp = new Date().toISOString().slice(0, 10);
     const filename  = isFiltered
-        ? `map-requests-filtered-${timestamp}.csv`
-        : `map-requests-${timestamp}.csv`;
+        ? `manuscript-requests-filtered-${timestamp}.csv`
+        : `manuscript-requests-${timestamp}.csv`;
 
     a.href     = url;
     a.download = filename;
@@ -1196,5 +896,28 @@ function exportToCSV() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    showSuccessModal('Export Successful', `${filteredRequests.length} record${filteredRequests.length !== 1 ? 's' : ''} exported to <strong>${filename}</strong>.`);
+    showSuccessModal(
+        'Export Successful',
+        `${filteredRequests.length} record${filteredRequests.length !== 1 ? 's' : ''} exported to <strong>${filename}</strong>.`
+    );
+}
+
+function mrSwitchTab(btn, tabId) {
+    document.querySelectorAll('.mr-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.mr-tab-pane').forEach(p => p.classList.remove('active'));
+
+    btn.classList.add('active');
+    document.getElementById('mr-tab-' + tabId)?.classList.add('active');
+
+    if (tabId === 'documents') {
+        const hasFile = document.getElementById('btnManuscriptFile')?.style.display !== 'none';
+        const hasLink = document.getElementById('btnFileLink')?.style.display !== 'none';
+        const placeholder = document.getElementById('mr-docs-placeholder');
+        if (placeholder) placeholder.style.display = (hasFile || hasLink) ? 'none' : 'flex';
+    }
+}
+
+function mrResetModalTabs() {
+    const overviewBtn = document.querySelector('.mr-tab-btn[data-tab="overview"]');
+    if (overviewBtn) mrSwitchTab(overviewBtn, 'overview');
 }

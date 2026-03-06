@@ -238,7 +238,10 @@ function generateTrainingRequestId() {
 function generateManuscriptRequestId() {
   const now = new Date();
   const datePart = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-  const hexPart = crypto.randomBytes(3).toString('hex').toUpperCase();
+  const hexPart = Math.floor(Math.random() * 0x10000)
+    .toString(16)
+    .toUpperCase()
+    .padStart(4, '0');
   return `${datePart}-CHERM-MR-${hexPart}`;
 }
 
@@ -1089,6 +1092,52 @@ app.get('/api/user/map-requests', async (req, res) => {
   }
 });
 
+app.get('/api/user/manuscript-requests', async (req, res) => {
+  const { code } = req.query;
+
+  if (!code || !code.trim()) {
+    return res.status(400).json({ error: 'Request code is required' });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT 
+        id,
+        request_code,
+        client_type,
+        email,
+        surname,
+        first_name,
+        affiliation,
+        manuscript_title,
+        abstract,
+        date_needed,
+        manuscript_file_path,
+        file_link,
+        status,
+        admin_notes,
+        reviewed_file_url,
+        user_approved,
+        created_at
+       FROM manuscript_review_requests
+       WHERE TRIM(request_code) = $1
+       LIMIT 1`,
+      [code.trim()]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ request: null });
+    }
+
+    const request = result.rows[0];
+    res.json({ request });
+
+  } catch (err) {
+    console.error('Error fetching manuscript review request:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 /* ---------- GET SINGLE MAP REQUEST ---------- */
 app.get('/api/map-requests/:id', requireAuth, async (req, res) => {
@@ -1386,10 +1435,13 @@ app.post('/api/manuscript-requests', manuscriptUpload.single('manuscriptFile'), 
       surname,
       firstName,
       affiliation,
+      manuscriptTitle,   
+      abstract,          
+      dateNeeded,        
+      targetPublisher,
       fileLink
     } = req.body;
 
-    // Validate required fields
     if (!clientType || !email || !surname || !firstName || !affiliation || !fileLink) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -1398,10 +1450,9 @@ app.post('/api/manuscript-requests', manuscriptUpload.single('manuscriptFile'), 
       return res.status(400).json({ error: 'Manuscript file is required' });
     }
 
-    // Generate unique request code (collision-safe loop)
+    // Generate unique request code
     let requestCode;
     let exists = true;
-
     while (exists) {
       requestCode = generateManuscriptRequestId();
       const check = await pool.query(
@@ -1415,9 +1466,11 @@ app.post('/api/manuscript-requests', manuscriptUpload.single('manuscriptFile'), 
 
     await pool.query(
       `INSERT INTO manuscript_review_requests
-        (request_code, client_type, email, surname, first_name, affiliation, manuscript_file_path, file_link)
+        (request_code, client_type, email, surname, first_name, affiliation,
+         manuscript_title, abstract, date_needed, target_publisher,   
+         manuscript_file_path, file_link)
        VALUES
-        ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [
         requestCode,
         clientType,
@@ -1425,6 +1478,10 @@ app.post('/api/manuscript-requests', manuscriptUpload.single('manuscriptFile'), 
         surname,
         firstName,
         affiliation,
+        manuscriptTitle || null,
+        abstract        || null,
+        dateNeeded      || null,
+        targetPublisher  || null,
         manuscriptFilePath,
         fileLink
       ]
@@ -1442,12 +1499,19 @@ app.post('/api/manuscript-requests', manuscriptUpload.single('manuscriptFile'), 
         <p><strong>Name:</strong> ${firstName} ${surname}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Affiliation:</strong> ${affiliation}</p>
+        <p><strong>Manuscript Title:</strong> ${manuscriptTitle || '—'}</p>
+        <p><strong>Review By:</strong> ${dateNeeded || '—'}</p>
+        <p><strong>Target Journal / Publisher:</strong> ${targetPublisher || '—'}</p>
+        <p><strong>Abstract:</strong></p>
+        <blockquote style="color:#555; border-left:3px solid #ccc; padding-left:12px;">
+          ${abstract || '—'}
+        </blockquote>
         <p><strong>File Link:</strong> <a href="${fileLink}">${fileLink}</a></p>
         <p><strong>Uploaded File:</strong> ${req.file.originalname}</p>
       `
     });
 
-    // Confirm to the submitter
+    // Confirm to submitter
     await transporter.sendMail({
       from: `"CHERM Manuscript Review" <${process.env.EMAIL_USER}>`,
       to: email,
@@ -1456,6 +1520,7 @@ app.post('/api/manuscript-requests', manuscriptUpload.single('manuscriptFile'), 
         <h2>CHERM Manuscript Review Confirmation</h2>
         <p>Dear ${firstName} ${surname},</p>
         <p>Thank you for submitting your manuscript for review.</p>
+        <p><strong>Manuscript Title:</strong> ${manuscriptTitle || '—'}</p>
         <p><strong>Your Request Code:</strong></p>
         <h3 style="color:#2c3e50;">${requestCode}</h3>
         <p>Please keep this code to track the status of your request.</p>
@@ -1463,16 +1528,14 @@ app.post('/api/manuscript-requests', manuscriptUpload.single('manuscriptFile'), 
       `
     });
 
-    res.status(201).json({
-      success: true,
-      requestCode
-    });
+    res.status(201).json({ success: true, requestCode });
 
   } catch (err) {
     console.error('Manuscript request error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 
 // ----------------------------------------------------------------
@@ -1491,9 +1554,16 @@ app.get('/api/manuscript-requests', requireAuth, async (req, res) => {
          surname,
          first_name,
          affiliation,
+         manuscript_title,
+         abstract,
+         date_needed,
+         target_publisher,
          manuscript_file_path,
          file_link,
+         reviewed_file_url,
+         user_approved,
          status,
+         admin_notes,
          created_at
        FROM manuscript_review_requests
        ORDER BY created_at DESC`
@@ -1536,7 +1606,7 @@ app.get('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
 
 app.put('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
+  const { status, admin_notes, reviewed_file_url } = req.body;
 
   if (!status) {
     return res.status(400).json({ error: 'Status is required' });
@@ -1545,9 +1615,12 @@ app.put('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
   try {
     await pool.query(
       `UPDATE manuscript_review_requests
-       SET status = $1
-       WHERE id = $2`,
-      [status, id]
+       SET status             = $1,
+           admin_notes        = $2,
+           reviewed_file_url  = $3,
+           updated_at         = CURRENT_TIMESTAMP
+       WHERE id = $4`,
+      [status, admin_notes || null, reviewed_file_url || null, id]
     );
     res.json({ success: true });
   } catch (err) {
@@ -1555,6 +1628,7 @@ app.put('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Failed to update request' });
   }
 });
+
 
 
 // ----------------------------------------------------------------
@@ -1596,6 +1670,54 @@ app.delete('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
   }
 });
 
+app.post('/api/user/manuscript-requests/:code/approve', async (req, res) => {
+  const { code } = req.params;
+
+  if (!code || !code.trim()) {
+    return res.status(400).json({ error: 'Request code is required' });
+  }
+
+  try {
+    // Only allow approval if reviewed_file_url exists and not yet approved
+    const check = await pool.query(
+      `SELECT id, reviewed_file_url, user_approved, status
+       FROM manuscript_review_requests
+       WHERE TRIM(request_code) = $1
+       LIMIT 1`,
+      [code.trim()]
+    );
+
+    if (check.rows.length === 0) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+
+    const record = check.rows[0];
+
+    if (!record.reviewed_file_url) {
+      return res.status(400).json({ error: 'No reviewed file available to approve' });
+    }
+
+    if (record.user_approved) {
+      return res.status(400).json({ error: 'Already approved' });
+    }
+
+    // Mark approved and set status to Completed
+    await pool.query(
+      `UPDATE manuscript_review_requests
+       SET user_approved = TRUE,
+           status        = 'Completed',
+           updated_at    = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [record.id]
+    );
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error('Approve manuscript request error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 /* ---------- STATIC FILES ---------- */
 app.use(express.static(__dirname));
@@ -1623,5 +1745,5 @@ app.use((err, req, res, next) => {
 
 /* ---------- START SERVER ---------- */
 app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+  console.log(`Server running at http://localhost:${PORT}`);
 });

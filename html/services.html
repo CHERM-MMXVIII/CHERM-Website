@@ -253,7 +253,7 @@
                         projects for cooperating agencies in the Region.</p>
                     <button type="button" class="btn-open-guideline" onclick="openModal2()">View More...</button>
                     <div class="inquiry-btn">
-                        <button type="button" class="btn-open-modal" onclick="showUserMapRequest()">Track Manuscript</button>
+                        <button type="button" class="btn-open-modal" onclick="openManuscriptTrackingModal()">Track Manuscript</button>
                         <button type="button" class="btn-open-modal" onclick="openModal6()">Submit Manuscript</button>
                     </div>
                 </div>
@@ -790,6 +790,11 @@
                                     </div>
                                 </div>
 
+                                <!-- ── SECTION: CONTACT INFORMATION ── -->
+                                <p class="mr-section-label">
+                                    <i class="fas fa-user" style="margin-right:6px;"></i>Contact Information
+                                </p>
+
                                 <!-- Email -->
                                 <div class="form-group">
                                     <label for="mr-email">
@@ -830,6 +835,61 @@
                                         placeholder="e.g. College of Engineering" required>
                                 </div>
 
+                                <!-- ── SECTION: MANUSCRIPT DETAILS ── -->
+                                <p class="mr-section-label" style="margin-top: 8px;">
+                                    <i class="fas fa-file-alt" style="margin-right:6px;"></i>Manuscript Details
+                                </p>
+
+                                <!-- Manuscript Title -->
+                                <div class="form-group">
+                                    <label for="mr-title">
+                                        Manuscript Title <span style="color: #dc3545;">*</span>
+                                    </label>
+                                    <input type="text" id="mr-title" name="manuscriptTitle"
+                                        placeholder="Enter the full title of your manuscript" required>
+                                </div>
+
+                                <!-- Short Abstract -->
+                                <div class="form-group">
+                                    <label for="mr-abstract">
+                                        Short Abstract <span style="color: #dc3545;">*</span>
+                                    </label>
+                                    <p class="helper-text">Provide a brief summary of your manuscript (max 300 words).</p>
+                                    <textarea id="mr-abstract" name="abstract"
+                                        placeholder="Write a brief abstract or summary of your manuscript..."
+                                        style="min-height: 120px;"
+                                        maxlength="2000"
+                                        required></textarea>
+                                    <div style="text-align:right; font-size:12px; color:#6c757d; margin-top:4px;">
+                                        <span id="mr-abstractCount">0</span> / 2000 characters
+                                    </div>
+                                </div>
+
+                                <!-- Date Needed -->
+                                <div class="form-group">
+                                    <label for="mr-dateNeeded">
+                                        Review Needed By <span style="color: #dc3545;">*</span>
+                                    </label>
+                                    <p class="helper-text">Indicate your preferred deadline for the review. Actual completion may vary depending on reviewer availability.</p>
+                                    <input type="date" id="mr-dateNeeded" name="dateNeeded" required>
+                                </div>
+
+                                <!-- Target Journal / Publisher -->
+                                <div class="form-group">
+                                    <label for="mr-journal">
+                                        Target Journal / Publisher
+                                        <span class="optional-badge">(Optional)</span>
+                                    </label>
+                                    <p class="helper-text">Indicate the journal or publisher where you intend to submit this manuscript, if known.</p>
+                                    <input type="text" id="mr-publisher" name="targetPublisher"
+                                        placeholder="e.g. Philippine Journal of Science, Elsevier, MDPI">
+                                </div>
+
+                                <!-- ── SECTION: MANUSCRIPT FILE ── -->
+                                <p class="mr-section-label" style="margin-top: 8px;">
+                                    <i class="fas fa-paperclip" style="margin-right:6px;"></i>Manuscript Submission
+                                </p>
+
                                 <!-- Upload Soft Copy -->
                                 <div class="form-group">
                                     <label for="mr-manuscriptFile">
@@ -865,7 +925,7 @@
                                     </p>
                                     <div style="position: relative;">
                                         <i class="fas fa-link" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#adb5bd; font-size:13px; pointer-events:none;"></i>
-                                        <input type="text"  id="mr-fileLink" name="fileLink"
+                                        <input type="text" id="mr-fileLink" name="fileLink"
                                             placeholder="https://docs.google.com/document/d/..."
                                             style="padding-left: 34px;"
                                             required>
@@ -886,6 +946,7 @@
                                         Submit Manuscript
                                     </button>
                                 </div>
+
                             </form>
                         </div>
                     </div>
@@ -962,6 +1023,120 @@
             <h3 class="alert-title" id="infoTitle">Information</h3>
             <p class="alert-message" id="infoMessage">This is an informational message.</p>
             <button class="alert-btn primary" onclick="closeInfoModal()">Okay</button>
+        </div>
+    </div>
+
+    <!-- Map Tracking Modal -->
+    <div class="manuscript-tracking-modal" id="mapTrackingModal">
+        <div class="manuscript-tracking-modal-content">
+            <div class="manuscript-tracking-modal-header">
+                <button class="manuscript-tracking-modal-close" onclick="closeMapTrackingModal()">
+                    &times;
+                </button>
+                <div class="manuscript-tracking-modal-header-content">
+                    <h2>Track Map Request</h2>
+                    <p>Enter your request code to check your request status</p>
+                </div>
+            </div>
+            <div class="manuscript-tracking-modal-body">
+                <div class="manuscript-tracking-info">
+                    <p>
+                        Your request code was sent to your email when you submitted your map request.
+                    </p>
+                    <strong>Example: 20260216-CHERM-A1B2C3</strong>
+                </div>
+                <div class="manuscript-tracking-error" id="mapTrackingError">
+                    Please enter your request code
+                </div>
+                <div class="manuscript-tracking-form-group">
+                    <label for="mapRequestCodeInput">Request Code</label>
+                    <input
+                        type="text"
+                        id="mapRequestCodeInput"
+                        placeholder="20260216-CHERM-A1B2C3"
+                        maxlength="50"
+                    >
+                    <div class="manuscript-tracking-help-text">
+                        Can't find your code? Contact us at
+                        <a href="mailto:cherm4a@slsu.edu.ph">cherm4a@slsu.edu.ph</a>
+                    </div>
+                </div>
+                <div class="manuscript-tracking-modal-actions">
+                    <button
+                        class="manuscript-tracking-btn manuscript-tracking-btn-cancel"
+                        onclick="closeMapTrackingModal()">
+                        Cancel
+                    </button>
+                    <button
+                        class="manuscript-tracking-btn manuscript-tracking-btn-submit"
+                        onclick="submitMapTracking()">
+                        Track Request
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manuscript Tracking Modal -->
+    <div class="manuscript-tracking-modal" id="manuscriptTrackingModal">
+        <div class="manuscript-tracking-modal-content">
+            <!-- Header -->
+            <div class="manuscript-tracking-modal-header">
+                <button class="manuscript-tracking-modal-close" onclick="closeManuscriptTrackingModal()">
+                    &times;
+                </button>
+                <div class="manuscript-tracking-modal-header-content">
+                    <h2>Track Manuscript Review</h2>
+                    <p>Enter your request code to check your review status</p>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="manuscript-tracking-modal-body">
+                <!-- Info Box -->
+                <div class="manuscript-tracking-info">
+                    <p>
+                        Your request code was sent to your email when you submitted your manuscript.
+                    </p>
+                    <strong>Example: 20260216-CHERM-MR-A1B2</strong>
+                </div>
+
+                <!-- Error Message -->
+                <div class="manuscript-tracking-error" id="manuscriptTrackingError">
+                    Please enter your request code
+                </div>
+
+                <!-- Form -->
+                <div class="manuscript-tracking-form-group">
+                    <label for="manuscriptRequestCodeInput">Request Code</label>
+                    <input 
+                        type="text" 
+                        id="manuscriptRequestCodeInput" 
+                        placeholder="20260216-CHERM-MR-A1B2"
+                        maxlength="50"
+                    >
+                    <div class="manuscript-tracking-help-text">
+                        Can't find your code? Contact us at 
+                        <a href="mailto:cherm4a@slsu.edu.ph">cherm4a@slsu.edu.ph</a>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="manuscript-tracking-modal-actions">
+                    <button 
+                        class="manuscript-tracking-btn manuscript-tracking-btn-cancel" 
+                        onclick="closeManuscriptTrackingModal()"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        class="manuscript-tracking-btn manuscript-tracking-btn-submit" 
+                        onclick="submitManuscriptTracking()"
+                    >
+                        Track Manuscript
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1071,9 +1246,43 @@
         });
 
         function showUserMapRequest() {
-            const container = document.getElementById('userMapRequestContainer');
-            container.style.display = 'block';
-            container.scrollIntoView({ behavior: 'smooth' });
+            const modal = document.getElementById('mapTrackingModal');
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                setTimeout(() => {
+                    const input = document.getElementById('mapRequestCodeInput');
+                    if (input) input.focus();
+                }, 100);
+            }
+        }
+
+        function closeMapTrackingModal() {
+            const modal = document.getElementById('mapTrackingModal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                const input = document.getElementById('mapRequestCodeInput');
+                const error = document.getElementById('mapTrackingError');
+                if (input) input.value = '';
+                if (error) error.classList.remove('active');
+            }
+        }
+
+        function submitMapTracking() {
+            const input = document.getElementById('mapRequestCodeInput');
+            const error = document.getElementById('mapTrackingError');
+            if (!input) return;
+            const code = input.value.trim();
+            if (!code) {
+                if (error) {
+                    error.textContent = 'Please enter your request code';
+                    error.classList.add('active');
+                }
+                input.focus();
+                return;
+            }
+            window.location.href = `user-map-req.html?code=${encodeURIComponent(code)}`;
         }
     </script>
     <script src="../JS/map-form.js"></script>

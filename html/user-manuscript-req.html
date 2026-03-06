@@ -17,9 +17,8 @@
         crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
     <link rel="stylesheet" href="./css/mapstyle.css"/>
-    <link rel="stylesheet" href="../css/user-map-req.css"/>
+    <link rel="stylesheet" href="../css/user-manuscript-req.css">
 </head>
-
 <body>
     <nav class="navbar navbar-expand-md navbar-light shadow-lg">
         <div class="d-flex navbar-content justify-content-between">
@@ -34,12 +33,8 @@
 
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav text-white">
-                    <li class="nav-item">
-                        <a class="nav-link" href="../index.html">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="services.html">Services</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="services.html">Services</a></li>
                     <li class="nav-item dropdown"
                         onmouseenter="document.getElementById('customDropdown').classList.add('show')"
                         onmouseleave="setTimeout(() => { if (!document.getElementById('customDropdown').matches(':hover')) document.getElementById('customDropdown').classList.remove('show'); }, 100)">
@@ -61,32 +56,11 @@
                             </div>
                         </div>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#contact-us">Contact Us</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="#contact-us">Contact Us</a></li>
                 </ul>
             </div>
         </div>
     </nav>
-
-    <!-- Custom Dropdown Menu -->
-    <div class="custom-dropdown-menu" id="customDropdown">
-        <div class="dropdown-menu-container">
-            <div class="slsu-cherm-partnership">
-                <div class="slsu"><img src="../img/slsu-logo.png" class="slsu"></div>
-                <div class="dost-calabarzon"><img src="../img/dost-logo.png" class="dost"></div>
-                <div class="slsu-office-of-research-services"><img src="../img/slsu-research-logo.png" class="ors"></div>
-            </div>
-            <div class="dropdown-link-container">
-                <div class="dropdown-link">
-                    <a class="dropdown-item" href="objectives.html">Objectives</a>
-                    <a class="dropdown-item" href="achievement.html">Achievements</a>
-                    <a class="dropdown-item" href="events.html">Events and Updates</a>
-                    <a class="dropdown-item" href="org.html">People behind CHERM</a>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Mobile Nav Modal -->
     <div class="modal fade" id="navModal" tabindex="-1" aria-labelledby="navModalLabel" aria-hidden="true">
@@ -121,31 +95,19 @@
         <div class="page-header">
             <div class="header-content">
                 <div class="header-text">
-                    <h1>Track Map Request</h1>
-                    <p>Monitor the progress of your submitted map request</p>
+                    <h1>Track Manuscript</h1>
+                    <p>Monitor the progress of your submitted manuscript</p>
                 </div>
             </div>
         </div>
 
         <!-- Dynamic Content -->
-        <div id="recentUploadSection">
-            <div id="recentUploadContent">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <span>Loading your map request...</span>
-                </div>
+        <div id="recentReviewContent">
+            <div class="loading">
+                <div class="spinner"></div>
+                <span>Loading your manuscript review...</span>
             </div>
         </div>
-
-        <!-- Previous Maps (hidden, kept for legacy) -->
-        <div id="previousMapsSection" style="display: none;">
-            <div class="section-label">
-                <div class="section-label-bar"></div>
-                <h2>Previous Maps</h2>
-            </div>
-            <div class="maps-grid" id="previousMapsGrid"></div>
-        </div>
-
     </div>
 
     <footer id="footer">
@@ -200,11 +162,6 @@
         &copy; 2025 SLSU - CHERM. All rights reserved.
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
-    <script src="../JS/user-map-req.js"></script>
+    <script src="/JS/user-manuscript-req.js"></script>
 </body>
-
 </html>

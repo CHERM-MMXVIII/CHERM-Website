@@ -683,6 +683,11 @@ body {
     color: white;
 }
 
+.action-icon.manuscript-icon {
+    background: linear-gradient(135deg, #1ebdbd 0%, #008080 100%);
+    color: white;
+}
+
 .action-content h3 {
     font-size: 1.125rem;
     font-weight: 700;

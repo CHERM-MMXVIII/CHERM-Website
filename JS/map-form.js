@@ -30,10 +30,14 @@ function roundUpQuantity(value) {
 // ALERT MODAL FUNCTIONS
 // ===============================
 
-function showSuccessModal(requestCode) {
-    const modal = document.getElementById('successModal');
-    const codeDisplay = document.getElementById('requestCodeDisplay');
+function showSuccessModal(requestCode, message) {
+    const modal      = document.getElementById('successModal');
+    const codeDisplay  = document.getElementById('requestCodeDisplay');
+    const alertMsg   = modal ? modal.querySelector('.alert-message') : null;
+
     if (requestCode && codeDisplay) codeDisplay.textContent = requestCode;
+    if (alertMsg && message) alertMsg.textContent = message;
+
     if (modal) {
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
@@ -85,8 +89,10 @@ function closeErrorModal() {
     }
 }
 
-function showLoadingModal() {
-    const modal = document.getElementById('loadingModal');
+function showLoadingModal(message) {
+    const modal    = document.getElementById('loadingModal');
+    const alertMsg = modal ? modal.querySelector('.alert-message') : null;
+    if (alertMsg && message) alertMsg.textContent = message;
     if (modal) {
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
@@ -149,6 +155,8 @@ document.addEventListener('keydown', (e) => {
         closeSuccessModal();
         closeErrorModal();
         closeInfoModal();
+        closeMapTrackingModal();
+        closeManuscriptTrackingModal();
     }
 });
 
@@ -178,16 +186,13 @@ function selectClientType(clientType, scopeModalId = 'serviceModal4') {
     const scope = document.getElementById(scopeModalId) || document;
     const isTraining = scopeModalId === 'serviceModal5';
 
-    // Hidden input
     const clientTypeInput = scope.querySelector(isTraining ? '#tr-clientType' : '#clientType');
     if (clientTypeInput) clientTypeInput.value = clientType;
 
-    // Pill buttons — class-based, no ID clash
     scope.querySelectorAll('.client-type-pill').forEach(pill => {
         pill.classList.toggle('active', pill.dataset.type === clientType);
     });
 
-    // Affiliation label + input
     const affiliationLabel = scope.querySelector(isTraining ? '#tr-affiliationLabel' : '#affiliationLabel');
     const affiliationInput = scope.querySelector(isTraining ? '#tr-affiliation'      : '#affiliation');
     if (clientType === 'internal') {
@@ -198,11 +203,9 @@ function selectClientType(clientType, scopeModalId = 'serviceModal4') {
         if (affiliationInput) affiliationInput.placeholder = 'e.g. LGU Lucena City';
     }
 
-    // Email hint
     const emailHint = scope.querySelector(isTraining ? '#tr-emailHint' : '#emailHint');
     if (emailHint) emailHint.style.display = clientType === 'internal' ? 'block' : 'none';
 
-    // Modal title label — scoped so no clash
     const titleLabel = scope.querySelector('#clientTypeLabel');
     if (titleLabel) titleLabel.textContent = clientType === 'internal' ? 'INTERNAL CLIENT' : 'EXTERNAL CLIENT';
 }
@@ -245,30 +248,72 @@ function closeModal5() {
 }
 
 // ===============================
+// MAP TRACKING MODAL
+// ===============================
+
+function showUserMapRequest() {
+    const modal = document.getElementById('mapTrackingModal');
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+            const input = document.getElementById('mapRequestCodeInput');
+            if (input) input.focus();
+        }, 100);
+    }
+}
+
+function closeMapTrackingModal() {
+    const modal = document.getElementById('mapTrackingModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        const input = document.getElementById('mapRequestCodeInput');
+        const error = document.getElementById('mapTrackingError');
+        if (input) input.value = '';
+        if (error) error.classList.remove('active');
+    }
+}
+
+function submitMapTracking() {
+    const input = document.getElementById('mapRequestCodeInput');
+    const error = document.getElementById('mapTrackingError');
+    if (!input) return;
+    const code = input.value.trim();
+    if (!code) {
+        if (error) {
+            error.textContent = 'Please enter your request code';
+            error.classList.add('active');
+        }
+        input.focus();
+        return;
+    }
+    window.location.href = `user-map-req.html?code=${encodeURIComponent(code)}`;
+}
+
+// ===============================
 // SHARED: ATTACH DATA CLEANING
 // ===============================
 function attachDataCleaning(form) {
     if (!form) return;
 
-    ['surname', 'firstName'].forEach(id => {
-        const field = form.querySelector(`#${id}`);
-        if (field) field.addEventListener('blur', function () { this.value = toTitleCase(this.value); });
+    form.querySelectorAll(
+        '#surname, #firstName, #tr-surname, #tr-firstName, #mr-surname, #mr-firstName'
+    ).forEach(field => {
+        field.addEventListener('blur', function () { this.value = toTitleCase(this.value); });
     });
 
-    ['purpose', 'areaOfInterest'].forEach(id => {
-        const field = form.querySelector(`#${id}`);
-        if (field) field.addEventListener('blur', function () { this.value = toSentenceCase(this.value); });
+    form.querySelectorAll(
+        '#purpose, #areaOfInterest, #customMapType'
+    ).forEach(field => {
+        field.addEventListener('blur', function () { this.value = toSentenceCase(this.value); });
     });
 
-    const customMapTypeField = form.querySelector('#customMapType');
-    if (customMapTypeField) {
-        customMapTypeField.addEventListener('blur', function () { this.value = toSentenceCase(this.value); });
-    }
-
-    const emailField = form.querySelector('#email');
-    if (emailField) {
-        emailField.addEventListener('blur', function () { this.value = toLowerCaseEmail(this.value); });
-    }
+    form.querySelectorAll(
+        '#email, #tr-email, #mr-email'
+    ).forEach(field => {
+        field.addEventListener('blur', function () { this.value = toLowerCaseEmail(this.value); });
+    });
 
     const quantityField = form.querySelector('#quantity');
     if (quantityField) {
@@ -305,12 +350,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const mapForm      = document.getElementById('mapRequestForm');
     const trainingForm = document.getElementById('requestForm');
+    const mrForm       = document.getElementById('manuscriptReviewForm');
 
     selectClientType('internal', 'serviceModal4');
     selectClientType('internal', 'serviceModal5');
 
     attachDataCleaning(mapForm);
     attachDataCleaning(trainingForm);
+    attachDataCleaning(mrForm);
+
+    // ================================================
+    // ABSTRACT CHARACTER COUNTER
+    // ================================================
+    const abstractField = document.getElementById('mr-abstract');
+    const abstractCount = document.getElementById('mr-abstractCount');
+
+    if (abstractField && abstractCount) {
+        abstractField.addEventListener('input', function () {
+            abstractCount.textContent = this.value.length;
+            abstractCount.style.color = this.value.length > 1800 ? '#dc3545' : '#6c757d';
+        });
+    }
 
     // ================================================
     // FILE DISPLAY — Map Request Form (Modal 4)
@@ -435,7 +495,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            showLoadingModal();
+            showLoadingModal('Please wait while we submit your map request.');
 
             try {
                 const formData = new FormData(mapForm);
@@ -452,7 +512,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 closeLoadingModal();
 
                 if (response.ok && result.success) {
-                    showSuccessModal(result.requestCode || result.request_code || 'N/A');
+                    showSuccessModal(
+                        result.requestCode || result.request_code || 'N/A',
+                        "Your map request has been received. You'll receive updates via email."
+                    );
                     resetMapRequestForm(true);
                 } else {
                     showErrorModal(result.error || 'Submission failed. Please try again.');
@@ -500,7 +563,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            showLoadingModal();
+            showLoadingModal('Please wait while we submit your training request.');
 
             try {
                 const formData = new FormData();
@@ -520,7 +583,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 closeLoadingModal();
 
                 if (response.ok && result.success) {
-                    showSuccessModal(result.requestCode || result.request_code || 'N/A');
+                    showSuccessModal(
+                        result.requestCode || result.request_code || 'N/A',
+                        "Your training request has been received. You'll receive updates via email."
+                    );
                     resetTrainingRequestForm(true);
                 } else {
                     showErrorModal(result.error || 'Submission failed. Please try again.');
@@ -547,21 +613,26 @@ document.addEventListener('DOMContentLoaded', function () {
     // ================================================
     // SUBMIT — Manuscript Review Form (Modal 6)
     // ================================================
-    const mrForm = document.getElementById('manuscriptReviewForm');
-
     if (mrForm) {
         mrForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 
-            const surnameFld   = mrForm.querySelector('#mr-surname');
-            const firstNameFld = mrForm.querySelector('#mr-firstName');
-            const emailFld     = mrForm.querySelector('#mr-email');
-            const affFld       = mrForm.querySelector('#mr-affiliation');
-            const fileLinkFld  = mrForm.querySelector('#mr-fileLink');
+            const surnameFld    = mrForm.querySelector('#mr-surname');
+            const firstNameFld  = mrForm.querySelector('#mr-firstName');
+            const emailFld      = mrForm.querySelector('#mr-email');
+            const affFld        = mrForm.querySelector('#mr-affiliation');
+            const titleFld      = mrForm.querySelector('#mr-title');
+            const abstractFld   = mrForm.querySelector('#mr-abstract');
+            const dateNeededFld = mrForm.querySelector('#mr-dateNeeded');
+            const publisherFld  = mrForm.querySelector('#mr-publisher');
+            const fileLinkFld   = mrForm.querySelector('#mr-fileLink');
 
+            // Clean fields
             if (surnameFld)   surnameFld.value   = toTitleCase(surnameFld.value);
             if (firstNameFld) firstNameFld.value  = toTitleCase(firstNameFld.value);
             if (emailFld)     emailFld.value      = toLowerCaseEmail(emailFld.value);
+            if (titleFld)     titleFld.value      = titleFld.value.trim();
+            if (abstractFld)  abstractFld.value   = abstractFld.value.trim();
 
             const clientTypeInput = mrForm.querySelector('#mr-clientType');
             const clientType = clientTypeInput ? clientTypeInput.value : '';
@@ -572,12 +643,45 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!validateManuscriptEmail(mrForm)) return;
 
+            // Validate title
+            if (!titleFld || !titleFld.value.trim()) {
+                showInfoModal('Manuscript Title Required', 'Please enter the title of your manuscript.');
+                if (titleFld) titleFld.focus();
+                return;
+            }
+
+            // Validate abstract
+            if (!abstractFld || !abstractFld.value.trim()) {
+                showInfoModal('Abstract Required', 'Please provide a short abstract for your manuscript.');
+                if (abstractFld) abstractFld.focus();
+                return;
+            }
+
+            // Validate date needed
+            if (!dateNeededFld || !dateNeededFld.value) {
+                showInfoModal('Date Required', 'Please indicate your preferred review deadline.');
+                if (dateNeededFld) dateNeededFld.focus();
+                return;
+            }
+
+            // Date must not be in the past
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const chosenDate = new Date(dateNeededFld.value);
+            if (chosenDate < today) {
+                showInfoModal('Invalid Date', 'The review deadline cannot be in the past.');
+                if (dateNeededFld) dateNeededFld.focus();
+                return;
+            }
+
+            // Validate manuscript file
             const manuscriptFile = document.getElementById('mr-manuscriptFile');
             if (!manuscriptFile || !manuscriptFile.files[0]) {
                 showInfoModal('Manuscript Required', 'Please upload the soft copy of your manuscript.');
                 return;
             }
 
+            // Validate file link
             const fileLink = fileLinkFld ? fileLinkFld.value.trim() : '';
             if (!fileLink) {
                 showInfoModal('File Link Required', 'Please provide a shareable link to your manuscript.');
@@ -593,17 +697,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            showLoadingModal();
+            showLoadingModal('Please wait while we submit your manuscript review request.');
 
             try {
                 const formData = new FormData();
-                formData.append('clientType',     clientType);
-                formData.append('email',          emailFld     ? emailFld.value.trim()     : '');
-                formData.append('surname',        surnameFld   ? surnameFld.value.trim()   : '');
-                formData.append('firstName',      firstNameFld ? firstNameFld.value.trim() : '');
-                formData.append('affiliation',    affFld       ? affFld.value.trim()       : '');
-                formData.append('fileLink',       fileLink);
-                formData.append('manuscriptFile', manuscriptFile.files[0]);
+                formData.append('clientType',      clientType);
+                formData.append('email',           emailFld     ? emailFld.value.trim()     : '');
+                formData.append('surname',         surnameFld   ? surnameFld.value.trim()   : '');
+                formData.append('firstName',       firstNameFld ? firstNameFld.value.trim() : '');
+                formData.append('affiliation',     affFld       ? affFld.value.trim()       : '');
+                formData.append('manuscriptTitle', titleFld     ? titleFld.value.trim()     : '');
+                formData.append('abstract',        abstractFld  ? abstractFld.value.trim()  : '');
+                formData.append('dateNeeded',      dateNeededFld ? dateNeededFld.value      : '');
+                formData.append('targetPublisher', publisherFld ? publisherFld.value.trim() : '');
+                formData.append('fileLink',        fileLink);
+                formData.append('manuscriptFile',  manuscriptFile.files[0]);
 
                 const response = await fetch('/api/manuscript-requests', {
                     method: 'POST',
@@ -614,7 +722,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 closeLoadingModal();
 
                 if (response.ok && result.success) {
-                    showSuccessModal(result.requestCode || result.request_code || 'N/A');
+                    showSuccessModal(
+                        result.requestCode || result.request_code || 'N/A',
+                        "Your manuscript has been submitted for review. You'll receive updates via email."
+                    );
                     resetManuscriptReviewForm(true);
                 } else {
                     showErrorModal(result.error || 'Submission failed. Please try again.');
@@ -631,7 +742,48 @@ document.addEventListener('DOMContentLoaded', function () {
     // INIT — Manuscript Review Form (Modal 6)
     // ================================================
     selectManuscriptClientType('internal');
-    attachManuscriptDataCleaning();
+
+    // ================================================
+    // MAP TRACKING MODAL — Enter key + clear error
+    // ================================================
+    const mapTrackingInput = document.getElementById('mapRequestCodeInput');
+    if (mapTrackingInput) {
+        mapTrackingInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); submitMapTracking(); }
+        });
+        mapTrackingInput.addEventListener('input', function () {
+            document.getElementById('mapTrackingError')?.classList.remove('active');
+        });
+    }
+
+    // Close map tracking modal on backdrop click
+    const mapTrackingModal = document.getElementById('mapTrackingModal');
+    if (mapTrackingModal) {
+        mapTrackingModal.addEventListener('click', function (e) {
+            if (e.target === mapTrackingModal) closeMapTrackingModal();
+        });
+    }
+
+    // ================================================
+    // MANUSCRIPT TRACKING MODAL — Enter key + clear error
+    // ================================================
+    const manuscriptInput = document.getElementById('manuscriptRequestCodeInput');
+    if (manuscriptInput) {
+        manuscriptInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); submitManuscriptTracking(); }
+        });
+        manuscriptInput.addEventListener('input', function () {
+            document.getElementById('manuscriptTrackingError')?.classList.remove('active');
+        });
+    }
+
+    // Close manuscript tracking modal on backdrop click
+    const manuscriptTrackingModal = document.getElementById('manuscriptTrackingModal');
+    if (manuscriptTrackingModal) {
+        manuscriptTrackingModal.addEventListener('click', function (e) {
+            if (e.target === manuscriptTrackingModal) closeManuscriptTrackingModal();
+        });
+    }
 
 });
 
@@ -780,21 +932,6 @@ function handleManuscriptFileUpload(input) {
     }
 }
 
-function attachManuscriptDataCleaning() {
-    const form = document.getElementById('manuscriptReviewForm');
-    if (!form) return;
-
-    ['mr-surname', 'mr-firstName'].forEach(id => {
-        const field = form.querySelector(`#${id}`);
-        if (field) field.addEventListener('blur', function () { this.value = toTitleCase(this.value); });
-    });
-
-    const emailField = form.querySelector('#mr-email');
-    if (emailField) {
-        emailField.addEventListener('blur', function () { this.value = toLowerCaseEmail(this.value); });
-    }
-}
-
 function validateManuscriptEmail(form) {
     const clientTypeInput = form.querySelector('#mr-clientType');
     const clientType = clientTypeInput ? clientTypeInput.value : '';
@@ -830,6 +967,13 @@ function resetManuscriptReviewForm(skipConfirm = false) {
             uploadArea.style.backgroundColor = '';
         }
 
+        // Reset abstract counter
+        const abstractCount = document.getElementById('mr-abstractCount');
+        if (abstractCount) {
+            abstractCount.textContent = '0';
+            abstractCount.style.color = '#6c757d';
+        }
+
         selectManuscriptClientType('internal');
         closeModal6();
     }
@@ -848,3 +992,47 @@ window.addEventListener('click', function (event) {
     const modal6 = document.getElementById('serviceModal6');
     if (event.target === modal6) closeModal6();
 });
+
+// ===============================
+// MANUSCRIPT TRACKING MODAL
+// ===============================
+
+function openManuscriptTrackingModal() {
+    const modal = document.getElementById('manuscriptTrackingModal');
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+            const input = document.getElementById('manuscriptRequestCodeInput');
+            if (input) input.focus();
+        }, 100);
+    }
+}
+
+function closeManuscriptTrackingModal() {
+    const modal = document.getElementById('manuscriptTrackingModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        const input = document.getElementById('manuscriptRequestCodeInput');
+        const error = document.getElementById('manuscriptTrackingError');
+        if (input) input.value = '';
+        if (error) error.classList.remove('active');
+    }
+}
+
+function submitManuscriptTracking() {
+    const input = document.getElementById('manuscriptRequestCodeInput');
+    const error = document.getElementById('manuscriptTrackingError');
+    if (!input) return;
+    const code = input.value.trim();
+    if (!code) {
+        if (error) {
+            error.textContent = 'Please enter your request code';
+            error.classList.add('active');
+        }
+        input.focus();
+        return;
+    }
+    window.location.href = `user-manuscript-req.html?code=${encodeURIComponent(code)}`;
+}

@@ -296,18 +296,18 @@ function renderTableBody(rows) {
             <td>${escHtml(r.request_code || '—')}</td>
             <td>
                 <div class="requester-info">
-                    <span class="requester-name">${r.first_name} ${r.surname}</span>
+                    <span class="requester-name">${escHtml(r.first_name)} ${escHtml(r.surname)}</span>
                     <span class="requester-affiliation">${escHtml(r.affiliation || '—')}</span>
                 </div>
             </td>
             <td>${escHtml(r.client_type ? r.client_type.charAt(0).toUpperCase() + r.client_type.slice(1).toLowerCase() : '—')}</td>
             <td class="email-cell">${escHtml(r.email || '—')}</td>
             <td>${formatDate(r.created_at)}</td>
-            <td><span class="status-badge ${statusClass(r.status)}">${escHtml(r.status || 'Pending')}</span></td>
+            <td><span class="status-badge ${statusClass(r.status)}">${escHtml(formatStatus(r.status))}</span></td>
             <td>
                 <div class="action-buttons">
                     <button class="btn-action btn-view" title="View / Edit" onclick="openViewModal(${r.id})">
-                        <i class="fas fa-eye"></i>
+                        <i class="fa-solid fa-pen"></i>
                     </button>
                     <button class="btn-action btn-delete" title="Delete" onclick="confirmDelete(${r.id}, '${escAttr(r.request_code)}')">
                         <i class="fas fa-trash"></i>
@@ -339,20 +339,20 @@ async function openViewModal(id) {
     }
 
     // Populate modal fields
-    document.getElementById('modalRequestId').textContent    = r.request_code || '—';
+    document.getElementById('modalRequestId').textContent     = r.request_code || '—';
     document.getElementById('modalSubmittedDate').textContent = formatDate(r.created_at);
-    document.getElementById('modalName').textContent         = `${r.surname}, ${r.first_name}`;
-    document.getElementById('modalEmail').textContent        = r.email || '—';
-    document.getElementById('modalAffiliation').textContent  = r.affiliation || '—';
-    document.getElementById('modalClientType').textContent   = r.client_type ? r.client_type.charAt(0).toUpperCase() + r.client_type.slice(1).toLowerCase() : '—';
-    document.getElementById('modalDate').textContent         = formatDate(r.created_at);
+    document.getElementById('modalName').textContent          = `${r.surname}, ${r.first_name}`;
+    document.getElementById('modalEmail').textContent         = r.email || '—';
+    document.getElementById('modalAffiliation').textContent   = r.affiliation || '—';
+    document.getElementById('modalClientType').textContent    = r.client_type ? r.client_type.charAt(0).toUpperCase() + r.client_type.slice(1).toLowerCase() : '—';
+    document.getElementById('modalDate').textContent          = formatDate(r.created_at);
 
-    // Status badge
+    // Status badge — always use formatStatus() for consistent display
     const statusEl = document.getElementById('modalStatus');
-    statusEl.textContent = r.status || 'Pending';
+    statusEl.textContent = formatStatus(r.status);
     statusEl.className   = `status-badge ${statusClass(r.status)}`;
 
-    // Pre-select status dropdown
+    // Pre-select status dropdown — normalize to lowercase for value matching
     const statusSelect = document.getElementById('statusSelect');
     if (statusSelect) {
         const norm = (r.status || 'pending').toLowerCase().replace(/\s/g, '-');
@@ -405,10 +405,10 @@ async function saveRequestUpdates() {
         });
         if (!res.ok) throw new Error('Save failed');
 
-        // Update local state
+        // Store raw lowercase value in state — formatStatus() handles display
         const idx = State.allRequests.findIndex(r => r.id === State.currentRequestId);
         if (idx !== -1) {
-            State.allRequests[idx].status      = capitalizeStatus(status);
+            State.allRequests[idx].status      = status;
             State.allRequests[idx].admin_notes = adminNotes;
         }
 
@@ -498,7 +498,7 @@ function exportToCSV() {
         r.email         || '',
         r.affiliation   || '',
         r.client_type   || '',
-        r.status        || '',
+        formatStatus(r.status),   // use formatStatus() for consistent CSV export too
         formatDate(r.created_at),
     ]);
 
@@ -572,7 +572,6 @@ function buildFilterDropdown() {
                 <button class="filter-clear-btn" onclick="clearFilters()">
                     <i class="fas fa-times"></i> Clear
                 </button>
-                
             </div>
         </div>`;
 
@@ -617,7 +616,6 @@ function applyFilterPanel() {
     boxes.forEach(cb => {
         if (!cb.checked) return;
         if (cb.dataset.group === 'clientType') {
-            // Capitalize first letter to match DB values
             clientType.push(cb.value.charAt(0).toUpperCase() + cb.value.slice(1));
         }
         if (cb.dataset.group === 'status') status.push(cb.value);
@@ -657,7 +655,7 @@ function clearFilters() {
    ================================================ */
 
 function updateFilterBadge(count) {
-    const badge    = document.getElementById('filterActiveBadge');
+    const badge     = document.getElementById('filterActiveBadge');
     const toggleBtn = document.getElementById('filterToggleBtn');
     if (badge) {
         if (count > 0) {
@@ -702,6 +700,19 @@ function formatDate(val) {
     return d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 }
 
+/**
+ * formatStatus — single source of truth for status display formatting.
+ * Always produces consistent Title Case regardless of how the DB stores the value
+ * (e.g. "pending", "PENDING", "Pending" all render as "Pending").
+ */
+function formatStatus(status) {
+    if (!status) return 'Pending';
+    return status
+        .toLowerCase()
+        .replace(/[-_]/g, ' ')
+        .replace(/\b\w/g, c => c.toUpperCase());
+}
+
 function statusClass(status) {
     const map = {
         'pending':    'status-pending',
@@ -712,10 +723,6 @@ function statusClass(status) {
         'terminated': 'status-terminated',
     };
     return map[(status || '').toLowerCase().replace(/\s/g, '-')] || 'status-pending';
-}
-
-function capitalizeStatus(val) {
-    return val ? val.charAt(0).toUpperCase() + val.slice(1).replace(/-/g, ' ') : 'Pending';
 }
 
 function escHtml(str) {

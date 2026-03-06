@@ -2,10 +2,6 @@
 // User Map Requests Script
 // ===============================
 
-// ===============================
-// URL Param Loader
-// ===============================
-
 document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
@@ -19,12 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const data = await response.json();
 
         if (!data.request) {
-            document.getElementById('recentUploadContent').innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <p>Request code not found</p>
-                </div>
-            `;
+            showEmptyState('Request code not found.');
             return;
         }
 
@@ -45,20 +36,18 @@ function displayRecentUpload(request) {
     if (!container || !request) return;
 
     const maps = request.admin_maps || [];
+
     if (maps.length === 0) {
-        showEmptyState('No map file available yet.');
+        showEmptyState('No map file available yet. Your request is being processed.');
         return;
     }
 
-    // active version index (0 = latest)
     let activeIdx = 0;
 
     function renderCard(idx) {
         const map = maps[idx];
         const fileUrl = map.file_url || '';
         const isPDF = fileUrl.toLowerCase().endsWith('.pdf');
-
-        // Single global status from the request — not per-version
         const statusStr = request.status || '';
 
         // Map image or PDF placeholder
@@ -69,7 +58,7 @@ function displayRecentUpload(request) {
                </div>`
             : `<img src="${fileUrl}" alt="${request.map_type || 'Map'}">`;
 
-        // Admin notes (optional)
+        // Admin notes
         const notesHTML = map.notes
             ? `<div class="admin-notes-box">
                     <div class="notes-label">
@@ -79,9 +68,8 @@ function displayRecentUpload(request) {
                </div>`
             : '';
 
-        // Version history list — NO status badge per version
-        const versionsHTML = maps.map((m, i) => {
-            return `
+        // Version history list
+        const versionsHTML = maps.map((m, i) => `
             <div class="version-item ${i === idx ? 'active' : ''}" onclick="switchVersion(${i})">
                 <div class="version-radio"></div>
                 <div class="version-body">
@@ -97,52 +85,76 @@ function displayRecentUpload(request) {
                     ${m.notes ? `<div class="version-note">"${m.notes}"</div>` : ''}
                     <div class="version-date">${formatDateTime(m.created_at)}</div>
                 </div>
-            </div>`;
-        }).join('');
+            </div>
+        `).join('');
 
         container.innerHTML = `
-        <div class="viewer-layout">
 
-            <!-- LEFT: Map Viewer -->
-            <div class="viewer-main">
-                <div class="viewer-topbar">
-                    <div class="viewer-topbar-left">
-                        <h3>Version ${maps.length - idx} &mdash; ${request.map_type || 'Map'}</h3>
-                        <span>${request.area_of_interest || ''} &bull; ${request.request_code || ''}</span>
+            <!-- Title Card -->
+            <div class="title-card">
+                <div>
+                    <h2>${request.map_type || 'Map Request'}</h2>
+                    <div class="request-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-hashtag"></i>
+                            <span>${request.request_code || ''}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="far fa-calendar"></i>
+                            <span>Submitted ${formatDate(request.created_at)}</span>
+                        </div>
+                        ${request.area_of_interest ? `
+                        <div class="meta-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${request.area_of_interest}</span>
+                        </div>` : ''}
                     </div>
-                    <!-- Single global status badge -->
-                    <span class="status-badge-lg ${getStatusClass(statusStr)}">
-                        <i class="${getStatusIcon(statusStr)}"></i>
-                        ${formatStatus(statusStr)}
-                    </span>
                 </div>
-
-                <div class="map-frame">${mediaHTML}</div>
-
-                ${notesHTML}
-
-                <div class="viewer-footer">
-                    <span class="viewer-footer-meta">
-                        <i class="fas fa-calendar-alt"></i>
-                        Uploaded on ${formatDateTime(map.created_at)}
-                    </span>
-                    <button class="download-btn"
-                            onclick="downloadMap('${fileUrl}', '${request.request_code}')">
-                        <i class="fas fa-download"></i> Download Map
-                    </button>
-                </div>
+                <span class="status-badge ${getStatusClass(statusStr)}">
+                    <i class="${getStatusIcon(statusStr)}"></i>
+                    ${formatStatus(statusStr)}
+                </span>
             </div>
 
-            <!-- RIGHT: Version History -->
-            <div class="version-panel">
-                <div class="version-panel-header">
-                    <h4>Version History</h4>
-                    <span>${maps.length} version${maps.length !== 1 ? 's' : ''}</span>
-                </div>
-                <div class="version-list">${versionsHTML}</div>
-            </div>
+            <!-- Map Viewer + Version Panel -->
+            <div class="viewer-layout">
 
-        </div>`;
+                <!-- LEFT: Map Viewer -->
+                <div class="viewer-main">
+                    <div class="viewer-topbar">
+                        <div class="viewer-topbar-left">
+                            <h3>Version ${maps.length - idx} &mdash; ${request.map_type || 'Map'}</h3>
+                            <span>${request.area_of_interest || ''} &bull; ${request.request_code || ''}</span>
+                        </div>
+                    </div>
+
+                    <div class="map-frame">${mediaHTML}</div>
+
+                    ${notesHTML}
+
+                    <div class="viewer-footer">
+                        <span class="viewer-footer-meta">
+                            <i class="fas fa-calendar-alt"></i>
+                            Uploaded on ${formatDateTime(map.created_at)}
+                        </span>
+                        <button class="download-btn"
+                                onclick="downloadMap('${fileUrl}', '${request.request_code}')">
+                            <i class="fas fa-download"></i> Download Map
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Version History -->
+                <div class="version-panel">
+                    <div class="version-panel-header">
+                        <h4>Version History</h4>
+                        <span>${maps.length} version${maps.length !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div class="version-list">${versionsHTML}</div>
+                </div>
+
+            </div>
+        `;
     }
 
     // Expose version switcher globally so onclick works
@@ -153,7 +165,6 @@ function displayRecentUpload(request) {
 
     renderCard(activeIdx);
 
-    // Hide the old previous maps section — versions are now in the panel
     const prevSection = document.getElementById('previousMapsSection');
     if (prevSection) prevSection.style.display = 'none';
 }
@@ -170,8 +181,8 @@ function showEmptyState(message = 'No map uploads found') {
         <div class="empty-state">
             <i class="fas fa-map-marked-alt"></i>
             <p>${message}</p>
-            <p style="font-size: 0.9rem; opacity: 0.7;">
-                Your request is currently under review or pending required data. Map preparation will begin once all necessary information is available..
+            <p style="font-size: 0.85rem; margin-top: 4px; opacity: 0.7;">
+                Your request is currently under review or pending required data. Map preparation will begin once all necessary information is available.
             </p>
         </div>`;
 
@@ -184,10 +195,7 @@ function showEmptyState(message = 'No map uploads found') {
 // ===============================
 
 function downloadMap(url, code) {
-    if (!url) {
-        alert('Map file not available');
-        return;
-    }
+    if (!url) { alert('Map file not available'); return; }
     const link = document.createElement('a');
     link.href = url;
     link.download = `map_${code}`;
@@ -203,11 +211,8 @@ function downloadMap(url, code) {
 
 function formatDate(dateStr) {
     if (!dateStr) return 'N/A';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: '2-digit'
+    return new Date(dateStr).toLocaleDateString('en-US', {
+        year: 'numeric', month: 'short', day: '2-digit'
     });
 }
 
@@ -215,17 +220,17 @@ function formatDateTime(dateStr) {
     if (!dateStr) return 'N/A';
     const d = new Date(dateStr);
     return d.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: '2-digit'
+        year: 'numeric', month: 'long', day: '2-digit'
     }) + ' at ' + d.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit'
+        hour: '2-digit', minute: '2-digit'
     });
 }
 
+function normalizeStatus(status) {
+    return (status || '').trim().toLowerCase().replace(/[\s-]+/g, '-');
+}
+
 function formatStatus(status) {
-    const key = (status || '').trim().toLowerCase().replace(/[\s-]+/g, '-');
     const map = {
         'pending':      'Pending',
         'in-progress':  'In Progress',
@@ -233,32 +238,29 @@ function formatStatus(status) {
         'rejected':     'Rejected',
         'under-review': 'Under Review',
     };
-    return map[key] || status;
+    return map[normalizeStatus(status)] || status;
 }
 
 function getStatusIcon(status) {
-    const key = (status || '').trim().toLowerCase().replace(/[\s-]+/g, '-');
     const map = {
         'pending':      'fas fa-clock',
-        'in-progress':  'fas fa-spinner ',
+        'in-progress':  'fas fa-spinner',
         'completed':    'fas fa-check-circle',
         'rejected':     'fas fa-times-circle',
         'under-review': 'fas fa-eye',
     };
-    return map[key] || 'fas fa-info-circle';
+    return map[normalizeStatus(status)] || 'fas fa-info-circle';
 }
 
 function getStatusClass(status) {
-    // Normalize: trim whitespace, lowercase, collapse spaces/hyphens
-    const key = (status || '').trim().toLowerCase().replace(/[\s-]+/g, '-');
     const map = {
-        'pending':       'status-pending',
-        'in-progress':   'status-in-progress',
-        'completed':     'status-completed',
-        'rejected':      'status-rejected',
-        'under-review':  'status-under-review',
+        'pending':      'status-pending',
+        'in-progress':  'status-in-progress',
+        'completed':    'status-completed',
+        'rejected':     'status-rejected',
+        'under-review': 'status-under-review',
     };
-    return map[key] || 'status-pending';
+    return map[normalizeStatus(status)] || 'status-pending';
 }
 
 function getFileIcon(url) {
