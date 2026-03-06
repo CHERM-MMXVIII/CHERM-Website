@@ -50,13 +50,22 @@ function displayRecentUpload(request) {
         const isPDF = fileUrl.toLowerCase().endsWith('.pdf');
         const statusStr = request.status || '';
 
-        // Map image or PDF placeholder
+        // -------------------------------------------------------
+        // WATERMARK CHANGE:
+        // Instead of a plain <img>, we render into a <canvas>.
+        // PDFs still use the placeholder (can't canvas a PDF easily).
+        // -------------------------------------------------------
         const mediaHTML = isPDF
             ? `<div class="pdf-placeholder">
                     <i class="fas fa-file-pdf"></i>
                     <p>PDF Document</p>
                </div>`
-            : `<img src="${fileUrl}" alt="${request.map_type || 'Map'}">`;
+            : `<div class="canvas-wrapper" style="position:relative; line-height:0;">
+                    <canvas id="mapCanvas" style="width:100%; display:block;"></canvas>
+                    <div class="wm-click-blocker" 
+                         style="position:absolute;inset:0;z-index:10;cursor:default;"
+                         oncontextmenu="return false;"></div>
+               </div>`;
 
         // Admin notes
         const notesHTML = map.notes
@@ -155,6 +164,18 @@ function displayRecentUpload(request) {
 
             </div>
         `;
+
+        // -------------------------------------------------------
+        // WATERMARK: After innerHTML is set, draw onto the canvas.
+        // We wait for the canvas element to exist in the DOM first.
+        // -------------------------------------------------------
+        if (!isPDF && fileUrl) {
+            drawWatermarkedMap(
+                fileUrl,
+                request.request_code || 'CHERM',
+                request.map_type   || 'Map'
+            );
+        }
     }
 
     // Expose version switcher globally so onclick works
@@ -167,6 +188,103 @@ function displayRecentUpload(request) {
 
     const prevSection = document.getElementById('previousMapsSection');
     if (prevSection) prevSection.style.display = 'none';
+}
+
+// ===============================
+// Watermark Engine
+// ===============================
+// This draws the map image onto a <canvas> and then paints the
+// watermark text directly into the pixel data.
+//
+// WHY CANVAS?
+//   A CSS overlay watermark can be deleted in DevTools in seconds.
+//   A canvas-drawn watermark is baked into the pixels — screenshots,
+//   right-click → Save Image, and screen recordings all capture it.
+//
+// PARAMETERS:
+//   imageUrl   – the map file URL from your backend
+//   reqCode    – e.g. "REQ-2024-001"  (shown in watermark)
+//   mapType    – e.g. "Barangay Boundary Map" (shown in watermark)
+// ===============================
+
+function drawWatermarkedMap(imageUrl, reqCode, mapType) {
+    const canvas = document.getElementById('mapCanvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+
+    // Required so canvas doesn't taint with cross-origin images.
+    // Your backend should serve images with CORS headers, or use
+    // same-origin URLs — then you can remove this line.
+    img.crossOrigin = 'anonymous';
+
+    img.onload = function () {
+        // Set canvas resolution to the image's natural size
+        canvas.width  = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+
+        // 1. Draw the clean map image
+        ctx.drawImage(img, 0, 0);
+
+        // 2. Paint the watermark pattern on top
+        applyWatermark(ctx, canvas.width, canvas.height, reqCode, mapType);
+    };
+
+    img.onerror = function () {
+        // If image fails to load (e.g. CORS), show a fallback message
+        canvas.width  = 600;
+        canvas.height = 100;
+        ctx.fillStyle = '#f8d7da';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#842029';
+        ctx.font = '14px monospace';
+        ctx.fillText('Could not load map image. Check CORS settings on your server.', 10, 55);
+    };
+
+    img.src = imageUrl;
+}
+
+function applyWatermark(ctx, w, h, reqCode, mapType) {
+    const MAIN_TEXT   = 'SLSU CHERM';
+    const CLIENT_TEXT = `${reqCode} · ${mapType.toUpperCase()}`;
+    const OPACITY     = 0.18;   
+    const ANGLE_DEG   = -35;    
+    const FONT_SIZE   = Math.max(16, Math.round(w * 0.028)); 
+    const COLOR       = '#034955'; 
+    const ROWS        = 5;
+    const COLS        = 3;
+
+    ctx.save();
+    ctx.globalAlpha = OPACITY;
+    ctx.fillStyle   = COLOR;
+
+    const angleRad  = (ANGLE_DEG * Math.PI) / 180;
+    const spacingX  = w / COLS;
+    const spacingY  = h / ROWS;
+
+    for (let row = -1; row <= ROWS + 1; row++) {
+        for (let col = -1; col <= COLS + 1; col++) {
+            const offsetX = (row % 2 === 0) ? 0 : spacingX / 2;
+            const cx = col * spacingX + offsetX;
+            const cy = row * spacingY;
+
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(angleRad);
+
+            // Main line
+            ctx.font = `bold ${FONT_SIZE}px DM Mono, monospace`;
+            ctx.fillText(MAIN_TEXT, 0, 0);
+            
+            ctx.font = `${Math.round(FONT_SIZE * 0.65)}px DM Mono, monospace`;
+            ctx.fillText(CLIENT_TEXT, 0, FONT_SIZE + 5);
+
+            ctx.restore();
+        }
+    }
+
+    ctx.restore();
 }
 
 // ===============================
@@ -192,6 +310,9 @@ function showEmptyState(message = 'No map uploads found') {
 
 // ===============================
 // Download Handler
+// NOTE: The download still serves the CLEAN image from your backend.
+// If you want the watermark on the downloaded file too, handle that
+// server-side (burn watermark into image before serving download URL).
 // ===============================
 
 function downloadMap(url, code) {
