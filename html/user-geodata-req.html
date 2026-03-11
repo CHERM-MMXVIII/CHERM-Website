@@ -1,0 +1,446 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="icon" type="image/png" href="../img/slsu-cherm-logo.png">
+    <title>SLSU - Center for Hazard and Environmental Resource Mapping</title>
+    <link rel="stylesheet" href="../css/Style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/2.0.2/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link rel="stylesheet" href="./css/mapstyle.css"/>
+    <link rel="stylesheet" href="../css/user-geodata-req.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-light shadow-lg">
+        <div class="d-flex navbar-content justify-content-between">
+            <a class="navbar-brand" href="../index.html">
+                <img src="../img/slsu-cherm-logo.png" class="logo-pic" alt="Logo of SLSU CHERM">
+                <h3 class="logo-name">SLSU CHERM</h3>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="modal" data-bs-target="#navModal">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav text-white">
+                    <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="services.html">Services</a></li>
+                    <li class="nav-item dropdown"
+                        onmouseenter="document.getElementById('customDropdown').classList.add('show')"
+                        onmouseleave="setTimeout(() => { if (!document.getElementById('customDropdown').matches(':hover')) document.getElementById('customDropdown').classList.remove('show'); }, 100)">
+                        <a class="nav-link" href="./index.html#what-is-cherm" id="navbarDropdown">
+                            About Us <span class="dropdown-arrow">▼</span>
+                        </a>
+                        <div class="custom-dropdown-menu" id="customDropdown"
+                            onmouseenter="this.classList.add('show')"
+                            onmouseleave="this.classList.remove('show')">
+                            <div class="dropdown-menu-container">
+                                <div class="dropdown-link-container">
+                                    <div class="dropdown-link">
+                                        <a class="dropdown-item" href="../html/objectives.html">Objectives</a>
+                                        <a class="dropdown-item" href="../html/achievement.html">Achievements</a>
+                                        <a class="dropdown-item" href="../html/events.html">Events and Updates</a>
+                                        <a class="dropdown-item" href="../html/org.html">People behind CHERM</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="#contact-us">Contact Us</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Nav Modal -->
+    <div class="modal fade" id="navModal" tabindex="-1" aria-labelledby="navModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div data-bs-theme="dark">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-content">
+                <div class="modal-body">
+                    <ul class="nav flex-column">
+                        <li class="nav-item"><a class="nav-link" href="#Home">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="services.html">Services</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#about-us">About Us</a></li>
+                        <li class="nav-item"><a class="nav-link" href="objectives.html">Objectives</a></li>
+                        <li class="nav-item"><a class="nav-link" href="achievement.html">Achievements</a></li>
+                        <li class="nav-item"><a class="nav-link" href="events.html">Events and Updates</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#contact-us">Contact Us</a></li>
+                        <li class="nav-item"><a class="nav-link" href="org.html">People Behind CHERM</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div class="page-header-inner">
+            <div class="badge"><i class="fas fa-database"></i> CHERM Data Services</div>
+            <h1>Geospatial Data Request</h1>
+            <p>Access authoritative GIS datasets produced by the Center for Hazard and Environmental Resource Mapping.</p>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-wrapper">
+
+        <a class="back-link" href="services.html">
+            <i class="fa-solid fa-arrow-left"></i> Back to Services
+        </a>
+        <div class="main-card">
+
+            <!-- STEPPER -->
+            <div class="stepper">
+                <div class="step-item active" id="step-indicator-1">
+                <div class="step-num">1</div>
+                <div class="step-label">
+                    <span>Step 1</span>
+                    <span>Your Information</span>
+                </div>
+                </div>
+                <div class="step-item" id="step-indicator-2">
+                    <div class="step-num">2</div>
+                    <div class="step-label">
+                        <span>Step 2</span>
+                        <span>Select Datasets</span>
+                    </div>
+                </div>
+                <div class="step-item" id="step-indicator-3">
+                    <div class="step-num">3</div>
+                    <div class="step-label">
+                        <span>Step 3</span>
+                        <span>Purpose &amp; Submit</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANELS -->
+            <div class="panels">
+
+                <!-- ═══ PANEL 1 — Contact Info ═══ -->
+                <div class="panel active" id="panel-1">
+                    <p class="panel-title">Tell us about yourself</p>
+                    <p class="panel-sub">
+                        We need your contact details to process and deliver the requested datasets.
+                        Fields marked <span class="req">*</span> are required.
+                    </p>
+
+                    <div class="client-pills">
+                        <button class="client-pill active" data-type="internal" onclick="setClientType('internal')">
+                            <i class="fas fa-university"></i> Internal (SLSU)
+                        </button>
+                        <button class="client-pill" data-type="external" onclick="setClientType('external')">
+                            <i class="fas fa-building"></i> External (LGU / Agency)
+                        </button>
+                    </div>
+                    <input type="hidden" id="clientType" value="internal">
+
+                    <div class="form-grid">
+                        <div class="form-group full">
+                            <label>Email Address <span class="req">*</span></label>
+                            <input type="email" id="email" placeholder="email@example.com">
+                            <div class="hint email-hint show" id="emailHint">
+                                <i class="fas fa-info-circle"></i> Use your SLSU institutional email (@slsu.edu.ph).
+                            </div>  
+                        </div>
+
+                        <div class="form-group">
+                            <label>First Name <span class="req">*</span></label>
+                            <input type="text" id="firstName" placeholder="Juan">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Surname <span class="req">*</span></label>
+                            <input type="text" id="surname" placeholder="Dela Cruz">
+                        </div>
+
+                        <div class="form-group full">
+                            <label id="affiliationLabel">Office / College <span class="req">*</span></label>
+                            <input type="text" id="affiliation" placeholder="e.g. College of Engineering">
+                        </div>
+                    </div>
+
+                    <div class="panel-actions">
+                        <span></span>
+                        <button class="btn btn-primary" onclick="goToStep(2)">
+                        Continue <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ═══ PANEL 2 — Dataset Catalogue ═══ -->
+                <div class="panel" id="panel-2">
+                    <p class="panel-title">Select Datasets</p>
+                    <p class="panel-sub">
+                        Browse CHERM's authoritative geospatial datasets. Check the ones you need,
+                        then preview metadata before proceeding.
+                    </p>
+
+                    <div class="catalogue-toolbar">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="dataSearch" placeholder="Search datasets…" oninput="filterData()">
+                        </div>
+                        <div class="filter-chips">
+                            <button class="chip active" data-cat="all"      onclick="filterCat(this,'all')">All</button>
+                            <button class="chip" data-cat="hazard"          onclick="filterCat(this,'hazard')">Hazard</button>
+                            <button class="chip" data-cat="landuse"         onclick="filterCat(this,'landuse')">Land Use</button>
+                            <button class="chip" data-cat="topo"            onclick="filterCat(this,'topo')">Topographic</button>
+                            <button class="chip" data-cat="boundary"        onclick="filterCat(this,'boundary')">Boundary</button>
+                            <button class="chip" data-cat="infra"           onclick="filterCat(this,'infra')">Infrastructure</button>
+                            <button class="chip" data-cat="env"             onclick="filterCat(this,'env')">Environment</button>
+                        </div>
+                    </div>
+
+                    <div class="data-table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                <th></th>
+                                <th>Dataset / Title</th>
+                                <th>Coverage</th>
+                                <th>Category</th>
+                                <th>Format</th>
+                                <th>Info</th>
+                                <th>Preview</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTableBody"></tbody>
+                        </table>
+                        
+                        <div class="no-results" id="noResults">
+                            <i class="fas fa-layer-group"></i>
+                            No datasets match your search.
+                        </div>
+                    </div>
+
+                    <div class="selection-bar" id="selectionBar">
+                        <i class="fas fa-check-circle sel-icon"></i>
+                            <strong id="selCount">0</strong>&nbsp;dataset(s) selected
+                        <div class="selected-list" id="selectedNames"></div>
+                        <button class="btn-clear" onclick="clearSelection()">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+
+                    <div class="panel-actions">
+                        <button class="btn btn-outline" onclick="goToStep(1)">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button class="btn btn-primary" id="btnStep3" onclick="goToStep(3)" disabled>
+                            Continue <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ═══ PANEL 3 — Purpose & Review ═══ -->
+                <div class="panel" id="panel-3">
+                    <p class="panel-title">Purpose &amp; Review</p>
+                    <p class="panel-sub">Select your intended use of the data, review your request, then submit.</p>
+
+                    <div class="purpose-section">
+                        <p class="purpose-label">Intended Purpose <span class="req">*</span></p>
+                        <div class="purpose-options">
+                            <div class="purpose-card" data-purpose="Research" onclick="selectPurpose(this)">
+                                <i class="fas fa-flask"></i><span>Research</span>
+                            </div>
+                            <div class="purpose-card" data-purpose="Planning" onclick="selectPurpose(this)">
+                                <i class="fas fa-map"></i><span>Planning</span>
+                            </div>
+                            <div class="purpose-card" data-purpose="Disaster Risk Reduction" onclick="selectPurpose(this)">
+                                <i class="fas fa-shield-alt"></i><span>Disaster Risk Reduction</span>
+                            </div>
+                            <div class="purpose-card" data-purpose="Academic / Thesis" onclick="selectPurpose(this)">
+                                <i class="fas fa-graduation-cap"></i><span>Academic / Thesis</span>
+                            </div>
+                            <div class="purpose-card" data-purpose="Policy / Governance" onclick="selectPurpose(this)">
+                                <i class="fas fa-landmark"></i><span>Policy / Governance</span>
+                            </div>
+                            <div class="purpose-card" data-purpose="Other" onclick="selectPurpose(this)">
+                                <i class="fas fa-ellipsis-h"></i><span>Other</span>
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="purposeVal">
+
+                        <div class="form-group" id="otherPurposeWrap">
+                            <label>Please specify <span class="req">*</span></label>
+                            <input type="text" id="otherPurpose" placeholder="Describe your purpose…">
+                        </div>
+                    </div>
+
+                    <div class="form-group notes-group">
+                        <label>Additional Notes <span class="opt">(Optional)</span></label>
+                        <textarea id="notes" rows="3" placeholder="Any specific requirements, preferred coordinate system, area of interest, etc."></textarea>
+                    </div>
+
+                    <!-- Review: Requestor -->
+                    <div class="review-box">
+                        <div class="review-box-header">
+                            <i class="fas fa-user-circle"></i> Requestor Information
+                        </div>
+                        <div class="review-rows">
+                            <div class="review-row">
+                                <span class="label">Client Type</span>
+                                <span class="value" id="rv-clientType">—</span>
+                            </div>
+                            <div class="review-row">
+                                <span class="label">Name</span>
+                                <span class="value" id="rv-name">—</span>
+                            </div>
+                            <div class="review-row">
+                                <span class="label">Email</span>
+                                <span class="value" id="rv-email">—</span>
+                            </div>
+                            <div class="review-row">
+                                <span class="label">Affiliation</span>
+                                <span class="value" id="rv-affiliation">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Review: Datasets -->
+                    <div class="review-box">
+                        <div class="review-box-header">
+                            <i class="fas fa-database"></i> Requested Datasets
+                            (<span id="rv-count">0</span>)
+                        </div>
+                        <div class="review-rows">
+                            <div class="review-row">
+                                <div class="review-datasets" id="rv-datasets"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tos-box">
+                        <input type="checkbox" id="tosCheck" onchange="toggleSubmit()">
+                        <label for="tosCheck">
+                            I acknowledge that the datasets provided by CHERM are for the stated purpose only
+                            and shall not be redistributed or used for commercial purposes without prior written
+                            consent from the center. I agree to cite CHERM as the primary data source in any output.
+                        </label>
+                    </div>
+
+                    <div class="panel-actions">
+                        <button class="btn btn-outline" onclick="goToStep(2)">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button class="btn btn-primary" id="btnSubmit" onclick="submitRequest()" disabled>
+                            <i class="fas fa-paper-plane"></i> Submit Request
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ═══ PANEL 4 — Success ═══ -->
+                <div class="panel" id="panel-4">
+                    <div class="success-panel">
+                        <div class="success-icon"><i class="fas fa-check"></i></div>
+                        <h2>Request Submitted!</h2>
+                        <p>
+                        Thank you for your data request. CHERM will review and process it within
+                        3–5 working days. You will be notified via email once the datasets are ready.
+                        </p>
+                        <div class="request-code-box">
+                            <div>
+                                <div class="code-label">Your Request Code</div>
+                                <div class="code-val" id="successCode">—</div>
+                            </div>
+                            <button class="btn-copy-code" onclick="copyCode()" title="Copy code">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <button class="btn btn-outline btn-reset" onclick="resetForm()">
+                            <i class="fas fa-redo"></i> Submit Another Request
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- META MODAL -->
+    <div class="meta-overlay" id="metaOverlay" onclick="closeMeta(event)">
+        <div class="meta-modal">
+            <div class="meta-modal-header">
+                <div>
+                    <h3 id="metaTitle">Dataset Metadata</h3>
+                    <p id="metaSubtitle">CHERM — Geospatial Data</p>
+                </div>
+                <button class="btn-close-meta" onclick="closeMetaModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="meta-body">
+                <div class="meta-desc" id="metaDesc"></div>
+                <div class="meta-grid" id="metaGrid"></div>
+                <div class="meta-footer">
+                    <button class="btn btn-outline" onclick="closeMetaModal()">Close</button>
+                    <button class="btn btn-primary" id="metaSelectBtn" onclick="selectFromMeta()">
+                        <i class="fas fa-plus"></i> Add to Request
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DOCUMENT PREVIEW MODAL -->
+    <div class="meta-overlay preview-overlay" id="previewOverlay" onclick="closePreview(event)">
+        <div class="preview-modal">
+
+            <!-- Header -->
+            <div class="preview-modal-header">
+                <div class="preview-modal-title-wrap">
+                    <div class="preview-modal-eyebrow"><i class="fas fa-file-alt"></i> Dataset Preview</div>
+                    <h3 id="prevTitle">Dataset Title</h3>
+                    <p id="prevSubtitle">Format &middot; Coverage &middot; Year</p>
+                </div>
+                <button class="btn-close-meta" onclick="closePreviewModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Free badge -->
+            <div class="preview-free-bar" id="prevFreeBar">
+                <i class="fas fa-unlock-alt"></i>
+                <span id="prevFreeBarText">Pages 1&ndash;2 are freely viewable. Remaining pages require an approved request.</span>
+            </div>
+
+            <!-- Pages scroll area -->
+            <div class="preview-scroll" id="prevPagesContainer"></div>
+
+            <!-- Footer -->
+            <div class="preview-modal-footer">
+                <input type="hidden" id="prevDatasetId">
+                <button class="btn btn-outline" onclick="closePreviewModal()">Close</button>
+                <button class="btn btn-primary" onclick="gateAddToRequest(+document.getElementById('prevDatasetId').value)">
+                    <i class="fas fa-plus"></i> Add to My Request
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- pdf.js CDN (used only if real previewUrl PDFs are supplied) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        if (typeof pdfjsLib !== 'undefined') {
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+    </script>
+    <script src="../JS/user-geodata-req.js"></script>
+</body>
+</html>

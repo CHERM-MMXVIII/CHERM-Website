@@ -1,0 +1,325 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Data Requests — CHERM Admin</title>
+    <link rel="icon" type="image/png" href="../img/slsu-cherm-logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="../css/main-admin.css">
+    <link rel="stylesheet" href="../css/manage-data-req.css">
+</head>
+<body>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <div class="logo-icon"><img src="../img/cherm-logo.png" alt="CHERM Logo"></div>
+                <div class="logo-text"><h2>SLSU CHERM</h2><p>Admin Panel</p></div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="nav-item active">
+                    <a href="/main-admin"><i class="fas fa-home"></i><span>Dashboard</span></a>
+                </li>
+                <li class="nav-item">
+                    <a href="/" target="_blank"><i class="fa-solid fa-globe"></i><span>SLSU Cherm Website</span></a>
+                </li>
+            </ul>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar"><i class="fas fa-user-shield"></i></div>
+                <div class="user-info">
+                    <h4 id="userFullName">Loading</h4>
+                    <p id="userEmail">Loading...</p>
+                </div>
+            </div>
+            <form action="/logout" method="POST" id="logoutForm">
+                <button class="logout-btn" type="button">
+                    <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-left">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle"><i class="fas fa-bars"></i></button>
+                <div class="breadcrumb">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard / Manage Data Requests</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="admin-main">
+            <div class="container-fluid">
+
+                <!-- Page Header -->
+                <div class="page-header">
+                    <div>
+                        <h2 class="banner-title">Manage Geospatial Data Requests</h2>
+                        <p>Review, fulfill, and manage submitted GIS dataset requests</p>
+                    </div>
+                    <div class="dr-header-stats">
+                        <div class="dr-stat"><span class="dr-stat-num" id="statTotal">—</span><span class="dr-stat-label">Total</span></div>
+                        <div class="dr-stat"><span class="dr-stat-num" id="statPending">—</span><span class="dr-stat-label">Pending</span></div>
+                        <div class="dr-stat"><span class="dr-stat-num" id="statProcessing">—</span><span class="dr-stat-label">Processing</span></div>
+                        <div class="dr-stat"><span class="dr-stat-num" id="statFulfilled">—</span><span class="dr-stat-label">Fulfilled</span></div>
+                    </div>
+                </div>
+
+                <!-- Toolbar -->
+                <div class="toolbar">
+                    <div class="toolbar-left">
+                        <div class="search-container">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" id="requestSearchInput" class="search-input"
+                                placeholder="Search by ID, requester, email, dataset..." />
+                        </div>
+                    </div>
+                    <div class="toolbar-right">
+                        <div class="filter-container" id="filterDropdownWrapper"></div>
+                        <button class="btn-tertiary" onclick="window.location.href='/admin/datasets'">
+                            <span>View Dataset Catalogue</span>
+                        </button>
+                        <button class="btn-export" onclick="exportToCSV()">
+                            <i class="fas fa-file-csv"></i><span>Export</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="requests-table-container">
+                    <table class="requests-table">
+                        <thead>
+                            <tr>
+                                <th data-col="request_code" onclick="sortBy('request_code')">REQUEST ID <span class="sort-icon"></span></th>
+                                <th data-col="surname"       onclick="sortBy('surname')">REQUESTER <span class="sort-icon"></span></th>
+                                <th data-col="client_type"   onclick="sortBy('client_type')">CLIENT TYPE <span class="sort-icon"></span></th>
+                                <th data-col="created_at"    onclick="sortBy('created_at')">DATE SUBMITTED <span class="sort-icon"></span></th>
+                                <th data-col="purpose"       onclick="sortBy('purpose')">PURPOSE <span class="sort-icon"></span></th>
+                                <th>DATASETS</th>
+                                <th data-col="status"        onclick="sortBy('status')">STATUS <span class="sort-icon"></span></th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="requestsTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-container">
+                    <div class="pagination-info"><span id="paginationInfo">Showing 0 to 0 of 0 entries</span></div>
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" id="firstPageBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="14" height="14"><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160zm352-160l-160 160c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L301.3 256 438.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0z"/></svg>
+                        </button>
+                        <button class="pagination-btn" id="prevPageBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="14" height="14"><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+                        </button>
+                        <div class="pagination-numbers" id="paginationNumbers"></div>
+                        <button class="pagination-btn" id="nextPageBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="14" height="14"><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg>
+                        </button>
+                        <button class="pagination-btn" id="lastPageBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="14" height="14"><path d="M470.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 256 265.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160zm-352 160l160-160c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0z"/></svg>
+                        </button>
+                    </div>
+                    <div class="pagination-size">
+                        <label for="itemsPerPage">Show:</label>
+                        <select id="itemsPerPage" class="items-per-page-select">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════
+            VIEW / MANAGE MODAL
+        ══════════════════════════════════ -->
+        <div class="modal-overlay" id="viewRequestModal">
+            <div class="modal-container dr-modal-container">
+
+                <!-- Modal Header -->
+                <div class="modal-header dr-modal-header">
+                    <div class="dr-header-left">
+                        <div class="modal-header-content">
+                            <h5 class="modal-title" id="modalRequestId"></h5>
+                            <p class="modal-subtitle">Submitted on <span id="modalSubmittedDate"></span></p>
+                        </div>
+                    </div>
+                    <div class="dr-header-right">
+                        <span class="status-badge" id="modalStatusBadge"></span>
+                        <button type="button" class="modal-close" onclick="closeViewModal()">×</button>
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="modal-body dr-modal-body">
+
+                    <!-- LEFT: Info tabs -->
+                    <div class="dr-left-panel">
+                        <div class="dr-tab-nav">
+                            <button class="dr-tab-btn active" onclick="drSwitchTab(this,'overview')">
+                                <i class="fas fa-user"></i> Requestor
+                            </button>
+                            <button class="dr-tab-btn" onclick="drSwitchTab(this,'datasets')">
+                                <i class="fas fa-layer-group"></i> Datasets
+                            </button>
+                            <button class="dr-tab-btn" onclick="drSwitchTab(this,'fulfillment')">
+                                <i class="fas fa-history"></i> History
+                            </button>
+                        </div>
+
+                        <!-- Requestor tab -->
+                        <div class="dr-tab-pane active" id="dr-tab-overview">
+                            <div class="dr-info-grid">
+                                <div class="dr-info-row">
+                                    <span class="dr-info-label">Full Name</span>
+                                    <span class="dr-info-value" id="modalName">—</span>
+                                </div>
+                                <div class="dr-info-row">
+                                    <span class="dr-info-label">Email</span>
+                                    <span class="dr-info-value" id="modalEmail">—</span>
+                                </div>
+                                <div class="dr-info-row">
+                                    <span class="dr-info-label">Affiliation</span>
+                                    <span class="dr-info-value" id="modalAffiliation">—</span>
+                                </div>
+                                <div class="dr-info-row">
+                                    <span class="dr-info-label">Client Type</span>
+                                    <span class="dr-info-value" id="modalClientType">—</span>
+                                </div>
+                                <div class="dr-info-row">
+                                    <span class="dr-info-label">Contact</span>
+                                    <span class="dr-info-value" id="modalContact">—</span>
+                                </div>
+                                <div class="dr-info-row">
+                                    <span class="dr-info-label">Purpose</span>
+                                    <span class="dr-info-value" id="modalPurpose">—</span>
+                                </div>
+                                <div class="dr-info-row dr-info-row--tall">
+                                    <span class="dr-info-label">Notes</span>
+                                    <span class="dr-info-value" id="modalNotes">—</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Datasets tab -->
+                        <div class="dr-tab-pane" id="dr-tab-datasets">
+                            <div id="drDatasetList" class="dr-dataset-list"></div>
+                        </div>
+
+                        <!-- History tab -->
+                        <div class="dr-tab-pane" id="dr-tab-fulfillment">
+                            <div class="dr-empty-state" id="drFulfillmentEmpty">
+                                <i class="fas fa-inbox"></i>
+                                <span>No files delivered yet.</span>
+                            </div>
+                            <div class="dr-fulfillment-list" id="drFulfillmentList"></div>
+                        </div>
+                    </div><!-- /.dr-left-panel -->
+
+                    <!-- RIGHT: Admin actions -->
+                    <div class="dr-right-panel">
+                        <div class="dr-actions-card">
+
+                            <div class="dr-actions-header">
+                                <i class="fas fa-tools"></i> Admin Actions
+                            </div>
+
+                            <div class="dr-field-group">
+                                <label class="dr-field-label" for="statusSelect">Update Status</label>
+                                <select id="statusSelect" class="dr-select">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Processing">Processing</option>
+                                    <option value="Ready for Pickup">Ready for Pickup</option>
+                                    <option value="Fulfilled">Fulfilled</option>
+                                    <option value="Declined">Declined</option>
+                                </select>
+                            </div>
+
+                            <div class="dr-field-group">
+                                <label class="dr-field-label">
+                                    Upload Data Files
+                                    <span class="dr-optional">(optional)</span>
+                                </label>
+                                <div class="dr-dropzone" id="drDropzone"
+                                    onclick="document.getElementById('drFileInput').click()"
+                                    ondragover="drDragOver(event)"
+                                    ondragleave="drDragLeave(event)"
+                                    ondrop="drDrop(event)">
+                                    <div class="dr-dropzone-icon">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <p class="dr-dropzone-main">Click or drag files here</p>
+                                    <span class="dr-dropzone-hint">PDF, SHP, TIFF, GEOJSON, CSV, ZIP &mdash; max 100 MB each</span>
+                                </div>
+                                <input type="file" id="drFileInput" multiple
+                                    accept=".pdf,.shp,.dbf,.shx,.prj,.tif,.tiff,.geojson,.json,.csv,.zip,.kml,.gpkg"
+                                    style="display:none" onchange="drFilesSelected(this.files)">
+                                <div class="dr-file-queue" id="drFileQueue"></div>
+                                <button class="dr-upload-btn" id="drUploadBtn"
+                                    onclick="drUploadFiles()" style="display:none">
+                                    <i class="fas fa-upload"></i> Upload Files
+                                </button>
+                            </div>
+
+                            <div class="dr-field-group">
+                                <label class="dr-field-label" for="deliveryLink">
+                                    Delivery Link
+                                    <span class="dr-optional">(optional)</span>
+                                </label>
+                                <input type="url" id="deliveryLink" class="dr-input"
+                                    placeholder="Google Drive, OneDrive, or any shareable link...">
+                                <p class="dr-field-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    Use for large datasets or externally hosted files.
+                                </p>
+                            </div>
+
+                            <div class="dr-field-group dr-field-notes">
+                                <label class="dr-field-label" for="adminNotes">
+                                    Admin Notes <span class="dr-optional">(optional)</span>
+                                </label>
+                                <textarea id="adminNotes" class="dr-textarea" rows="5"
+                                    placeholder="Add remarks, processing notes, or instructions for the requestor..."></textarea>
+                            </div>
+
+                            <button class="btn-save-updates dr-save-btn" onclick="saveRequestUpdates()">
+                                <i class="fas fa-check"></i>
+                                <span>Save Updates</span>
+                            </button>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="confirmDeleteModal"></div>
+
+        <div class="copyright">
+            &copy; 2026 Southern Luzon State University - CHERM. All rights reserved.
+        </div>
+    </main>
+
+    <script src="/JS/manage-data-req.js"></script>
+    <script src="/JS/admin-dashboard.js"></script>
+</body>
+</html>

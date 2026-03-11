@@ -183,9 +183,23 @@ function buildApprovalCard(review) {
                     <i class="fas fa-external-link-alt"></i> Open Reviewed File
                 </a>
             </div>
-            <button class="approve-btn" onclick="approveManuscript('${review.request_code}')">
-                <i class="fas fa-check"></i> Approve
-            </button>
+            <div class="approval-actions">
+                <button class="approve-btn" onclick="approveManuscript('${review.request_code}')">
+                    <i class="fas fa-check"></i> Approve
+                </button>
+                <button class="revision-btn" onclick="toggleRevisionForm()">
+                    <i class="fas fa-edit"></i> Request Revision
+                </button>
+            </div>
+            <div class="revision-form" id="revisionForm" style="display:none;">
+                <textarea id="revisionText" placeholder="Describe the revisions or changes you are requesting..." rows="4"></textarea>
+                <div class="revision-form-actions">
+                    <button class="revision-cancel-btn" onclick="toggleRevisionForm()">Cancel</button>
+                    <button class="revision-submit-btn" onclick="submitRevision('${review.request_code}')">
+                        <i class="fas fa-paper-plane"></i> Submit Request
+                    </button>
+                </div>
+            </div>
         </div>
     `;
 }
@@ -215,6 +229,50 @@ async function approveManuscript(requestCode) {
         if (btn) {
             btn.disabled  = false;
             btn.innerHTML = '<i class="fas fa-check"></i> Approve';
+        }
+        alert('Something went wrong. Please try again.');
+    }
+}
+
+function toggleRevisionForm() {
+    const form = document.getElementById('revisionForm');
+    if (form) {
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        if (form.style.display === 'block') {
+            document.getElementById('revisionText')?.focus();
+        }
+    }
+}
+
+async function submitRevision(requestCode) {
+    const text = document.getElementById('revisionText')?.value.trim();
+    if (!text) {
+        alert('Please describe the revisions you are requesting.');
+        return;
+    }
+
+    const btn = document.querySelector('.revision-submit-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+    }
+
+    try {
+        const response = await fetch(`/api/user/manuscript-requests/${encodeURIComponent(requestCode)}/revision`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ revision_notes: text })
+        });
+
+        if (!response.ok) throw new Error('Submission failed');
+
+        loadManuscriptReview(requestCode);
+
+    } catch (error) {
+        console.error('Revision error:', error);
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Request';
         }
         alert('Something went wrong. Please try again.');
     }

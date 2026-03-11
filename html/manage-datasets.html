@@ -1,0 +1,346 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataset Catalogue — CHERM Admin</title>
+    <link rel="icon" type="image/png" href="../img/slsu-cherm-logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="../css/main-admin.css">
+    <link rel="stylesheet" href="../css/manage-datasets.css">
+</head>
+<body>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <img src="../img/cherm-logo.png" alt="CHERM Logo">
+                </div>
+                <div class="logo-text">
+                    <h2>SLSU CHERM</h2>
+                    <p>Admin Panel</p>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="nav-item active">
+                    <a href="/main-admin">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/" target="_blank">
+                        <i class="fa-solid fa-globe"></i>
+                        <span>SLSU Cherm Website</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="user-info">
+                    <h4 id="userFullName">Loading</h4>
+                    <p id="userEmail">Loading...</p>
+                </div>
+            </div>
+            <form action="/logout" method="POST" id="logoutForm">
+                <button class="logout-btn" type="button">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-header">
+            <div class="header-left">
+                <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="breadcrumb">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard / Dataset Catalogue</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="admin-main">
+
+            <!-- Page Header -->
+            <div class="page-header">
+                <div>
+                    <h2 class="banner-title">Dataset Catalogue</h2>
+                    <p>Manage all GIS datasets available for public request</p>
+                </div>
+                <div class="ds-header-stats">
+                    <div class="dr-stat">
+                        <span class="dr-stat-num" id="statTotal">0</span>
+                        <span class="dr-stat-label">Total</span>
+                    </div>
+                    <div class="dr-stat">
+                        <span class="dr-stat-num" id="statHazard">0</span>
+                        <span class="dr-stat-label">Hazard</span>
+                    </div>
+                    <div class="dr-stat">
+                        <span class="dr-stat-num" id="statLanduse">0</span>
+                        <span class="dr-stat-label">Land Use</span>
+                    </div>
+                    <div class="dr-stat">
+                        <span class="dr-stat-num" id="statOther">0</span>
+                        <span class="dr-stat-label">Other</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text"
+                            id="searchInput"
+                            class="search-input"
+                            placeholder="Search by title, coverage, description..."
+                            oninput="applyFilters()" />
+                    </div>
+                </div>
+                <div class="toolbar-right">
+                    <div class="filter-container" id="filterDropdownWrapper"></div>
+                    <button class="btn-add-dataset" onclick="window.location.href='/admin/data-requests'">
+                        <span>View Request List</span>
+                    </button>
+                    <button class="btn-add-dataset" onclick="openAddModal()">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Dataset</span>
+                    </button>
+                    <button class="btn-export" onclick="exportToCSV()" title="Export to CSV">
+                        <i class="fas fa-file-csv"></i>
+                        <span>Export</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="requests-table-container">
+                <table class="requests-table" id="datasetsTable">
+                    <thead>
+                        <tr>
+                            <th style="width:48px;">#</th>
+                            <th data-col="title" onclick="sortBy('title')">TITLE <span class="sort-icon"></span></th>
+                            <th data-col="cat" onclick="sortBy('cat')">CATEGORY <span class="sort-icon"></span></th>
+                            <th data-col="coverage" onclick="sortBy('coverage')">COVERAGE <span class="sort-icon"></span></th>
+                            <th data-col="format" onclick="sortBy('format')">FORMAT <span class="sort-icon"></span></th>
+                            <th data-col="year" onclick="sortBy('year')">YEAR <span class="sort-icon"></span></th>
+                            <th data-col="size" onclick="sortBy('size')">SIZE <span class="sort-icon"></span></th>
+                            <th style="text-align:center;">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="10" class="empty-state">
+                                <i class="fas fa-spinner fa-spin"></i> Loading datasets…
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    <span id="paginationInfo">Showing 0 to 0 of 0 entries</span>
+                </div>
+                <div class="pagination-controls">
+                    <button class="pagination-btn" id="firstPageBtn" title="First Page">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="14" height="14"><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160zm352-160l-160 160c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L301.3 256 438.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0z"/></svg>
+                    </button>
+                    <button class="pagination-btn" id="prevPageBtn" title="Previous Page">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="14" height="14"><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg>
+                    </button>
+                    <div class="pagination-numbers" id="paginationNumbers"></div>
+                    <button class="pagination-btn" id="nextPageBtn" title="Next Page">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" width="14" height="14"><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg>
+                    </button>
+                    <button class="pagination-btn" id="lastPageBtn" title="Last Page">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="14" height="14"><path d="M470.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 256 265.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160zm-352 160l160-160c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L210.7 256 73.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0z"/></svg>
+                    </button>
+                </div>
+                <div class="pagination-size">
+                    <label for="itemsPerPage">Show:</label>
+                    <select id="itemsPerPage" class="items-per-page-select" onchange="onItemsPerPageChange()">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+
+        </div><!-- /admin-main -->
+    </main>
+
+    <!-- ══════════════════════════════════════════
+        ADD / EDIT MODAL (side panel — preserved)
+    ══════════════════════════════════════════ -->
+    <div class="modal-backdrop" id="formModalBackdrop" onclick="closeFormModal()"></div>
+    <div class="side-modal" id="formModal">
+        <div class="side-modal-header">
+            <h3 id="formModalTitle"><i class="fas fa-plus-circle"></i> Add Dataset</h3>
+            <button class="modal-close-btn" onclick="closeFormModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="side-modal-body">
+            <form id="datasetForm" onsubmit="submitDatasetForm(event)">
+                <input type="hidden" id="formDatasetId">
+
+                <div class="form-section-title">Basic Information</div>
+
+                <div class="form-group">
+                    <label class="form-label required">Title</label>
+                    <input type="text" class="form-control" id="fTitle" placeholder="e.g. Flood Hazard Map — Quezon Province" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label required">Description</label>
+                    <textarea class="form-control" id="fDesc" rows="3" placeholder="Brief description of this dataset…" required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label required">Category</label>
+                        <select class="form-control" id="fCat" required>
+                            <option value="">Select…</option>
+                            <option value="hazard">Hazard</option>
+                            <option value="landuse">Land Use</option>
+                            <option value="topo">Topographic</option>
+                            <option value="boundary">Boundary</option>
+                            <option value="infra">Infrastructure</option>
+                            <option value="env">Environment</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Format</label>
+                        <input type="text" class="form-control" id="fFormat" placeholder="Auto-filled on upload…" readonly>
+                    </div>
+                </div>
+
+                <div class="form-section-title">Spatial Details</div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label required">Coverage</label>
+                        <input type="text" class="form-control" id="fCoverage" placeholder="e.g. Quezon Province" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Scale</label>
+                        <input type="text" class="form-control" id="fScale" placeholder="e.g. 1:10,000">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Coordinate Reference System (CRS)</label>
+                    <input type="text" class="form-control" id="fCrs" placeholder="e.g. PRS92 / Philippine Zone V">
+                </div>
+
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label required">Year</label>
+                    <input type="number" class="form-control" id="fYear" min="1990" max="2099" placeholder="e.g. 2023" required>
+                </div>
+
+                <div class="form-section-title">Dataset File</div>
+
+                <!-- Dropzone -->
+                <div class="ds-dropzone" id="dsDropzone"
+                    onclick="document.getElementById('fDatasetFile').click()"
+                    ondragover="dsDragOver(event)" ondragleave="dsDragLeave(event)" ondrop="dsDrop(event)">
+                    <input type="file" id="fDatasetFile" style="display:none"
+                        accept="*"
+                        onchange="dsFileSelected(this.files[0])">
+                    <div class="ds-dropzone-icon" id="dsDropzoneIcon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <div class="ds-dropzone-text" id="dsDropzoneText">
+                        <strong>Click to upload</strong> or drag & drop<br>
+                        <span>SHP, TIFF, GEOJSON, CSV, KML, GPKG, ZIP, PDF</span>
+                    </div>
+                </div>
+
+                <!-- Selected file info -->
+                <div class="ds-file-info" id="dsFileInfo" style="display:none;">
+                    <div class="ds-file-info-left">
+                        <i class="fas fa-file" id="dsFileIcon"></i>
+                        <div>
+                            <div class="ds-file-name" id="dsFileName"></div>
+                            <div class="ds-file-meta" id="dsFileMeta"></div>
+                        </div>
+                    </div>
+                    <button type="button" class="ds-file-remove" onclick="dsClearFile()" title="Remove file">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Size: auto-filled -->
+                <div class="form-group" style="margin-top:10px;">
+                    <label class="form-label">File Size <span class="optional-badge">Auto-filled</span></label>
+                    <input type="text" class="form-control" id="fSize" placeholder="Auto-filled on upload…" readonly>
+                </div>
+
+                <div class="form-section-title">Preview</div>
+                <div class="form-hint" style="margin-bottom:16px; font-size:.8rem; color:#777; background:#f5f5f5; padding:10px 14px; border-radius:8px; border-left:3px solid #008080;">
+                    <i class="fas fa-info-circle" style="color:#008080; margin-right:6px;"></i>
+                    Preview is <strong>auto-generated</strong> from the uploaded file.
+                    PDF, CSV, PNG, JPG and WEBP files show an in-browser preview.
+                    SHP, TIFF, GEOJSON, KML and GPKG show a metadata card instead.
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeFormModal()">Cancel</button>
+                    <button type="submit" class="btn-save" id="formSubmitBtn">
+                        <i class="fas fa-save"></i> Save Dataset
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+        DELETE CONFIRM MODAL
+    ══════════════════════════════════════════ -->
+    <div class="modal-backdrop" id="deleteModalBackdrop" onclick="closeDeleteModal()"></div>
+    <div class="confirm-modal" id="deleteModal">
+        <div class="confirm-modal-icon"><i class="fas fa-trash-alt"></i></div>
+        <h3 class="confirm-modal-title">Delete Dataset?</h3>
+        <p class="confirm-modal-text" id="deleteModalText">This cannot be undone.</p>
+        <div class="confirm-modal-actions">
+            <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+            <button class="btn-delete-confirm" id="deleteConfirmBtn" onclick="executeDelete()">
+                <i class="fas fa-trash-alt"></i> Delete
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="copyright">
+        © 2026 Southern Luzon State University - CHERM. All rights reserved.
+    </div>
+
+    <script src="../JS/manage-datasets.js"></script>
+    <script src="../JS/admin-dashboard.js"></script>
+</body>
+</html>

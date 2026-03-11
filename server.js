@@ -72,6 +72,16 @@ if (!fs.existsSync(manuscriptRequestDir)) {
   fs.mkdirSync(manuscriptRequestDir);
 }
 
+const dataRequestDir = path.join(uploadsDir, 'data-requests');
+if (!fs.existsSync(dataRequestDir)) {
+  fs.mkdirSync(dataRequestDir);
+}
+
+const datasetFilesDir = path.join(uploadsDir, 'dataset-files');
+if (!fs.existsSync(datasetFilesDir)) {
+  fs.mkdirSync(datasetFilesDir);
+}
+
 /* ---------- MIDDLEWARE ---------- */
 app.use(express.json({ limit: '500mb' }));
 app.use(express.urlencoded({ limit: '500mb', extended: true }));
@@ -175,6 +185,52 @@ const manuscriptUpload = multer({
   }
 });
 
+const dataRequestUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, dataRequestDir),
+    filename: (req, file, cb) => {
+      cb(null, Date.now() + '-' + file.originalname);
+    }
+  }),
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB per file
+  fileFilter: (req, file, cb) => {
+    const allowed = [
+      'application/pdf',
+      'application/zip',
+      'application/x-zip-compressed',
+      'application/octet-stream',   // .shp, .dbf, .prj, .shx, .gpkg, etc.
+      'application/geo+json',
+      'application/json',
+      'text/csv',
+      'text/plain',
+      'image/tiff',
+      'image/geotiff',
+      'application/vnd.google-earth.kml+xml',
+    ];
+    const ext = path.extname(file.originalname).toLowerCase();
+    const allowedExts = [
+      '.pdf', '.zip', '.shp', '.dbf', '.shx', '.prj',
+      '.tif', '.tiff', '.geojson', '.json', '.csv',
+      '.kml', '.gpkg',
+    ];
+    if (allowed.includes(file.mimetype) || allowedExts.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Unsupported file type'));
+    }
+  }
+});
+
+const datasetFileUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, datasetFilesDir),
+    filename: (req, file, cb) => {
+      cb(null, Date.now() + '-' + file.originalname);
+    }
+  }),
+  fileFilter: (req, file, cb) => cb(null, true),
+});
+
 /* ---------- ADMIN MAPS DIR ---------- */
 const adminMapsDir = path.join(uploadsDir, 'admin-maps');
 
@@ -243,6 +299,22 @@ function generateManuscriptRequestId() {
     .toUpperCase()
     .padStart(4, '0');
   return `${datePart}-CHERM-MR-${hexPart}`;
+}
+
+function generateDataRequestId() {
+  const now = new Date();
+  const datePart = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+  const hexPart  = Math.floor(Math.random() * 0x10000)
+    .toString(16)
+    .toUpperCase()
+    .padStart(4, '0');
+  return `${datePart}-CHERM-DR-${hexPart}`;
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024)              return bytes + ' B';
+  if (bytes < 1024 * 1024)       return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
 /* ---------- FACEBOOK POST ID EXTRACTOR ---------- */
@@ -346,6 +418,14 @@ app.get('/admin/training-requests', requireAuth, (req, res) => {
 
 app.get('/admin/manuscript-requests', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'html', 'manage-manuscript-req.html'));
+});
+
+app.get('/admin/data-requests', requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'manage-data-req.html'));
+});
+
+app.get('/admin/datasets', requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'manage-datasets.html'));
 });
 
 // LOGIN SETUP 
@@ -876,8 +956,6 @@ app.post('/api/map-requests',
     { name: 'initialData', maxCount: 1 }
   ]),
   async (req, res) => {
-    // console.log('Route /api/map-requests hit! Body:', req.body, 'Files:', req.files);
-
     try {
       const {
         clientType,
@@ -1010,21 +1088,6 @@ app.post('/api/map-requests',
 );
 
 
-// app.get('/api/map-requests', requireAuth, async (req, res) => {
-//   try {
-//     const result = await pool.query(
-//       `SELECT id, first_name, surname, affiliation, date_needed, map_type, status, created_at
-//        FROM map_requests
-//        ORDER BY created_at DESC`
-//     );
-//     res.json({ requests: result.rows });
-//   } catch (err) {
-//     console.error('Fetch map requests error:', err);
-//     res.status(500).json({ error: 'Failed to fetch requests' });
-//   }
-// });
-
-// GET /api/map-requests/:id - Fetch full details for a single request (for modal)
 app.get('/api/map-requests', requireAuth, async (req, res) => {
   try {
     const result = await pool.query(
@@ -1048,7 +1111,6 @@ app.get('/api/user/map-requests', async (req, res) => {
   }
 
   try {
-    // 1️⃣ Get the map request
     const requestResult = await pool.query(
       `SELECT id,
         request_code,
@@ -1068,7 +1130,6 @@ app.get('/api/user/map-requests', async (req, res) => {
 
     const request = requestResult.rows[0];
 
-    // 2️⃣ Get admin uploaded maps for this request
     const filesResult = await pool.query(
       `SELECT id,
               file_url,
@@ -1080,10 +1141,8 @@ app.get('/api/user/map-requests', async (req, res) => {
       [request.id]
     );
 
-    // 3️⃣ Attach admin maps to request object
     request.admin_maps = filesResult.rows;
 
-    // 4️⃣ Return in correct format for frontend
     res.json({ request });
 
   } catch (err) {
@@ -1163,10 +1222,9 @@ app.get('/api/map-requests/:id', requireAuth, async (req, res) => {
   }
 });
 
-// PUT /api/map-requests/:id - Update request status (and optionally other fields)
 app.put('/api/map-requests/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;  // Add more fields if needed (e.g., map_type)
+  const { status } = req.body;
   try {
     await pool.query(
       `UPDATE map_requests SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
@@ -1182,7 +1240,6 @@ app.put('/api/map-requests/:id', requireAuth, async (req, res) => {
 app.delete('/api/map-requests/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
   try {
-    // Optionally delete associated files (request_letter_url, signature_url)
     const request = await pool.query(`SELECT request_letter_url, signature_url, initial_data_url FROM map_requests WHERE id = $1`, [id]);
     if (request.rows.length > 0) {
       const { request_letter_url, signature_url, initial_data_url } = request.rows[0];
@@ -1204,7 +1261,6 @@ app.delete('/api/map-requests/:id', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/map-requests/:id/upload - Upload map progress file
 const mapProgressUpload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => cb(null, adminMapsDir),
@@ -1233,7 +1289,6 @@ app.post('/api/map-requests/:id/upload', requireAuth, mapProgressUpload.single('
   const filePath = '/uploads/admin-maps/' + req.file.filename;
 
   try {
-    // Insert the admin-uploaded map into the new table
     await pool.query(
       `INSERT INTO map_request_files (map_request_id, file_url, file_type, uploaded_by)
        VALUES ($1, $2, 'admin-map', 'admin')`,
@@ -1284,7 +1339,6 @@ app.post('/api/training-requests', trainingUpload.single('requestLetter'), async
       return res.status(400).json({ error: 'Request Letter is required' });
     }
 
-    // Generate unique request code
     let requestCode;
     let exists = true;
 
@@ -1297,7 +1351,6 @@ app.post('/api/training-requests', trainingUpload.single('requestLetter'), async
       if (check.rows.length === 0) exists = false;
     }
 
-    // ✅ Store as a URL path, not an absolute filesystem path
     const requestLetterPath = '/uploads/training-requests/' + req.file.filename;
 
     await pool.query(
@@ -1312,7 +1365,7 @@ app.post('/api/training-requests', trainingUpload.single('requestLetter'), async
         surname,
         firstName,
         affiliation,
-        requestLetterPath   // ✅ was: req.file.path (absolute — wrong)
+        requestLetterPath
       ]
     );
 
@@ -1368,7 +1421,6 @@ app.get('/api/training-requests/:id', requireAuth, async (req, res) => {
   }
 });
 
-/* PUT — update status (and optional admin_notes if column exists) */
 app.put('/api/training-requests/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
   const { status, admin_notes } = req.body;
@@ -1391,7 +1443,6 @@ app.put('/api/training-requests/:id', requireAuth, async (req, res) => {
   }
 });
 
-/* DELETE training request + its uploaded file */
 app.delete('/api/training-requests/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
   try {
@@ -1403,8 +1454,6 @@ app.delete('/api/training-requests/:id', requireAuth, async (req, res) => {
     if (result.rows.length > 0) {
       const { request_letter_path } = result.rows[0];
       if (request_letter_path) {
-        // request_letter_path is stored as the full file system path from multer (req.file.path)
-        // Try both: as-is (absolute) and relative to __dirname
         if (fs.existsSync(request_letter_path)) {
           fs.unlinkSync(request_letter_path);
         } else {
@@ -1421,11 +1470,6 @@ app.delete('/api/training-requests/:id', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Failed to delete request' });
   }
 });
-
-// ----------------------------------------------------------------
-// 5. POST — Submit manuscript review request (public)
-//    Place after: app.post('/api/training-requests', ...)
-// ----------------------------------------------------------------
 
 app.post('/api/manuscript-requests', manuscriptUpload.single('manuscriptFile'), async (req, res) => {
   try {
@@ -1450,7 +1494,6 @@ app.post('/api/manuscript-requests', manuscriptUpload.single('manuscriptFile'), 
       return res.status(400).json({ error: 'Manuscript file is required' });
     }
 
-    // Generate unique request code
     let requestCode;
     let exists = true;
     while (exists) {
@@ -1487,7 +1530,6 @@ app.post('/api/manuscript-requests', manuscriptUpload.single('manuscriptFile'), 
       ]
     );
 
-    // Notify CHERM admin
     await transporter.sendMail({
       from: `"CHERM Manuscript Review" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER,
@@ -1511,7 +1553,6 @@ app.post('/api/manuscript-requests', manuscriptUpload.single('manuscriptFile'), 
       `
     });
 
-    // Confirm to submitter
     await transporter.sendMail({
       from: `"CHERM Manuscript Review" <${process.env.EMAIL_USER}>`,
       to: email,
@@ -1536,12 +1577,81 @@ app.post('/api/manuscript-requests', manuscriptUpload.single('manuscriptFile'), 
   }
 });
 
+app.post('/api/user/manuscript-requests/:code/revision', async (req, res) => {
+  const { code } = req.params;
+  const { revision_notes } = req.body;
 
+  if (!code || !code.trim()) {
+    return res.status(400).json({ error: 'Request code is required' });
+  }
 
-// ----------------------------------------------------------------
-// 6. GET ALL — Admin list view (protected)
-//    Place after: app.get('/api/training-requests', ...)
-// ----------------------------------------------------------------
+  if (!revision_notes || !revision_notes.trim()) {
+    return res.status(400).json({ error: 'Revision notes are required' });
+  }
+
+  try {
+    const check = await pool.query(
+      `SELECT id, reviewed_file_url, user_approved, email, first_name, surname,
+              affiliation, manuscript_title, created_at
+       FROM manuscript_review_requests
+       WHERE TRIM(request_code) = $1
+       LIMIT 1`,
+      [code.trim()]
+    );
+
+    if (check.rows.length === 0) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+
+    const record = check.rows[0];
+
+    if (record.user_approved) {
+      return res.status(400).json({ error: 'Already approved, cannot request revision' });
+    }
+
+    await pool.query(
+      `UPDATE manuscript_review_requests
+       SET revision_notes          = $1,
+           revision_requested_at   = CURRENT_TIMESTAMP,
+           status                  = 'Under Review',
+           reviewed_file_url       = NULL,
+           updated_at              = CURRENT_TIMESTAMP
+       WHERE id = $2`,
+      [revision_notes.trim(), record.id]
+    );
+
+    await transporter.sendMail({
+    from: `"CHERM Manuscript Review" <${process.env.EMAIL_USER}>`,
+    to: process.env.EMAIL_USER,
+    subject: `Revision Requested - ${code}`,
+    html: `
+        <p>A client has requested revisions for their manuscript submission.</p>
+
+        <p>
+          <strong>Request Code:</strong> ${code}<br>
+          <strong>Client Name:</strong> ${record.first_name} ${record.surname}<br>
+          <strong>Email:</strong> ${record.email}<br>
+          <strong>Affiliation:</strong> ${record.affiliation}<br>
+          <strong>Manuscript Title:</strong> ${record.manuscript_title || '—'}<br>
+          <strong>Date Submitted:</strong> ${new Date(record.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+        </p>
+
+        <p><strong>Revision Notes:</strong><br>
+        ${revision_notes.trim()}</p>
+
+        <p>Please review the request at your earliest convenience.</p>
+
+        <p>SLSU - CHERM System</p>
+      `
+    });
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error('Revision request error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 app.get('/api/manuscript-requests', requireAuth, async (req, res) => {
   try {
@@ -1564,6 +1674,8 @@ app.get('/api/manuscript-requests', requireAuth, async (req, res) => {
          user_approved,
          status,
          admin_notes,
+         revision_notes, 
+         revision_requested_at,
          created_at
        FROM manuscript_review_requests
        ORDER BY created_at DESC`
@@ -1574,12 +1686,6 @@ app.get('/api/manuscript-requests', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch requests' });
   }
 });
-
-
-// ----------------------------------------------------------------
-// 7. GET ONE — Admin detail/modal view (protected)
-//    Place after: app.get('/api/training-requests/:id', ...)
-// ----------------------------------------------------------------
 
 app.get('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
@@ -1597,12 +1703,6 @@ app.get('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch request' });
   }
 });
-
-
-// ----------------------------------------------------------------
-// 8. PUT — Update status (protected)
-//    Place after: app.put('/api/training-requests/:id', ...)
-// ----------------------------------------------------------------
 
 app.put('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
@@ -1629,13 +1729,6 @@ app.put('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
   }
 });
 
-
-
-// ----------------------------------------------------------------
-// 9. DELETE — Remove request + uploaded file (protected)
-//    Place after: app.delete('/api/training-requests/:id', ...)
-// ----------------------------------------------------------------
-
 app.delete('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
   try {
@@ -1647,12 +1740,10 @@ app.delete('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
     if (result.rows.length > 0) {
       const { manuscript_file_path } = result.rows[0];
       if (manuscript_file_path) {
-        // Try relative path first (stored as /uploads/manuscript-requests/...)
         const relative = path.join(__dirname, manuscript_file_path);
         if (fs.existsSync(relative)) {
           fs.unlinkSync(relative);
         } else if (fs.existsSync(manuscript_file_path)) {
-          // Fallback: absolute path
           fs.unlinkSync(manuscript_file_path);
         }
       }
@@ -1678,7 +1769,6 @@ app.post('/api/user/manuscript-requests/:code/approve', async (req, res) => {
   }
 
   try {
-    // Only allow approval if reviewed_file_url exists and not yet approved
     const check = await pool.query(
       `SELECT id, reviewed_file_url, user_approved, status
        FROM manuscript_review_requests
@@ -1701,7 +1791,6 @@ app.post('/api/user/manuscript-requests/:code/approve', async (req, res) => {
       return res.status(400).json({ error: 'Already approved' });
     }
 
-    // Mark approved and set status to Completed
     await pool.query(
       `UPDATE manuscript_review_requests
        SET user_approved = TRUE,
@@ -1718,6 +1807,609 @@ app.post('/api/user/manuscript-requests/:code/approve', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+app.post('/api/data-requests', async (req, res) => {
+  try {
+    const {
+      clientType,
+      email,
+      firstName,
+      surname,
+      affiliation,
+      purpose,
+      notes,
+      datasets
+    } = req.body;
+
+    if (!clientType || !email || !firstName || !surname || !affiliation || !purpose) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    let parsedDatasets = [];
+    if (datasets) {
+      try {
+        parsedDatasets = typeof datasets === 'string' ? JSON.parse(datasets) : datasets;
+      } catch {
+        return res.status(400).json({ error: 'Invalid datasets format' });
+      }
+    }
+
+    if (!Array.isArray(parsedDatasets) || parsedDatasets.length === 0) {
+      return res.status(400).json({ error: 'At least one dataset must be selected' });
+    }
+
+    let requestCode;
+    let exists = true;
+    while (exists) {
+      requestCode = generateDataRequestId();
+      const check = await pool.query(
+        'SELECT id FROM data_requests WHERE request_code = $1',
+        [requestCode]
+      );
+      if (check.rows.length === 0) exists = false;
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const requestResult = await client.query(
+        `INSERT INTO data_requests
+          (request_code, client_type, email, first_name, surname,
+           affiliation, purpose, notes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         RETURNING id`,
+        [
+          requestCode,
+          clientType,
+          email,
+          firstName,
+          surname,
+          affiliation,
+          purpose,
+          notes   || null,
+        ]
+      );
+
+      const newId = requestResult.rows[0].id;
+
+      for (const d of parsedDatasets) {
+        await client.query(
+          `INSERT INTO data_request_datasets
+            (data_request_id, dataset_id, dataset_title, format, coverage, year)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [
+            newId,
+            d.id       || 0,
+            d.title    || d.dataset_title || 'Unknown',
+            d.format   || null,
+            d.coverage || null,
+            d.year     || null,
+          ]
+        );
+      }
+
+      await client.query('COMMIT');
+
+      const datasetList = parsedDatasets
+        .map((d, i) => `<li>${i + 1}. ${d.title || d.dataset_title} (${d.format || '—'})</li>`)
+        .join('');
+
+      await transporter.sendMail({
+        from:    `"CHERM Data Request" <${process.env.EMAIL_USER}>`,
+        to:      process.env.EMAIL_USER,
+        subject: `New GIS Data Request — ${requestCode}`,
+        html: `
+          <h3>New GIS Data Request Submitted</h3>
+          <p><strong>Request Code:</strong> ${requestCode}</p>
+          <p><strong>Client Type:</strong> ${clientType}</p>
+          <p><strong>Name:</strong> ${firstName} ${surname}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Affiliation:</strong> ${affiliation}</p>
+          <p><strong>Purpose:</strong> ${purpose}</p>
+          <p><strong>Notes:</strong> ${notes || '—'}</p>
+          <p><strong>Datasets Requested (${parsedDatasets.length}):</strong></p>
+          <ul>${datasetList}</ul>
+        `
+      });
+
+      await transporter.sendMail({
+        from:    `"CHERM Data Request" <${process.env.EMAIL_USER}>`,
+        to:      email,
+        subject: `Your CHERM GIS Data Request — ${requestCode}`,
+        html: `
+          <h2>CHERM GIS Data Request Confirmation</h2>
+          <p>Dear ${firstName} ${surname},</p>
+          <p>Thank you for submitting your GIS data request.</p>
+          <p><strong>Your Request Code:</strong></p>
+          <h3 style="color:#2c3e50;">${requestCode}</h3>
+          <p>Please keep this code to track your request status.</p>
+          <p><strong>Datasets Requested:</strong></p>
+          <ul>${datasetList}</ul>
+          <p>We will contact you once your request is ready for fulfillment.</p>
+        `
+      });
+
+      res.status(201).json({ success: true, requestCode });
+
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+
+  } catch (err) {
+    console.error('Data request submission error:', err);
+    res.status(500).json({ error: 'Failed to submit request' });
+  }
+});
+
+app.get('/api/data-requests', requireAuth, async (req, res) => {
+  try {
+    const requestsResult = await pool.query(
+      `SELECT
+         id,
+         request_code,
+         client_type,
+         email,
+         first_name,
+         surname,
+         affiliation,
+         purpose,
+         notes,
+         status,
+         delivery_link,
+         admin_notes,
+         created_at,
+         updated_at
+       FROM data_requests
+       ORDER BY created_at DESC`
+    );
+
+    const requests = requestsResult.rows;
+
+    if (requests.length === 0) {
+      return res.json([]);
+    }
+
+    const ids = requests.map(r => r.id);
+    const datasetsResult = await pool.query(
+      `SELECT
+         data_request_id,
+         dataset_id,
+         dataset_title,
+         format,
+         coverage,
+         year
+       FROM data_request_datasets
+       WHERE data_request_id = ANY($1)
+       ORDER BY id ASC`,
+      [ids]
+    );
+
+    const datasetMap = {};
+    for (const d of datasetsResult.rows) {
+      if (!datasetMap[d.data_request_id]) datasetMap[d.data_request_id] = [];
+      datasetMap[d.data_request_id].push(d);
+    }
+
+    const combined = requests.map(r => ({
+      ...r,
+      datasets: datasetMap[r.id] || [],
+    }));
+
+    res.json(combined);
+
+  } catch (err) {
+    console.error('Fetch data requests error:', err);
+    res.status(500).json({ error: 'Failed to fetch requests' });
+  }
+});
+
+app.get('/api/data-requests/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const requestResult = await pool.query(
+      `SELECT * FROM data_requests WHERE id = $1`,
+      [id]
+    );
+
+    if (requestResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+
+    const request = requestResult.rows[0];
+
+    const datasetsResult = await pool.query(
+      `SELECT dataset_id, dataset_title, format, coverage, year
+       FROM data_request_datasets
+       WHERE data_request_id = $1
+       ORDER BY id ASC`,
+      [id]
+    );
+
+    const filesResult = await pool.query(
+      `SELECT id, filename, file_path, file_size, uploaded_at
+       FROM data_request_files
+       WHERE data_request_id = $1
+       ORDER BY uploaded_at DESC`,
+      [id]
+    );
+
+    res.json({
+      ...request,
+      datasets:        datasetsResult.rows,
+      delivered_files: filesResult.rows,
+    });
+
+  } catch (err) {
+    console.error('Fetch single data request error:', err);
+    res.status(500).json({ error: 'Failed to fetch request' });
+  }
+});
+
+app.put('/api/data-requests/:id', requireAuth, async (req, res) => {
+  const { id }    = req.params;
+  const { status, delivery_link, admin_notes } = req.body;
+
+  if (!status) {
+    return res.status(400).json({ error: 'Status is required' });
+  }
+
+  try {
+    await pool.query(
+      `UPDATE data_requests
+       SET status        = $1,
+           delivery_link = $2,
+           admin_notes   = $3,
+           updated_at    = CURRENT_TIMESTAMP
+       WHERE id = $4`,
+      [status, delivery_link || null, admin_notes || null, id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Update data request error:', err);
+    res.status(500).json({ error: 'Failed to update request' });
+  }
+});
+
+app.delete('/api/data-requests/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const filesResult = await pool.query(
+      `SELECT file_path FROM data_request_files WHERE data_request_id = $1`,
+      [id]
+    );
+
+    for (const row of filesResult.rows) {
+      const absPath = path.join(__dirname, row.file_path);
+      if (fs.existsSync(absPath)) {
+        fs.unlinkSync(absPath);
+      }
+    }
+
+    await pool.query(`DELETE FROM data_requests WHERE id = $1`, [id]);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Delete data request error:', err);
+    res.status(500).json({ error: 'Failed to delete request' });
+  }
+});
+
+app.post('/api/data-requests/:id/files', requireAuth,
+  dataRequestUpload.single('file'),
+  async (req, res) => {
+    const { id } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const filePath = '/uploads/data-requests/' + req.file.filename;
+    const fileSize = formatFileSize(req.file.size);
+
+    try {
+      await pool.query(
+        `INSERT INTO data_request_files
+          (data_request_id, filename, file_path, file_size, uploaded_by)
+         VALUES ($1, $2, $3, $4, 'admin')`,
+        [id, req.file.originalname, filePath, fileSize]
+      );
+
+      res.json({
+        success:  true,
+        filename: req.file.originalname,
+        file_path: filePath,
+        file_size: fileSize,
+      });
+    } catch (err) {
+      console.error('Data request file upload error:', err);
+      res.status(500).json({ error: 'Upload failed' });
+    }
+  }
+);
+
+app.get('/api/user/data-requests', async (req, res) => {
+  const { code } = req.query;
+
+  if (!code || !code.trim()) {
+    return res.status(400).json({ error: 'Request code is required' });
+  }
+
+  try {
+    const requestResult = await pool.query(
+      `SELECT
+         id,
+         request_code,
+         first_name,
+         surname,
+         purpose,
+         status,
+         delivery_link,
+         admin_notes,
+         created_at
+       FROM data_requests
+       WHERE TRIM(request_code) = $1
+       LIMIT 1`,
+      [code.trim()]
+    );
+
+    if (requestResult.rows.length === 0) {
+      return res.status(404).json({ request: null });
+    }
+
+    const request = requestResult.rows[0];
+
+    const datasetsResult = await pool.query(
+      `SELECT dataset_title, format, coverage, year
+       FROM data_request_datasets
+       WHERE data_request_id = $1
+       ORDER BY id ASC`,
+      [request.id]
+    );
+
+    const filesResult = await pool.query(
+      `SELECT filename, file_path, file_size, uploaded_at
+       FROM data_request_files
+       WHERE data_request_id = $1
+       ORDER BY uploaded_at DESC`,
+      [request.id]
+    );
+
+    request.datasets        = datasetsResult.rows;
+    request.delivered_files = filesResult.rows;
+
+    res.json({ request });
+
+  } catch (err) {
+    console.error('User data request lookup error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/* ---------- DATASET CATALOGUE ---------- */
+
+// ── GET /api/datasets ────────────────────────────────────────────
+//  Public — active datasets only (used by data request form)
+
+app.get('/api/datasets', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+         id, title, data_desc, cat, format, coverage,
+         scale, crs, year, size, file_path, preview_url,
+         is_active, created_at, updated_at
+       FROM datasets
+       WHERE is_active = TRUE
+       ORDER BY cat ASC, title ASC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Fetch datasets error:', err);
+    res.status(500).json({ error: 'Failed to fetch datasets' });
+  }
+});
+
+
+// ── GET /api/datasets/all ────────────────────────────────────────
+//  Admin only — includes inactive datasets
+
+app.get('/api/datasets/all', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+         id, title, data_desc, cat, format, coverage,
+         scale, crs, year, size, file_path, preview_url,
+         is_active, created_at, updated_at
+       FROM datasets
+       ORDER BY cat ASC, title ASC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Fetch all datasets error:', err);
+    res.status(500).json({ error: 'Failed to fetch datasets' });
+  }
+});
+
+
+// ── POST /api/datasets ───────────────────────────────────────────
+//  Admin — add a new dataset (metadata only; file uploaded separately)
+
+app.post('/api/datasets', requireAuth, async (req, res) => {
+  const {
+    title, data_desc, cat, format, coverage,
+    scale, crs, year, size
+  } = req.body;
+
+  if (!title || !cat || !format || !coverage) {
+    return res.status(400).json({ error: 'title, cat, format, and coverage are required' });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO datasets
+         (title, data_desc, cat, format, coverage, scale, crs, year, size)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       RETURNING id`,
+      [
+        title.trim(),
+        data_desc || null,
+        cat,
+        format,
+        coverage.trim(),
+        scale     || null,
+        crs       || null,
+        year      || null,
+        size      || null,
+      ]
+    );
+
+    res.status(201).json({ success: true, id: result.rows[0].id });
+
+  } catch (err) {
+    console.error('Add dataset error:', err);
+    res.status(500).json({ error: 'Failed to add dataset' });
+  }
+});
+
+
+// ── POST /api/datasets/:id/file ──────────────────────────────────
+//  Admin — upload the actual GIS dataset file
+//  Auto-sets preview_url for browser-renderable types (PDF, CSV, image)
+//  Leaves preview_url = NULL for GIS binaries (SHP, TIFF, GPKG, etc.)
+
+app.post('/api/datasets/:id/file', requireAuth,
+  datasetFileUpload.single('datasetFile'),
+  async (req, res) => {
+    const { id } = req.params;
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const filePath = '/uploads/dataset-files/' + req.file.filename;
+    const fileSize = formatFileSize(req.file.size);
+
+    // Auto-set preview_url for browser-renderable types; null for GIS binaries
+    const PREVIEWABLE = ['.pdf', '.png', '.jpg', '.jpeg', '.webp', '.bmp', '.csv'];
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    const previewUrl = PREVIEWABLE.includes(ext) ? filePath : null;
+
+    try {
+      // Delete old file from disk if one existed
+      const existing = await pool.query(
+        `SELECT file_path FROM datasets WHERE id = $1`, [id]
+      );
+      if (existing.rows.length > 0 && existing.rows[0].file_path) {
+        const oldAbs = path.join(__dirname, existing.rows[0].file_path);
+        if (fs.existsSync(oldAbs)) fs.unlinkSync(oldAbs);
+      }
+
+      await pool.query(
+        `UPDATE datasets
+         SET file_path   = $1,
+             size        = $2,
+             preview_url = $3,
+             updated_at  = CURRENT_TIMESTAMP
+         WHERE id = $4`,
+        [filePath, fileSize, previewUrl, id]
+      );
+
+      res.json({ success: true, file_path: filePath, size: fileSize, preview_url: previewUrl });
+
+    } catch (err) {
+      console.error('Dataset file upload error:', err);
+      res.status(500).json({ error: 'File upload failed' });
+    }
+  }
+);
+
+
+// ── PUT /api/datasets/:id ────────────────────────────────────────
+//  Admin — update dataset metadata ONLY
+//  Does NOT touch file_path or preview_url (those are set by file upload)
+
+app.put('/api/datasets/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const {
+    title, data_desc, cat, format, coverage,
+    scale, crs, year, is_active
+  } = req.body;
+
+  if (!title || !cat || !format || !coverage) {
+    return res.status(400).json({ error: 'title, cat, format, and coverage are required' });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE datasets
+       SET title      = $1,
+           data_desc  = $2,
+           cat        = $3,
+           format     = $4,
+           coverage   = $5,
+           scale      = $6,
+           crs        = $7,
+           year       = $8,
+           is_active  = $9,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $10`,
+      [
+        title.trim(),
+        data_desc || null,
+        cat,
+        format,
+        coverage.trim(),
+        scale     || null,
+        crs       || null,
+        year      || null,
+        is_active !== undefined ? is_active : true,
+        id,
+      ]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Dataset not found' });
+    }
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error('Update dataset error:', err);
+    res.status(500).json({ error: 'Failed to update dataset' });
+  }
+});
+
+
+// ── DELETE /api/datasets/:id ─────────────────────────────────────
+//  Admin — delete dataset + its file from disk
+
+app.delete('/api/datasets/:id', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      `SELECT file_path FROM datasets WHERE id = $1`, [id]
+    );
+    if (result.rows.length > 0 && result.rows[0].file_path) {
+      const absPath = path.join(__dirname, result.rows[0].file_path);
+      if (fs.existsSync(absPath)) fs.unlinkSync(absPath);
+    }
+
+    const del = await pool.query(`DELETE FROM datasets WHERE id = $1`, [id]);
+    if (del.rowCount === 0) {
+      return res.status(404).json({ error: 'Dataset not found' });
+    }
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error('Delete dataset error:', err);
+    res.status(500).json({ error: 'Failed to delete dataset' });
+  }
+});
+
 
 /* ---------- STATIC FILES ---------- */
 app.use(express.static(__dirname));

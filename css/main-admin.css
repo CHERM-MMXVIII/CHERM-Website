@@ -464,7 +464,7 @@ body {
     font-size: 0.875rem;
 }
 
-.btn-primary {
+/* .btn-primary {
     background: var(--accent-gold);
     color: var(--primary-color);
 }
@@ -473,7 +473,27 @@ body {
     background: #ffd000;
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
+} */
+
+/* Add Dataset button */
+.btn-tertiary{
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .72rem 1.1rem;
+    border: none;
+    border-radius: 8px;
+    background: var(--primary-color);
+    color: white;
+    font-size: .9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .2s, transform .15s, box-shadow .2s;
+    flex-shrink: 0;
 }
+.btn-tertiary:hover{ background: var(--primary-dark); box-shadow: 0 4px 12px rgba(0,128,128,.3); transform: translateY(-1px); }
+.btn-tertiary:active { transform: translateY(0); box-shadow: none; }
 
 .btn-outline {
     background: transparent;
@@ -599,6 +619,7 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
+    margin-bottom: 36px;
 }
 
 .action-card {
@@ -684,6 +705,11 @@ body {
 }
 
 .action-icon.manuscript-icon {
+    background: linear-gradient(135deg, #1ebdbd 0%, #008080 100%);
+    color: white;
+}
+
+.action-icon.dataset-icon{
     background: linear-gradient(135deg, #1ebdbd 0%, #008080 100%);
     color: white;
 }
