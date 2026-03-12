@@ -1816,6 +1816,7 @@ app.post('/api/data-requests', async (req, res) => {
       firstName,
       surname,
       affiliation,
+      contact,
       purpose,
       notes,
       datasets
@@ -1856,8 +1857,8 @@ app.post('/api/data-requests', async (req, res) => {
       const requestResult = await client.query(
         `INSERT INTO data_requests
           (request_code, client_type, email, first_name, surname,
-           affiliation, purpose, notes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           affiliation, contact, purpose, notes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING id`,
         [
           requestCode,
@@ -1866,6 +1867,7 @@ app.post('/api/data-requests', async (req, res) => {
           firstName,
           surname,
           affiliation,
+          contact || null,
           purpose,
           notes   || null,
         ]
@@ -1880,7 +1882,7 @@ app.post('/api/data-requests', async (req, res) => {
            VALUES ($1, $2, $3, $4, $5, $6)`,
           [
             newId,
-            d.id       || 0,
+            d.id       || null,
             d.title    || d.dataset_title || 'Unknown',
             d.format   || null,
             d.coverage || null,
@@ -1906,6 +1908,7 @@ app.post('/api/data-requests', async (req, res) => {
           <p><strong>Name:</strong> ${firstName} ${surname}</p>
           <p><strong>Email:</strong> ${email}</p>
           <p><strong>Affiliation:</strong> ${affiliation}</p>
+          <p><strong>Contact:</strong> ${contact || '—'}</p>
           <p><strong>Purpose:</strong> ${purpose}</p>
           <p><strong>Notes:</strong> ${notes || '—'}</p>
           <p><strong>Datasets Requested (${parsedDatasets.length}):</strong></p>
@@ -1956,6 +1959,7 @@ app.get('/api/data-requests', requireAuth, async (req, res) => {
          first_name,
          surname,
          affiliation,
+         contact,
          purpose,
          notes,
          status,
@@ -2022,10 +2026,12 @@ app.get('/api/data-requests/:id', requireAuth, async (req, res) => {
     const request = requestResult.rows[0];
 
     const datasetsResult = await pool.query(
-      `SELECT dataset_id, dataset_title, format, coverage, year
-       FROM data_request_datasets
-       WHERE data_request_id = $1
-       ORDER BY id ASC`,
+      `SELECT drd.dataset_id, drd.dataset_title, drd.format, drd.coverage, drd.year,
+              d.file_path
+       FROM data_request_datasets drd
+       LEFT JOIN datasets d ON d.id = drd.dataset_id
+       WHERE drd.data_request_id = $1
+       ORDER BY drd.id ASC`,
       [id]
     );
 
@@ -2037,10 +2043,19 @@ app.get('/api/data-requests/:id', requireAuth, async (req, res) => {
       [id]
     );
 
+    const notifyLogsResult = await pool.query(
+      `SELECT id, sent_to, dataset_ids, dataset_titles, sent_at
+       FROM data_request_notify_log
+       WHERE data_request_id = $1
+       ORDER BY sent_at DESC`,
+      [id]
+    );
+
     res.json({
       ...request,
       datasets:        datasetsResult.rows,
       delivered_files: filesResult.rows,
+      notify_logs:     notifyLogsResult.rows,
     });
 
   } catch (err) {
@@ -2130,6 +2145,296 @@ app.post('/api/data-requests/:id/files', requireAuth,
     }
   }
 );
+
+/* ── POST /api/data-requests/:id/notify  ──────────────────────
+   Admin sends fulfilment email for selected datasets.
+   Body: { datasetIds: [1, 2, 3] }
+   Email includes:
+     - Admin notes/remarks (if set)
+     - Catalogue dataset download links (selected checkboxes)
+     - Uploaded files download links (if any uploaded to this request)
+     - External delivery link (if set)
+   After sending:
+     - Status auto-set to "Fulfilled"
+     - Notify log row inserted (visible in History tab)
+──────────────────────────────────────────────────────────── */
+app.post('/api/data-requests/:id/notify', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const { datasetIds } = req.body;
+
+  if (!Array.isArray(datasetIds) || datasetIds.length === 0) {
+    return res.status(400).json({ error: 'No datasets selected' });
+  }
+
+  try {
+    // 1. Get full request info including delivery_link and admin_notes
+    const reqResult = await pool.query(
+      `SELECT id, request_code, first_name, surname, email, status,
+              delivery_link, admin_notes
+       FROM data_requests WHERE id = $1`,
+      [id]
+    );
+    if (reqResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+    const dr = reqResult.rows[0];
+
+    // 2. Resolve catalogue dataset file_paths for selected dataset_ids
+    const dsResult = await pool.query(
+      `SELECT
+         drd.dataset_id,
+         drd.dataset_title  AS title,
+         drd.format,
+         COALESCE(d.file_path, d2.file_path) AS file_path
+       FROM data_request_datasets drd
+       LEFT JOIN datasets d
+         ON d.id = drd.dataset_id AND drd.dataset_id > 0
+       LEFT JOIN datasets d2
+         ON d2.title ILIKE drd.dataset_title
+        AND (drd.dataset_id IS NULL OR drd.dataset_id = 0)
+       WHERE drd.data_request_id = $1
+         AND drd.dataset_id = ANY($2::int[])`,
+      [id, datasetIds]
+    );
+
+    const withFiles    = dsResult.rows.filter(d => d.file_path);
+    const withoutFiles = dsResult.rows.filter(d => !d.file_path);
+
+    // 3. Get uploaded files for this request
+    const uploadedResult = await pool.query(
+      `SELECT filename, file_path, file_size
+       FROM data_request_files
+       WHERE data_request_id = $1
+       ORDER BY uploaded_at ASC`,
+      [id]
+    );
+    const uploadedFiles = uploadedResult.rows;
+
+    // Must have at least one of: catalogue files, uploaded files, or delivery link
+    const hasAnything = withFiles.length > 0 || uploadedFiles.length > 0 || dr.delivery_link;
+    if (!hasAnything) {
+      return res.status(400).json({
+        error: 'Nothing to send — no files or delivery link available for this request.'
+      });
+    }
+
+    const baseUrl = process.env.SITE_URL || `http://localhost:${PORT}`;
+
+    // ── Build email sections ─────────────────────────────────────
+
+    // Admin remarks box (if notes exist)
+    const remarksSection = dr.admin_notes ? `
+      <div style="background:#fffbeb; border-left:4px solid #f59e0b;
+                  border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 24px;">
+        <p style="margin:0 0 6px; font-size:12px; font-weight:700;
+                  color:#92400e; text-transform:uppercase; letter-spacing:0.05em;">
+          📝 Remarks from CHERM
+        </p>
+        <p style="margin:0; font-size:14px; color:#78350f; line-height:1.6;">
+          ${dr.admin_notes}
+        </p>
+      </div>` : '';
+
+    // Catalogue datasets table (selected checkboxes)
+    const catalogueSection = withFiles.length > 0 ? `
+      <p style="margin:0 0 10px; font-size:13px; font-weight:700;
+                color:#4a5568; text-transform:uppercase; letter-spacing:0.04em;">
+        📦 Dataset Files
+      </p>
+      <div style="background:#f7fafc; border:1px solid #e2e8f0;
+                  border-radius:8px; overflow:hidden; margin:0 0 24px;">
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="background:#edf2f7;">
+              <th style="padding:10px 12px; text-align:left; font-size:11px;
+                         color:#718096; text-transform:uppercase; letter-spacing:0.05em;">
+                Dataset
+              </th>
+              <th style="padding:10px 12px; text-align:left; font-size:11px;
+                         color:#718096; text-transform:uppercase; letter-spacing:0.05em;">
+                Download
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            ${withFiles.map(d => `
+            <tr>
+              <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
+                <strong style="color:#1a202c; font-size:13px;">${d.title}</strong>
+                ${d.format ? `<span style="margin-left:8px; background:#e2e8f0; color:#4a5568;
+                  font-size:10px; padding:2px 6px; border-radius:4px; font-weight:700;">
+                  ${d.format.toUpperCase()}</span>` : ''}
+              </td>
+              <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
+                <a href="${baseUrl}${d.file_path}"
+                   style="display:inline-block; background:#008080; color:white;
+                          padding:6px 16px; border-radius:6px; text-decoration:none;
+                          font-size:12px; font-weight:600;">
+                  ⬇ Download
+                </a>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>` : '';
+
+    // Uploaded files table (files uploaded directly to this request)
+    const uploadedSection = uploadedFiles.length > 0 ? `
+      <p style="margin:0 0 10px; font-size:13px; font-weight:700;
+                color:#4a5568; text-transform:uppercase; letter-spacing:0.04em;">
+        📎 Additional Files
+      </p>
+      <div style="background:#f7fafc; border:1px solid #e2e8f0;
+                  border-radius:8px; overflow:hidden; margin:0 0 24px;">
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="background:#edf2f7;">
+              <th style="padding:10px 12px; text-align:left; font-size:11px;
+                         color:#718096; text-transform:uppercase; letter-spacing:0.05em;">
+                File
+              </th>
+              <th style="padding:10px 12px; text-align:left; font-size:11px;
+                         color:#718096; text-transform:uppercase; letter-spacing:0.05em;">
+                Download
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            ${uploadedFiles.map(f => `
+            <tr>
+              <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
+                <strong style="color:#1a202c; font-size:13px;">${f.filename}</strong>
+                ${f.file_size ? `<span style="display:block; font-size:11px; color:#a0aec0; margin-top:2px;">
+                  ${f.file_size}</span>` : ''}
+              </td>
+              <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
+                <a href="${baseUrl}${f.file_path}"
+                   style="display:inline-block; background:#008080; color:white;
+                          padding:6px 16px; border-radius:6px; text-decoration:none;
+                          font-size:12px; font-weight:600;">
+                  ⬇ Download
+                </a>
+              </td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>` : '';
+
+    // External delivery link button (if set)
+    const deliverySection = dr.delivery_link ? `
+      <p style="margin:0 0 10px; font-size:13px; font-weight:700;
+                color:#4a5568; text-transform:uppercase; letter-spacing:0.04em;">
+        🔗 External Download Link
+      </p>
+      <div style="background:#f7fafc; border:1px solid #e2e8f0;
+                  border-radius:8px; padding:16px 18px; margin:0 0 24px;
+                  display:flex; align-items:center; justify-content:space-between;">
+        <p style="margin:0; font-size:12px; color:#718096; word-break:break-all;">
+          ${dr.delivery_link}
+        </p>
+        <a href="${dr.delivery_link}" target="_blank"
+           style="display:inline-block; background:#5a67d8; color:white;
+                  padding:8px 20px; border-radius:6px; text-decoration:none;
+                  font-size:13px; font-weight:600; white-space:nowrap; margin-left:12px;">
+          Open Link
+        </a>
+      </div>` : '';
+
+    const html = `
+      <div style="font-family:Arial,sans-serif; max-width:600px; margin:0 auto;">
+
+        <!-- Header -->
+        <div style="background:#008080; padding:28px 32px; border-radius:10px 10px 0 0;">
+          <h2 style="color:white; margin:0; font-size:22px;">
+            Your Requested Data Files Are Ready
+          </h2>
+          <p style="color:rgba(255,255,255,0.85); margin:8px 0 0; font-size:14px;">
+            CHERM — Center for Hazard and Environmental Resource Mapping
+          </p>
+        </div>
+
+        <!-- Body -->
+        <div style="background:#ffffff; padding:28px 32px;
+                    border:1px solid #e2e8f0; border-top:none; border-radius:0 0 10px 10px;">
+
+          <p style="color:#2d3748; font-size:15px; margin:0 0 6px;">
+            Dear <strong>${dr.first_name} ${dr.surname}</strong>,
+          </p>
+          <p style="color:#4a5568; font-size:14px; line-height:1.6; margin:0 0 24px;">
+            Your GIS data request <strong>${dr.request_code}</strong> has been fulfilled.
+            Please find your files below.
+          </p>
+
+          ${remarksSection}
+          ${catalogueSection}
+          ${uploadedSection}
+          ${deliverySection}
+
+          <p style="color:#718096; font-size:12px; line-height:1.6; margin:0 0 20px;">
+            <strong>Note:</strong> Direct download links are hosted on the CHERM server.
+            Please save your files promptly after downloading.
+          </p>
+
+          <hr style="border:none; border-top:1px solid #e2e8f0; margin:0 0 20px;">
+          <p style="color:#a0aec0; font-size:12px; margin:0;">
+            Request Code: <strong>${dr.request_code}</strong><br>
+            CHERM — Southern Luzon State University
+          </p>
+        </div>
+      </div>`;
+
+    await transporter.sendMail({
+      from:    `"CHERM Data Request" <${process.env.EMAIL_USER}>`,
+      to:      dr.email,
+      subject: `Your CHERM Data Files Are Ready — ${dr.request_code}`,
+      html,
+    });
+
+    // ── Post-send: status update + notify log (in transaction) ───
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Auto-set status to "Fulfilled"
+      await client.query(
+        `UPDATE data_requests
+         SET status = 'Fulfilled', updated_at = CURRENT_TIMESTAMP
+         WHERE id = $1`,
+        [id]
+      );
+
+      // Insert notify log row
+      const sentTitles = withFiles.map(d => d.title);
+      const sentIds    = withFiles.map(d => d.dataset_id);
+      await client.query(
+        `INSERT INTO data_request_notify_log
+           (data_request_id, sent_to, dataset_ids, dataset_titles)
+         VALUES ($1, $2, $3, $4)`,
+        [id, dr.email, sentIds, sentTitles]
+      );
+
+      await client.query('COMMIT');
+    } catch (dbErr) {
+      await client.query('ROLLBACK');
+      console.error('Notify post-send DB error:', dbErr);
+      // Email already sent — don't fail the whole response, just warn
+    } finally {
+      client.release();
+    }
+
+    res.json({
+      success:        true,
+      sent:           withFiles.length,
+      missing:        withoutFiles.length,
+      sentDatasetIds: withFiles.map(d => d.dataset_id),
+      newStatus:      'Fulfilled',
+    });
+
+  } catch (err) {
+    console.error('Notify error:', err);
+    res.status(500).json({ error: 'Failed to send notification' });
+  }
+});
 
 app.get('/api/user/data-requests', async (req, res) => {
   const { code } = req.query;

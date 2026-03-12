@@ -17,15 +17,16 @@ function toSentenceCase(str) {
 }
 
 /* ── State ── */
-let allRequests   = [];
-let filteredData  = [];
-let currentPage   = 1;
-let itemsPerPage  = 10;
-let sortColumn    = 'created_at';
-let sortDirection = 'desc';
-let activeFilters = { status: [], clientType: [] };
-let currentRequestId = null;
-let pendingFiles  = [];   // files staged in the dropzone queue
+let allRequests    = [];
+let filteredData   = [];
+let currentPage    = 1;
+let itemsPerPage   = 10;
+let sortColumn     = 'created_at';
+let sortDirection  = 'desc';
+let activeFilters  = { status: [], clientType: [] };
+let currentRequestId  = null;
+let pendingFiles   = [];   // files staged in the dropzone queue
+let sentDatasetIds = new Set(); // dataset_ids already sent via notify
 
 /* ── Init ── */
 document.addEventListener('DOMContentLoaded', function () {
@@ -58,9 +59,9 @@ async function fetchRequests() {
 ═══════════════════════════════════════════════════ */
 function updateStats() {
     document.getElementById('statTotal').textContent     = allRequests.length;
-    document.getElementById('statPending').textContent   = allRequests.filter(r => r.status === 'Pending').length;
-    document.getElementById('statProcessing').textContent = allRequests.filter(r => r.status === 'Processing').length;
-    document.getElementById('statFulfilled').textContent = allRequests.filter(r => r.status === 'Fulfilled').length;
+    document.getElementById('statPending').textContent    = allRequests.filter(r => r.status === 'Pending').length;
+    document.getElementById('statProcessing').textContent = allRequests.filter(r => r.status === 'Under Review').length;
+    document.getElementById('statFulfilled').textContent  = allRequests.filter(r => r.status === 'Fulfilled').length;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -98,7 +99,7 @@ function buildFilterDropdown() {
     const wrapper = document.getElementById('filterDropdownWrapper');
     if (!wrapper) return;
 
-    const statuses     = ['Pending', 'Processing', 'Ready for Pickup', 'Fulfilled', 'Declined'];
+    const statuses     = ['Pending', 'Under Review', 'Fulfilled', 'Declined'];
     const clientTypes  = ['Internal', 'External'];
 
     wrapper.innerHTML = `
@@ -370,6 +371,7 @@ function sortBy(col) {
 ═══════════════════════════════════════════════════ */
 async function openViewModal(id) {
     currentRequestId = id;
+    sentDatasetIds   = new Set();
 
     // Reset tabs
     drSwitchTab(document.querySelector('.dr-tab-btn'), 'overview');
@@ -424,11 +426,17 @@ function populateModal(r) {
     if (r.delivery_link) document.getElementById('deliveryLink').value = r.delivery_link;
     if (r.admin_notes)   document.getElementById('adminNotes').value   = r.admin_notes;
 
-    // Datasets tab
+    // Build sentDatasetIds from all previous notify logs
+    sentDatasetIds = new Set();
+    (r.notify_logs || []).forEach(log => {
+        (log.dataset_ids || []).forEach(did => sentDatasetIds.add(did));
+    });
+
+    // Datasets tab — pass sentDatasetIds so sent badges render
     renderDatasetList(r.datasets || []);
 
-    // Fulfillment history tab
-    renderFulfillmentHistory(r.delivered_files || [], r.delivery_link);
+    // Fulfillment history tab — pass notify logs too
+    renderFulfillmentHistory(r.delivered_files || [], r.delivery_link, r.notify_logs || []);
 }
 
 function renderDatasetList(datasets) {
@@ -465,9 +473,10 @@ function renderDatasetList(datasets) {
         const icon       = iconMap[fmt] || 'fa-map';
         const meta       = [d.coverage, d.year].filter(Boolean).join(' · ');
         const hasFile    = !!(d.file_path || d.filePath);
-        const datasetId  = d.dataset_id || d.id;
+        const datasetId  = d.dataset_id ?? d.id;
+        const wasSent    = sentDatasetIds.has(datasetId);
         const disabledAttr = hasFile ? '' : 'disabled';
-        const rowCls       = hasFile ? '' : 'dr-dataset-item--no-file';
+        const rowCls     = hasFile ? '' : 'dr-dataset-item--no-file';
         return `
         <div class="dr-dataset-item ${rowCls}" id="drDs_${datasetId}">
             <label class="dr-dataset-check-wrap" title="${hasFile ? 'Select to send' : 'No file uploaded yet'}">
@@ -478,7 +487,10 @@ function renderDatasetList(datasets) {
             </label>
             <div class="dr-dataset-icon"><i class="fas ${icon}"></i></div>
             <div class="dr-dataset-info">
-                <div class="dr-dataset-title">${title}</div>
+                <div class="dr-dataset-title">
+                    ${title}
+                    ${wasSent ? `<span class="dr-sent-badge"><i class="fas fa-check"></i> Sent</span>` : ''}
+                </div>
                 ${meta ? `<div class="dr-dataset-meta">${escHtml(meta)}</div>` : ''}
                 ${!hasFile ? `<div class="dr-dataset-no-file"><i class="fas fa-exclamation-triangle"></i> No file uploaded</div>` : ''}
             </div>
@@ -513,13 +525,46 @@ async function sendSelectedFiles() {
 
         if (!res.ok) throw new Error(data.error || 'Failed to send');
 
+        // Update sentDatasetIds set and re-render dataset list to show Sent badges
+        (data.sentDatasetIds || []).forEach(id => sentDatasetIds.add(id));
+
+        // Auto-update status badge + select in modal
+        if (data.newStatus) {
+            const badge = document.getElementById('modalStatusBadge');
+            if (badge) {
+                badge.textContent = data.newStatus;
+                badge.className   = 'status-badge ' + statusClass(data.newStatus);
+            }
+            const sel = document.getElementById('statusSelect');
+            if (sel) sel.value = data.newStatus;
+        }
+
+        // Re-fetch and refresh datasets tab (shows Sent badges) + history tab
+        try {
+            const r2   = await fetch(`/api/data-requests/${currentRequestId}`);
+            const d2   = await r2.json();
+            // Rebuild sentDatasetIds from fresh logs
+            sentDatasetIds = new Set();
+            (d2.notify_logs || []).forEach(log => {
+                (log.dataset_ids || []).forEach(did => sentDatasetIds.add(did));
+            });
+            renderDatasetList(d2.datasets || []);
+            renderFulfillmentHistory(d2.delivered_files || [], d2.delivery_link, d2.notify_logs || []);
+
+            // Also refresh the row in the main table
+            const idx = allRequests.findIndex(r => r.id === currentRequestId);
+            if (idx !== -1) {
+                allRequests[idx].status = data.newStatus;
+                renderTable();
+            }
+        } catch (_) { /* non-fatal */ }
+
         const msg = data.missing > 0
             ? `${data.sent} file(s) sent. ${data.missing} dataset(s) had no file and were skipped.`
-            : `${data.sent} file(s) sent successfully to the requester.`;
-
+            : `${data.sent} file(s) sent successfully. Status updated to "Fulfilled".`;
         showToast(msg, 'success');
 
-        // Uncheck all after sending
+        // Uncheck all
         document.querySelectorAll('.dr-dataset-cb').forEach(cb => cb.checked = false);
 
     } catch (err) {
@@ -532,15 +577,35 @@ async function sendSelectedFiles() {
     }
 }
 
-function renderFulfillmentHistory(files, deliveryLink) {
+function renderFulfillmentHistory(files, deliveryLink, notifyLogs) {
     const empty = document.getElementById('drFulfillmentEmpty');
     const list  = document.getElementById('drFulfillmentList');
     list.innerHTML = '';
 
-    const hasFiles = files && files.length > 0;
-    const hasLink  = !!deliveryLink;
+    const hasFiles  = files && files.length > 0;
+    const hasLink   = !!deliveryLink;
+    const hasLogs   = notifyLogs && notifyLogs.length > 0;
 
-    empty.style.display = (hasFiles || hasLink) ? 'none' : 'flex';
+    empty.style.display = (hasFiles || hasLink || hasLogs) ? 'none' : 'flex';
+
+    // Notify log entries — most recent first (already sorted by server)
+    if (hasLogs) {
+        notifyLogs.forEach(log => {
+            const date   = log.sent_at ? formatDate(log.sent_at) : '';
+            const titles = (log.dataset_titles || []).map(t => escHtml(t)).join(', ');
+            list.insertAdjacentHTML('beforeend', `
+            <div class="dr-fulfillment-item dr-fulfillment-notify">
+                <div class="dr-fulfillment-icon notify"><i class="fas fa-paper-plane"></i></div>
+                <div class="dr-fulfillment-info">
+                    <div class="dr-fulfillment-name">
+                        Files sent to <strong>${escHtml(log.sent_to)}</strong>
+                        ${date ? `<span class="dr-fulfillment-date">${date}</span>` : ''}
+                    </div>
+                    <div class="dr-fulfillment-meta">${titles || '—'}</div>
+                </div>
+            </div>`);
+        });
+    }
 
     if (hasLink) {
         list.insertAdjacentHTML('beforeend', `
@@ -851,12 +916,11 @@ function exportToCSV() {
 ═══════════════════════════════════════════════════ */
 function statusClass(s) {
     switch ((s || '').toLowerCase().replace(/\s+/g,'-')) {
-        case 'pending':          return 'status-pending';
-        case 'processing':       return 'status-processing';
-        case 'ready-for-pickup': return 'status-ready-pickup';
-        case 'fulfilled':        return 'status-fulfilled';
-        case 'declined':         return 'status-declined';
-        default:                 return 'status-pending';
+        case 'pending':      return 'status-pending';
+        case 'under-review': return 'status-under-review';
+        case 'fulfilled':    return 'status-fulfilled';
+        case 'declined':     return 'status-declined';
+        default:             return 'status-pending';
     }
 }
 
