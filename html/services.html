@@ -271,7 +271,8 @@
                         projects for cooperating agencies in the Region.</p>
                     <button type="button" class="btn-open-guideline" onclick="openModal2()">View More...</button>
                     <div class="inquiry-btn">
-                        <button type="button" class="btn-open-modal" onclick="showUserMapRequest()">Track Data</button>
+                        <!-- ✅ CHANGE 1: calls modal instead of direct redirect -->
+                        <button type="button" class="btn-open-modal" onclick="openDataTrackingModal()">Track Data</button>
                         <button type="button" class="btn-open-modal" onclick="window.location.href='user-geodata-req.html'">Request Data</button>
                     </div>
                 </div>
@@ -1139,6 +1140,68 @@
         </div>
     </div>
 
+    <!-- ✅ CHANGE 2: Data Request Tracking Modal (new) -->
+    <div class="manuscript-tracking-modal" id="dataTrackingModal">
+        <div class="manuscript-tracking-modal-content">
+            <!-- Header -->
+            <div class="manuscript-tracking-modal-header">
+                <button class="manuscript-tracking-modal-close" onclick="closeDataTrackingModal()">
+                    &times;
+                </button>
+                <div class="manuscript-tracking-modal-header-content">
+                    <h2>Track Data Request</h2>
+                    <p>Enter your request code to check your data request status</p>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="manuscript-tracking-modal-body">
+                <!-- Info Box -->
+                <div class="manuscript-tracking-info">
+                    <p>
+                        Your request code was sent to your email when you submitted your data request.
+                    </p>
+                    <strong>Example: 20260216-CHERM-DR-A1B2</strong>
+                </div>
+
+                <!-- Error Message -->
+                <div class="manuscript-tracking-error" id="dataTrackingError">
+                    Please enter your request code
+                </div>
+
+                <!-- Form -->
+                <div class="manuscript-tracking-form-group">
+                    <label for="dataRequestCodeInput">Request Code</label>
+                    <input
+                        type="text"
+                        id="dataRequestCodeInput"
+                        placeholder="20260216-CHERM-DR-A1B2"
+                        maxlength="50"
+                        onkeydown="if(event.key==='Enter') submitDataTracking()"
+                    >
+                    <div class="manuscript-tracking-help-text">
+                        Can't find your code? Contact us at
+                        <a href="mailto:cherm4a@slsu.edu.ph">cherm4a@slsu.edu.ph</a>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="manuscript-tracking-modal-actions">
+                    <button
+                        class="manuscript-tracking-btn manuscript-tracking-btn-cancel"
+                        onclick="closeDataTrackingModal()">
+                        Cancel
+                    </button>
+                    <button
+                        class="manuscript-tracking-btn manuscript-tracking-btn-submit"
+                        onclick="submitDataTracking()">
+                        Track Request
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer id="footer">
         <div class="footer-container">
@@ -1282,6 +1345,47 @@
                 return;
             }
             window.location.href = `user-map-req.html?code=${encodeURIComponent(code)}`;
+        }
+
+        // ✅ CHANGE 3: Data Request Tracking functions (new)
+        function openDataTrackingModal() {
+            const modal = document.getElementById('dataTrackingModal');
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                setTimeout(() => {
+                    const input = document.getElementById('dataRequestCodeInput');
+                    if (input) input.focus();
+                }, 100);
+            }
+        }
+
+        function closeDataTrackingModal() {
+            const modal = document.getElementById('dataTrackingModal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                const input = document.getElementById('dataRequestCodeInput');
+                const error = document.getElementById('dataTrackingError');
+                if (input) input.value = '';
+                if (error) error.classList.remove('active');
+            }
+        }
+
+        function submitDataTracking() {
+            const input = document.getElementById('dataRequestCodeInput');
+            const error = document.getElementById('dataTrackingError');
+            if (!input) return;
+            const code = input.value.trim();
+            if (!code) {
+                if (error) {
+                    error.textContent = 'Please enter your request code';
+                    error.classList.add('active');
+                }
+                input.focus();
+                return;
+            }
+            window.location.href = `user-track-data-req.html?code=${encodeURIComponent(code)}`;
         }
     </script>
     <script src="../JS/map-form.js"></script>

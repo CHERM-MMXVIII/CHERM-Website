@@ -428,6 +428,10 @@ app.get('/admin/datasets', requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'html', 'manage-datasets.html'));
 });
 
+app.get('/user-track-data-req', (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'user-track-data-req.html'));
+});
+
 // LOGIN SETUP 
 app.post('/login', async (req, res) => {
   try {
@@ -2450,7 +2454,11 @@ app.get('/api/user/data-requests', async (req, res) => {
          request_code,
          first_name,
          surname,
+         email,
+         affiliation,
+         client_type,
          purpose,
+         notes,
          status,
          delivery_link,
          admin_notes,

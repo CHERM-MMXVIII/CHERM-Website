@@ -695,11 +695,12 @@ body.modal-open { overflow: hidden; }
 /* ═══════════════════════════════════════
    CONFIRM DELETE MODAL
 ═══════════════════════════════════════ */
+
 .confirm-modal-overlay {
     position: fixed; inset: 0;
     background: rgba(0,0,0,.7);
     display: flex; align-items: center; justify-content: center;
-    z-index: 10000; animation: confirmFadeIn .2s ease;
+    z-index: 9999; animation: confirmFadeIn .2s ease;
 }
 @keyframes confirmFadeIn { from { opacity: 0; } to { opacity: 1; } }
 

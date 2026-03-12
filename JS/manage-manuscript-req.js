@@ -639,7 +639,8 @@ function populateTable(requests) {
                     <div class="requester-office">${req.affiliation}</div>
                 </div>
             </td>
-            <td>${req.client_type ? capitalize(req.client_type) : 'N/A'}</td>
+            <td>${req.client_type ? capitalize(req.client_type) : 'N/A'}
+            </td>
             <td>${formatDate(req.created_at)}</td>
             <td>${req.date_needed ? formatDate(req.date_needed) : '<span style="color:#a0aec0;">—</span>'}</td>
             <td title="${escapeHtml(req.manuscript_title || '')}">${titlePreview}</td>

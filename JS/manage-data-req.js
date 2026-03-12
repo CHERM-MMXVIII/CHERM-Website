@@ -238,7 +238,7 @@ function renderTable() {
         const count     = datasets.length;
         const submitted = formatDate(r.created_at);
         const statusCls = statusClass(r.status);
-        const clientBadge = r.client_type === 'Internal'
+        const clientBadge = (r.client_type || '').toLowerCase() === 'internal'
             ? '<span style="color:#065f46;font-size:12px;font-weight:500;">Internal</span>'
             : '<span style="color:#92400e;font-size:12px;font-weight:500;">External</span>';
 
@@ -837,37 +837,101 @@ async function drUploadFiles() {
 /* ═══════════════════════════════════════════════════
    DELETE
 ═══════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   DELETE MODAL
+═══════════════════════════════════════════════════ */
+
 function confirmDelete(id, code) {
-    const slot = document.getElementById('confirmDeleteModal');
-    slot.innerHTML = `
-    <div class="confirm-modal-overlay">
-        <div class="confirm-modal-container">
-            <button class="confirm-modal-close" onclick="closeConfirmModal()">×</button>
-            <div class="confirm-delete-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>
+    document.getElementById('dr-confirm-modal')?.remove();
+    document.getElementById('dr-confirm-styles')?.remove();
+
+    const styleEl = document.createElement('style');
+    styleEl.id = 'dr-confirm-styles';
+    styleEl.textContent = `
+        #dr-confirm-modal {
+            position: fixed !important; inset: 0 !important;
+            background: rgba(0,0,0,0.70) !important;
+            display: flex !important; align-items: center !important; justify-content: center !important;
+            z-index: 99999 !important;
+        }
+        #dr-confirm-modal .dr-box {
+            background: #fff !important; border-radius: 12px !important; padding: 32px !important;
+            max-width: 450px !important; width: 90% !important; text-align: center !important;
+            position: relative !important; box-shadow: 0 20px 60px rgba(0,0,0,0.3) !important;
+        }
+        #dr-confirm-modal .dr-close-btn {
+            position: absolute !important; top: 14px !important; right: 16px !important;
+            background: none !important; border: none !important; font-size: 30px !important;
+            color: #999 !important; cursor: pointer !important; line-height: 1 !important;
+            padding: 2px 6px !important; box-shadow: none !important; pointer-events: auto !important;
+        }
+        #dr-confirm-modal .dr-close-btn:hover { color: #333 !important; }
+        #dr-confirm-modal .dr-icon-wrap {
+            margin: 0 auto 20px !important; width: 56px !important; height: 56px !important;
+            background: #fee2e2 !important; border-radius: 50% !important;
+            display: flex !important; align-items: center !important; justify-content: center !important;
+        }
+        #dr-confirm-modal .dr-icon-wrap svg { fill: #dc2626 !important; }
+        #dr-confirm-modal h2 { margin: 0 0 14px !important; font-size: 22px !important; font-weight: 700 !important; color: #1a1a1a !important; }
+        #dr-confirm-modal .dr-msg { font-size: 15px !important; color: #555 !important; margin: 0 0 8px !important; line-height: 1.5 !important; }
+        #dr-confirm-modal .dr-msg strong { color: #1a1a1a !important; }
+        #dr-confirm-modal .dr-warn { font-size: 13px !important; color: #dc2626 !important; font-weight: 500 !important; margin: 0 0 28px !important; }
+        #dr-confirm-modal .dr-actions { display: flex !important; justify-content: center !important; gap: 12px !important; }
+        #dr-confirm-modal .dr-btn-cancel {
+            padding: 10px 24px !important; border: none !important; border-radius: 6px !important;
+            font-size: 14px !important; font-weight: 500 !important; cursor: pointer !important;
+            background: #f0f0f0 !important; color: #555 !important; box-shadow: none !important;
+            pointer-events: auto !important;
+        }
+        #dr-confirm-modal .dr-btn-cancel:hover { background: #e0e0e0 !important; }
+        #dr-confirm-modal .dr-btn-delete {
+            padding: 10px 24px !important; border: none !important; border-radius: 6px !important;
+            font-size: 14px !important; font-weight: 500 !important; cursor: pointer !important;
+            background: #dc2626 !important; color: #fff !important; box-shadow: none !important;
+            pointer-events: auto !important;
+        }
+        #dr-confirm-modal .dr-btn-delete:hover { background: #b91c1c !important; }
+        #dr-confirm-modal .dr-btn-delete:disabled { background: #fca5a5 !important; cursor: not-allowed !important; }
+    `;
+    document.head.appendChild(styleEl);
+
+    const modalEl = document.createElement('div');
+    modalEl.id = 'dr-confirm-modal';
+    modalEl.innerHTML = `
+        <div class="dr-box">
+            <button class="dr-close-btn" type="button" onclick="drCloseConfirm()">&times;</button>
+            <div class="dr-icon-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+                    <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 384C302.3 384 288 398.3 288 416C288 433.7 302.3 448 320 448C337.7 448 352 433.7 352 416C352 398.3 337.7 384 320 384zM320 192C301.8 192 287.3 207.5 288.6 225.7L296 329.7C296.9 342.3 307.4 352 319.9 352C332.5 352 342.9 342.3 343.8 329.7L351.2 225.7C352.5 207.5 338.1 192 319.8 192z"/>
                 </svg>
             </div>
             <h2>Delete Request</h2>
-            <p class="confirm-delete-message">Are you sure you want to delete request <strong>${escHtml(code)}</strong>?</p>
-            <p class="confirm-delete-warning">This action cannot be undone.</p>
-            <div class="confirm-modal-actions">
-                <button class="confirm-btn-cancel" onclick="closeConfirmModal()">Cancel</button>
-                <button class="confirm-btn-delete" onclick="deleteRequest(${id})">Delete</button>
+            <p class="dr-msg">Are you sure you want to delete <strong>${escHtml(code)}</strong>?</p>
+            <p class="dr-warn">This action cannot be undone.</p>
+            <div class="dr-actions">
+                <button type="button" class="dr-btn-cancel" onclick="drCloseConfirm()">Cancel</button>
+                <button type="button" class="dr-btn-delete" onclick="drRunDelete()">Delete</button>
             </div>
-        </div>
-    </div>`;
-    slot.querySelector('.confirm-modal-overlay').addEventListener('click', function(e) {
-        if (e.target === this) closeConfirmModal();
-    });
+        </div>`;
+
+    modalEl.addEventListener('click', e => { if (e.target === modalEl) drCloseConfirm(); });
+    document.body.appendChild(modalEl);
+    window._drPendingDeleteId = id;
 }
 
-function closeConfirmModal() {
-    document.getElementById('confirmDeleteModal').innerHTML = '';
+function drCloseConfirm() {
+    document.getElementById('dr-confirm-modal')?.remove();
+    document.getElementById('dr-confirm-styles')?.remove();
+    window._drPendingDeleteId = null;
+    if (!document.getElementById('viewRequestModal')?.classList.contains('active')) {
+        document.body.classList.remove('modal-open');
+    }
 }
 
-async function deleteRequest(id) {
-    const btn = document.querySelector('.confirm-btn-delete');
+async function drRunDelete() {
+    const id = window._drPendingDeleteId;
+    if (!id) return;
+    const btn = document.querySelector('#dr-confirm-modal .dr-btn-delete');
     if (btn) btn.disabled = true;
     try {
         const res = await fetch(`/api/data-requests/${id}`, { method: 'DELETE' });
@@ -875,7 +939,8 @@ async function deleteRequest(id) {
         allRequests = allRequests.filter(r => r.id !== id);
         applyFiltersAndRender();
         updateStats();
-        closeConfirmModal();
+        drCloseConfirm();
+        closeViewModal();
         showToast('Request deleted.', 'success');
     } catch (err) {
         console.error(err);
