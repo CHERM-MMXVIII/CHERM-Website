@@ -126,6 +126,27 @@ p           { margin-top: 0; margin-bottom: 0; }
 .btn-add-dataset:hover  { background: var(--primary-dark); box-shadow: 0 4px 12px rgba(0,128,128,.3); transform: translateY(-1px); }
 .btn-add-dataset:active { transform: translateY(0); box-shadow: none; }
 
+/* Vew Request List button */
+.btn-request-list {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .72rem 1.1rem;
+    border: none;
+    border-radius: 8px;
+    background: #37aaaa;
+    color: white;
+    font-size: .9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .2s, transform .15s, box-shadow .2s;
+    flex-shrink: 0;
+    justify-content: center;
+}
+.btn-request-list:hover  { background: var(--primary-color); box-shadow: 0 4px 12px rgba(0,128,128,.3); transform: translateY(-1px); }
+.btn-request-list:active { transform: translateY(0); box-shadow: none; }
+
 /* Export button */
 .btn-export {
     display: inline-flex;
@@ -795,7 +816,7 @@ textarea.form-control { resize: vertical; min-height: 80px; }
     .toolbar-left, .toolbar-right { width: 100%; }
     .toolbar-left { flex-direction: column; align-items: stretch; }
     .toolbar-right { flex-direction: row; flex-wrap: wrap; gap: 8px; }
-    .filter-container, .btn-export, .btn-add-dataset { flex: 0 0 calc(50% - 4px); }
+    .filter-container, .btn-export, .btn-add-dataset, .btn-request-list { flex: 0 0 calc(50% - 4px); }
     .filter-dropdown-toggle { width: 100%; justify-content: center; }
     .btn-export, .btn-add-dataset { padding: .72rem; justify-content: center; }
     .pagination-container { justify-content: center; }

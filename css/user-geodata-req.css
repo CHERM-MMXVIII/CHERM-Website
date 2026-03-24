@@ -697,6 +697,7 @@ td{
   border: none;
   transition: var(--transition);
   text-decoration: none;
+  background: var(--primary-light);
 }
 .btn-outline {
   background: transparent;
@@ -721,6 +722,7 @@ td{
   opacity: .5;
   cursor: not-allowed;
   pointer-events: none;
+  background: var(--primary-light);
 }
 
 /* ── SUCCESS PANEL ── */

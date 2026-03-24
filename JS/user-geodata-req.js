@@ -107,25 +107,49 @@ function renderTable() {
   document.getElementById('noResults').style.display = filtered.length ? 'none' : 'block';
 
   body.innerHTML = filtered.map(d => `
-    <tr id="row-${d.id}" class="${selectedIds.has(d.id) ? 'selected' : ''}" onclick="toggleRow(${d.id}, event)">
-      <td><input type="checkbox" ${selectedIds.has(d.id) ? 'checked' : ''} onclick="toggleRow(${d.id}, event)"></td>
+    <tr id="row-${d.id}" 
+        class="${selectedIds.has(d.id) ? 'selected' : ''}" 
+        onclick="toggleRow(${d.id})">
+
+      <td>
+        <input type="checkbox"
+          ${selectedIds.has(d.id) ? 'checked' : ''}
+          onclick="event.stopPropagation(); toggleRow(${d.id})">
+      </td>
+
       <td>
         <div class="dataset-name">${escHtml(d.title)}</div>
         <div class="dataset-desc">${escHtml(getDesc(d).substring(0, 90))}${getDesc(d).length > 90 ? '…' : ''}</div>
       </td>
-      <td style="white-space:nowrap; font-size:12px; color:var(--text-muted);">${escHtml(d.coverage || '—')}</td>
-      <td><span class="tag ${escHtml(d.cat || '')}">${catLabel(d.cat)}</span></td>
-      <td><span class="format-badge ${(d.format || '').toLowerCase()}">${escHtml(d.format || '—')}</span></td>
+
+      <td style="white-space:nowrap; font-size:12px; color:var(--text-muted);">
+        ${escHtml(d.coverage || '—')}
+      </td>
+
+      <td>
+        <span class="tag ${escHtml(d.cat || '')}">
+          ${catLabel(d.cat)}
+        </span>
+      </td>
+
+      <td>
+        <span class="format-badge ${(d.format || '').toLowerCase()}">
+          ${escHtml(d.format || '—')}
+        </span>
+      </td>
+
       <td>
         <button class="btn-meta" onclick="openMeta(${d.id}, event)">
           <i class="fas fa-info-circle"></i> Info
         </button>
       </td>
+
       <td>
         <button class="btn-preview" onclick="openPreview(${d.id}, event)">
           <i class="fas fa-file-alt"></i> Preview
         </button>
       </td>
+
     </tr>
   `).join('');
 }
@@ -142,10 +166,13 @@ function filterData() {
   renderTable();
 }
 
-function toggleRow(id, e) {
-  if (e && e.target.tagName === 'BUTTON') return;
-  if (selectedIds.has(id)) selectedIds.delete(id);
-  else selectedIds.add(id);
+function toggleRow(id) {
+  if (selectedIds.has(id)) {
+    selectedIds.delete(id);
+  } else {
+    selectedIds.add(id);
+  }
+
   renderTable();
   updateSelectionBar();
 }

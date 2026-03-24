@@ -151,6 +151,7 @@ p           { margin-top: 0; margin-bottom: 0; }
     transition: border-color .2s, background .2s;
     user-select: none;
     white-space: nowrap;
+    justify-content: center;
 }
 .filter-dropdown-toggle:hover { border-color: var(--primary-color); background: rgba(0,128,128,.03); }
 .filter-dropdown-toggle.has-filters { border-color: var(--primary-color); color: var(--primary-color); background: rgba(0,128,128,.06); }
@@ -314,7 +315,7 @@ th.sort-desc .sort-icon::after { content: '↓'; }
     transition: all .2s;
 }
 .btn-action:hover { transform: translateY(-2px); }
-.btn-edit:hover   { background: #fff3e0; color: #f57c00; }
+.btn-edit:hover   { background: #e3f2fd; color: #1976d2; }
 .btn-delete:hover { background: #ffebee; color: #d32f2f; }
 
 /* Empty state */
@@ -590,7 +591,7 @@ body.modal-open { overflow: hidden; }
 /* Dropzone */
 .dr-dropzone {
     border: 2px dashed #b2d8d8; border-radius: 10px;
-    padding: 20px 16px; text-align: center;
+    padding: 16px 16px; text-align: center;
     cursor: pointer; background: white;
     transition: border-color .2s, background .2s;
 }
@@ -769,12 +770,19 @@ body.modal-open { overflow: hidden; }
     .toolbar-left, .toolbar-right { width: 100%; }
     .toolbar-left  { flex-direction: column; align-items: stretch; }
     .toolbar-right { flex-direction: row; flex-wrap: wrap; gap: 8px; }
-    .filter-container, .btn-export { flex: 0 0 calc(50% - 4px); }
+    .btn-export, .btn-tertiary { flex: 0 0 calc(50% - 4px); }
     .filter-dropdown-panel  { width: 280px; }
     .pagination-container   { justify-content: center; }
     .pagination-info, .pagination-size { width: 100%; justify-content: center; text-align: center; display: flex; }
     .pagination-controls    { justify-content: center; }
     .btn-export             { padding: .72rem; justify-content: center; }
+    .filter-container, .filter-dropdown-toggle  {width: 100%;}
+
+    .btn-container{
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+    }
 }
 
 @media (max-width: 480px) {
@@ -787,6 +795,7 @@ body.modal-open { overflow: hidden; }
     .confirm-modal-actions  { flex-direction: column-reverse; }
     .confirm-btn-cancel,
     .confirm-btn-delete     { width: 100%; }
+    .page-header h2         { font-size: 1.3rem; }
 }
 
 /* ═══════════════════════════════════════════════════
@@ -911,4 +920,127 @@ body.modal-open { overflow: hidden; }
     color: #a0aec0;
     font-weight: 400;
     margin-left: 8px;
+}
+
+.dr-notify-btn {
+    width: 100%;
+    padding: 12px 20px;
+    background: #5ab6b6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all .3s;
+    margin-bottom: 10px;
+}
+.dr-notify-btn:hover {
+    background: #0b5555;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+}
+.dr-notify-btn:disabled {
+    background: #a7fafa;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+@media (max-width: 768px) {
+    .hide-sm {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+ 
+    /* Modal scrolls as one unit */
+    .dr-modal-container {
+        max-height: 100vh !important;
+        max-width: 100% !important;
+        height: 100vh;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        overflow-y: auto !important;
+        display: flex;
+        flex-direction: column;
+    }
+ 
+    /* Stack panels vertically */
+    .dr-modal-body {
+        grid-template-columns: 1fr !important;
+        overflow: visible !important;
+        height: auto !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+ 
+    /* Left panel — always visible, natural height */
+    .dr-left-panel {
+        border-right: none !important;
+        border-bottom: 1px solid #e9ecef !important;
+        overflow: visible !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        height: auto !important;
+        flex: none !important;
+    }
+ 
+    /* Tab nav always visible and scrollable horizontally */
+    .dr-tab-nav {
+        display: flex !important;
+        overflow-x: auto !important;
+        padding: 0 12px !important;
+        flex-shrink: 0 !important;
+        background: white;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 1px solid #e9ecef;
+    }
+ 
+    .dr-tab-btn {
+        flex-shrink: 0 !important;
+        padding: 12px 14px 10px !important;
+        font-size: 11px !important;
+        white-space: nowrap !important;
+    }
+ 
+    /* Tab panes — natural height, no clipping */
+    .dr-tab-pane {
+        overflow: visible !important;
+        max-height: none !important;
+        height: auto !important;
+        padding: 20px 16px !important;
+        flex: none !important;
+    }
+ 
+    /* Right panel — natural height below left panel */
+    .dr-right-panel {
+        overflow: visible !important;
+        max-height: none !important;
+        height: auto !important;
+        flex: none !important;
+    }
+ 
+    .dr-actions-card {
+        min-height: 0 !important;
+    }
+ 
+    /* Modal header compact */
+    .dr-modal-header {
+        padding: 16px !important;
+        flex-shrink: 0 !important;
+    }
+ 
+    /* Hide columns in table */
+    .hide-sm {
+        display: none !important;
+    }
 }

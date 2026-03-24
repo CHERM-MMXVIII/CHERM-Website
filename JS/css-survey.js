@@ -81,9 +81,138 @@ otherLabel.addEventListener('click', (e) => {
   updateOtherState(otherCheckbox.checked);
 });
 
+// ─── URL Param Handling ────────────────────────────────────
+const CSS_PARAMS  = new URLSearchParams(window.location.search);
+const CSS_SERVICE = CSS_PARAMS.get('service'); // 'data-request' or null
+const CSS_CODE    = CSS_PARAMS.get('code');    // e.g. '20260312-CHERM-DR-A1B2'
+
+document.addEventListener('DOMContentLoaded', () => {
+
+  // ── Show / pre-fill Request ID section if data-request flow ──
+  if (CSS_SERVICE === 'data-request') {
+    const section = document.getElementById('requestIdSection');
+    if (section) section.style.display = 'block';
+
+    const input = document.getElementById('requestIdInput');
+    if (input && CSS_CODE) {
+      input.value    = CSS_CODE;
+      input.readOnly = true;
+      input.style.cssText = 'background:#f0fafa; color:#008080; font-weight:700;';
+
+      const status = document.getElementById('requestIdStatus');
+      if (status) {
+        status.innerHTML   = '<i class="fas fa-check-circle" style="color:#008080;"></i> Confirmed';
+        status.style.color = '#008080';
+      }
+    }
+
+    // Auto-check GIS Mapping since this is a data request
+    document.querySelectorAll('input[name="service"]').forEach(cb => {
+      if (cb.value === 'GIS Mapping') {
+        cb.checked = true;
+        cb.closest('.service-option')?.classList.add('selected');
+      }
+    });
+
+    // Update success message to mention file delivery
+    const successText = document.getElementById('successText');
+    if (successText) {
+      successText.textContent =
+        'Thank you for your feedback! Your requested files will be sent ' +
+        'to your registered email address shortly.';
+    }
+  }
+});
+
 // ─── Form Submission ───────────────────────────────────────
-document.getElementById('surveyForm').addEventListener('submit', (e) => {
+document.getElementById('surveyForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  document.getElementById('surveyForm').style.display = 'none';
-  document.getElementById('successMsg').style.display = 'block';
+
+  const form       = document.getElementById('surveyForm');
+  const submitBtn  = form.querySelector('.submit-btn');
+  const successMsg = document.getElementById('successMsg');
+
+  // ── Data-request flow: call API before showing success ──
+  if (CSS_SERVICE === 'data-request') {
+    const requestId = document.getElementById('requestIdInput')?.value?.trim();
+
+    if (!requestId) {
+      document.getElementById('requestIdInput').focus();
+      return;
+    }
+
+    // Disable button and show loading state
+    submitBtn.disabled     = true;
+    submitBtn.style.opacity = '0.7';
+    submitBtn.innerHTML    = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+           style="animation:spin 1s linear infinite;">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+      </svg>
+      Submitting...`;
+
+    try {
+      const res = await fetch('/api/css-survey/submit', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // TODO: add full survey answers here when DB is ready
+        // For now only requestId is sent; backend marks as Fulfilled + sends files
+        body: JSON.stringify({ requestId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Restore button and show error inline
+        submitBtn.disabled      = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.innerHTML     = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          Submit Survey`;
+
+        // Show error below the button
+        let errEl = document.getElementById('surveySubmitError');
+        if (!errEl) {
+          errEl    = document.createElement('p');
+          errEl.id = 'surveySubmitError';
+          errEl.style.cssText =
+            'color:#dc2626; font-size:0.88rem; font-weight:500; margin-top:12px; text-align:center;';
+          submitBtn.insertAdjacentElement('afterend', errEl);
+        }
+        errEl.textContent = data.error || 'Submission failed. Please try again.';
+        return;
+      }
+
+    } catch (networkErr) {
+      submitBtn.disabled      = false;
+      submitBtn.style.opacity = '1';
+      submitBtn.innerHTML     = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+        Submit Survey`;
+
+      let errEl = document.getElementById('surveySubmitError');
+      if (!errEl) {
+        errEl    = document.createElement('p');
+        errEl.id = 'surveySubmitError';
+        errEl.style.cssText =
+          'color:#dc2626; font-size:0.88rem; font-weight:500; margin-top:12px; text-align:center;';
+        submitBtn.insertAdjacentElement('afterend', errEl);
+      }
+      errEl.textContent = 'Network error. Please check your connection and try again.';
+      return;
+    }
+  }
+
+  // ── Show success screen (both flows reach here) ──────────
+  form.style.display       = 'none';
+  successMsg.style.display = 'block';
 });

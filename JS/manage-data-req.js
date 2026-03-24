@@ -21,8 +21,10 @@ let allRequests    = [];
 let filteredData   = [];
 let currentPage    = 1;
 let itemsPerPage   = 10;
-let sortColumn     = 'created_at';
+let sortColumn     = '';
 let sortDirection  = 'desc';
+const defaultSortCol = 'created_at';
+const defaultSortDir = 'desc';
 let activeFilters  = { status: [], clientType: [] };
 let currentRequestId  = null;
 let pendingFiles   = [];   // files staged in the dropzone queue
@@ -34,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function () {
     buildFilterDropdown();
     bindSearch();
     bindPagination();
-    bindSort();
     bindModalClose();
 });
 
@@ -43,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
 ═══════════════════════════════════════════════════ */
 async function fetchRequests() {
     try {
-        const res  = await fetch('/api/data-requests');
+        const res  = await fetch('/api/data-requests', { credentials: 'include' });
         const data = await res.json();
         allRequests = Array.isArray(data) ? data : [];
     } catch (err) {
@@ -58,10 +59,11 @@ async function fetchRequests() {
    STATS STRIP
 ═══════════════════════════════════════════════════ */
 function updateStats() {
-    document.getElementById('statTotal').textContent     = allRequests.length;
-    document.getElementById('statPending').textContent    = allRequests.filter(r => r.status === 'Pending').length;
-    document.getElementById('statProcessing').textContent = allRequests.filter(r => r.status === 'Under Review').length;
-    document.getElementById('statFulfilled').textContent  = allRequests.filter(r => r.status === 'Fulfilled').length;
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('statTotal',       allRequests.length);
+    set('statPending',     allRequests.filter(r => r.status === 'Pending').length);
+    set('statProcessing',  allRequests.filter(r => r.status === 'Under Review').length);
+    set('statFulfilled',   allRequests.filter(r => r.status === 'Fulfilled').length);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -94,6 +96,8 @@ function searchFilter(r, q) {
 
 /* ═══════════════════════════════════════════════════
    FILTER DROPDOWN  (status + client type)
+   — Filters apply instantly on checkbox change.
+   — No Apply button needed.
 ═══════════════════════════════════════════════════ */
 function buildFilterDropdown() {
     const wrapper = document.getElementById('filterDropdownWrapper');
@@ -116,7 +120,7 @@ function buildFilterDropdown() {
                 <div class="filter-group-options">
                     ${statuses.map(s => `
                     <label class="filter-checkbox-label">
-                        <input type="checkbox" class="filter-checkbox filter-status" value="${s}">
+                        <input type="checkbox" class="filter-checkbox filter-status" value="${s}" onchange="applyFilterPanel()">
                         <span class="filter-checkbox-custom"></span>
                         <span class="filter-checkbox-text">${s}</span>
                     </label>`).join('')}
@@ -128,7 +132,7 @@ function buildFilterDropdown() {
                 <div class="filter-group-options">
                     ${clientTypes.map(t => `
                     <label class="filter-checkbox-label">
-                        <input type="checkbox" class="filter-checkbox filter-client" value="${t}">
+                        <input type="checkbox" class="filter-checkbox filter-client" value="${t}" onchange="applyFilterPanel()">
                         <span class="filter-checkbox-custom"></span>
                         <span class="filter-checkbox-text">${t}</span>
                     </label>`).join('')}
@@ -139,14 +143,15 @@ function buildFilterDropdown() {
             <button class="filter-clear-btn" onclick="clearFilters()">
                 <i class="fas fa-times"></i> Clear
             </button>
-            <button class="filter-apply-btn" onclick="applyFilterPanel()">Apply</button>
         </div>
     </div>`;
 
+    // Close panel when clicking outside — but NOT when clicking inside it
     document.addEventListener('click', function (e) {
-        const panel   = document.getElementById('filterDropdownPanel');
-        const toggle  = document.getElementById('filterToggleBtn');
-        if (panel && !panel.contains(e.target) && !toggle.contains(e.target)) {
+        const panel  = document.getElementById('filterDropdownPanel');
+        const toggle = document.getElementById('filterToggleBtn');
+        if (!panel || !toggle) return;
+        if (!panel.contains(e.target) && !toggle.contains(e.target)) {
             panel.classList.remove('open');
         }
     });
@@ -157,13 +162,15 @@ function toggleFilterPanel() {
     if (panel) panel.classList.toggle('open');
 }
 
+/* Reads current checkbox state, updates activeFilters, and re-renders.
+   Called automatically via onchange on every checkbox — no Apply button needed. */
 function applyFilterPanel() {
     activeFilters.status     = [...document.querySelectorAll('.filter-status:checked')].map(c => c.value);
     activeFilters.clientType = [...document.querySelectorAll('.filter-client:checked')].map(c => c.value);
     updateFilterBadge();
     currentPage = 1;
     applyFiltersAndRender();
-    document.getElementById('filterDropdownPanel').classList.remove('open');
+    // Panel stays open so user can keep toggling checkboxes
 }
 
 function clearFilters() {
@@ -193,23 +200,20 @@ function applyFiltersAndRender() {
     filteredData = allRequests.filter(r => {
         if (!searchFilter(r, q)) return false;
         if (activeFilters.status.length     && !activeFilters.status.includes(r.status))          return false;
-        if (activeFilters.clientType.length && !activeFilters.clientType.includes(r.client_type)) return false;
+        if (activeFilters.clientType.length && !activeFilters.clientType.some(f => f.toLowerCase() === (r.client_type || '').toLowerCase())) return false;
         return true;
     });
 
-    // Sort
-    filteredData.sort((a, b) => {
-        let av = a[sortColumn] ?? '';
-        let bv = b[sortColumn] ?? '';
-        if (sortColumn === 'created_at') { av = new Date(av); bv = new Date(bv); }
-        else { av = String(av).toLowerCase(); bv = String(bv).toLowerCase(); }
-        if (av < bv) return sortDirection === 'asc' ? -1 :  1;
-        if (av > bv) return sortDirection === 'asc' ?  1 : -1;
-        return 0;
-    });
+    // Sort — use defaultSortCol when no column is explicitly selected
+    filteredData = sortData(filteredData, sortColumn || defaultSortCol, sortColumn ? sortDirection : defaultSortDir);
+
+    // Clamp page
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
+    if (currentPage > totalPages) currentPage = totalPages;
 
     renderTable();
     renderPagination();
+    updateSortIcons();
 }
 
 /* ═══════════════════════════════════════════════════
@@ -238,9 +242,7 @@ function renderTable() {
         const count     = datasets.length;
         const submitted = formatDate(r.created_at);
         const statusCls = statusClass(r.status);
-        const clientBadge = (r.client_type || '').toLowerCase() === 'internal'
-            ? '<span style="color:#065f46;font-size:12px;font-weight:500;">Internal</span>'
-            : '<span style="color:#92400e;font-size:12px;font-weight:500;">External</span>';
+        const clientBadge = escHtml(toTitleCase(r.client_type || '—'));
 
         return `
         <tr>
@@ -251,10 +253,10 @@ function renderTable() {
                     <span class="requester-office">${escHtml(r.affiliation || '')}</span>
                 </div>
             </td>
-            <td>${clientBadge}</td>
+            <td class="hide-sm" style="font-size:13px;color:#4a5568;">${clientBadge}</td>
             <td style="font-size:13px;color:#4a5568;">${submitted}</td>
-            <td style="font-size:13px;color:#4a5568;">${escHtml(r.purpose || '—')}</td>
-            <td>
+            <td class="hide-sm" style="font-size:13px;color:#4a5568;">${escHtml(r.purpose || '—')}</td>
+            <td class="hide-sm">
                 <span class="dr-datasets-pill">
                     <i class="fas fa-layer-group"></i> ${count} dataset${count !== 1 ? 's' : ''}
                 </span>
@@ -342,9 +344,23 @@ function pageRange(cur, total) {
 /* ═══════════════════════════════════════════════════
    SORT
 ═══════════════════════════════════════════════════ */
-function bindSort() {
-    document.querySelectorAll('.requests-table th[data-col]').forEach(th => {
-        th.addEventListener('click', () => sortBy(th.dataset.col));
+function sortData(data, col, dir) {
+    return [...data].sort((a, b) => {
+        let av, bv;
+        if (col === 'created_at') {
+            av = a[col] ? new Date(a[col]).getTime() : 0;
+            bv = b[col] ? new Date(b[col]).getTime() : 0;
+        } else if (col === 'surname') {
+            // Sort requester column by full name: surname first, then first_name as tiebreaker
+            av = ((a.surname || '') + ' ' + (a.first_name || '')).trim().toLowerCase();
+            bv = ((b.surname || '') + ' ' + (b.first_name || '')).trim().toLowerCase();
+        } else {
+            av = String(a[col] ?? '').toLowerCase();
+            bv = String(b[col] ?? '').toLowerCase();
+        }
+        if (av < bv) return dir === 'asc' ? -1 : 1;
+        if (av > bv) return dir === 'asc' ?  1 : -1;
+        return 0;
     });
 }
 
@@ -355,15 +371,17 @@ function sortBy(col) {
         sortColumn    = col;
         sortDirection = 'asc';
     }
-    document.querySelectorAll('.requests-table th[data-col]').forEach(th => {
-        th.classList.remove('sort-asc', 'sort-desc', 'sort-active');
-    });
-    const active = document.querySelector(`.requests-table th[data-col="${col}"]`);
-    if (active) {
-        active.classList.add('sort-active', sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
-    }
     currentPage = 1;
     applyFiltersAndRender();
+}
+
+function updateSortIcons() {
+    document.querySelectorAll('.requests-table th[data-col]').forEach(th => {
+        th.classList.remove('sort-active', 'sort-asc', 'sort-desc');
+        if (th.dataset.col === sortColumn) {
+            th.classList.add('sort-active', sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+        }
+    });
 }
 
 /* ═══════════════════════════════════════════════════
@@ -384,7 +402,7 @@ async function openViewModal(id) {
     document.getElementById('adminNotes').value   = '';
 
     try {
-        const res  = await fetch(`/api/data-requests/${id}`);
+        const res  = await fetch(`/api/data-requests/${id}`, { credentials: 'include' });
         const data = await res.json();
         populateModal(data);
     } catch (err) {
@@ -409,7 +427,6 @@ function populateModal(r) {
     document.getElementById('modalEmail').textContent        = r.email         || '—';
     document.getElementById('modalAffiliation').textContent  = r.affiliation   || '—';
     document.getElementById('modalClientType').textContent   = r.client_type   || '—';
-    document.getElementById('modalContact').textContent      = r.contact       || '—';
     document.getElementById('modalPurpose').textContent      = r.purpose       || '—';
     document.getElementById('modalNotes').textContent        = r.notes         || '—';
 
@@ -418,8 +435,14 @@ function populateModal(r) {
     badge.textContent = r.status || 'Pending';
     badge.className   = 'status-badge ' + statusClass(r.status);
 
-    // Status select
+    // Status select — add 'Awaiting Survey' option dynamically if needed
     const sel = document.getElementById('statusSelect');
+    if (r.status && !sel.querySelector(`option[value="${r.status}"]`)) {
+        const opt = document.createElement('option');
+        opt.value = r.status;
+        opt.textContent = r.status;
+        sel.appendChild(opt);
+    }
     sel.value = r.status || 'Pending';
 
     // Pre-fill existing admin data
@@ -507,19 +530,21 @@ function onDatasetCheckChange() {
 }
 
 async function sendSelectedFiles() {
-    const checked = [...document.querySelectorAll('.dr-dataset-cb:checked')];
-    if (!checked.length || !currentRequestId) return;
-
+    const checked    = [...document.querySelectorAll('.dr-dataset-cb:checked')];
     const datasetIds = checked.map(cb => parseInt(cb.dataset.id));
+    if (!currentRequestId) return;
+
     const btn = document.getElementById('drSendBtn');
     btn.disabled  = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
 
     try {
+        // Send notify email for selected datasets only
         const res  = await fetch(`/api/data-requests/${currentRequestId}/notify`, {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ datasetIds }),
+            method:      'POST',
+            credentials: 'include',
+            headers:     { 'Content-Type': 'application/json' },
+            body:        JSON.stringify({ datasetIds }),
         });
         const data = await res.json();
 
@@ -536,12 +561,21 @@ async function sendSelectedFiles() {
                 badge.className   = 'status-badge ' + statusClass(data.newStatus);
             }
             const sel = document.getElementById('statusSelect');
-            if (sel) sel.value = data.newStatus;
+            if (sel) {
+                // Add 'Awaiting Survey' option dynamically if it doesn't exist
+                if (!sel.querySelector(`option[value="${data.newStatus}"]`)) {
+                    const opt = document.createElement('option');
+                    opt.value = data.newStatus;
+                    opt.textContent = data.newStatus;
+                    sel.appendChild(opt);
+                }
+                sel.value = data.newStatus;
+            }
         }
 
         // Re-fetch and refresh datasets tab (shows Sent badges) + history tab
         try {
-            const r2   = await fetch(`/api/data-requests/${currentRequestId}`);
+            const r2   = await fetch(`/api/data-requests/${currentRequestId}`, { credentials: 'include' });
             const d2   = await r2.json();
             // Rebuild sentDatasetIds from fresh logs
             sentDatasetIds = new Set();
@@ -677,22 +711,61 @@ function _cleanAdminNotes() {
 async function saveRequestUpdates() {
     if (!currentRequestId) return;
     const btn    = document.querySelector('.dr-save-btn');
-    const status = document.getElementById('statusSelect').value;
-    const link   = document.getElementById('deliveryLink').value.trim();
+    const status = document.getElementById('statusSelect')?.value;
+    const link   = document.getElementById('deliveryLink')?.value.trim() ?? '';
+
+    if (!status) { showToast('No status selected.', 'error'); return; }
 
     // Clean admin notes before saving
     const adminNotesEl = document.getElementById('adminNotes');
     if (adminNotesEl) adminNotesEl.value = toSentenceCase(adminNotesEl.value);
     const notes = adminNotesEl ? adminNotesEl.value.trim() : '';
 
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Saving...</span>';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Saving...</span>'; }
 
     try {
+        // ── Step 1: upload any pending files in the queue first ───────────────
+        if (pendingFiles.length > 0) {
+            if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Uploading files...</span>';
+            let uploaded = 0;
+            for (let i = 0; i < pendingFiles.length; i++) {
+                const f  = pendingFiles[i];
+                const fd = new FormData();
+                fd.append('file', f);
+                fd.append('request_id', currentRequestId);
+                try {
+                    const uploadRes = await fetch(`/api/data-requests/${currentRequestId}/files`, {
+                        method:      'POST',
+                        credentials: 'include',
+                        body:        fd,
+                    });
+                    if (uploadRes.ok) {
+                        const uploadData = await uploadRes.json();
+                        if (uploadData.success) uploaded++;
+                        else { console.error(`Upload rejected for ${f.name}:`, uploadData.error); showToast(`Upload failed: ${uploadData.error || f.name}`, 'error'); }
+                    } else {
+                        const errText = await uploadRes.text();
+                        console.error(`Upload HTTP error for ${f.name}:`, uploadRes.status, errText);
+                        showToast(`Failed to upload ${f.name} (${uploadRes.status})`, 'error');
+                    }
+                } catch (uploadErr) {
+                    console.error(`Upload error for ${f.name}:`, uploadErr);
+                }
+            }
+            if (uploaded > 0) {
+                pendingFiles = [];
+                renderFileQueue();
+                document.getElementById('drUploadBtn').style.display = 'none';
+            }
+        }
+
+        // ── Step 2: save metadata (status, delivery link, admin notes) ────────
+        if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Saving...</span>';
         const res = await fetch(`/api/data-requests/${currentRequestId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status, delivery_link: link, admin_notes: notes }),
+            method:      'PUT',
+            credentials: 'include',
+            headers:     { 'Content-Type': 'application/json' },
+            body:        JSON.stringify({ status, delivery_link: link || null, admin_notes: notes || null }),
         });
 
         if (!res.ok) throw new Error('Save failed');
@@ -707,8 +780,17 @@ async function saveRequestUpdates() {
 
         // Update badge in modal header
         const badge = document.getElementById('modalStatusBadge');
-        badge.textContent = status;
-        badge.className   = 'status-badge ' + statusClass(status);
+        if (badge) {
+            badge.textContent = status;
+            badge.className   = 'status-badge ' + statusClass(status);
+        }
+
+        // Refresh fulfillment history to show newly uploaded files
+        try {
+            const r2   = await fetch(`/api/data-requests/${currentRequestId}`, { credentials: 'include' });
+            const d2   = await r2.json();
+            renderFulfillmentHistory(d2.delivered_files || [], d2.delivery_link, d2.notify_logs || []);
+        } catch (_) { /* non-fatal */ }
 
         applyFiltersAndRender();
         updateStats();
@@ -717,8 +799,116 @@ async function saveRequestUpdates() {
         console.error(err);
         showToast('Failed to save. Please try again.', 'error');
     } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check"></i> <span>Save Updates</span>';
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i> <span>Save Updates</span>'; }
+    }
+}
+
+/* ═══════════════════════════════════════════════════
+   NOTIFY CLIENT (no datasets — files/link only)
+═══════════════════════════════════════════════════ */
+async function notifyClient() {
+    if (!currentRequestId) return;
+    const btn = document.getElementById('notifyClientBtn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Saving…</span>'; }
+
+    try {
+        // ── Step 1: upload any pending files ─────────────────────────────────────────────
+        if (pendingFiles.length > 0) {
+            if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Uploading files…</span>';
+            for (let i = 0; i < pendingFiles.length; i++) {
+                const f  = pendingFiles[i];
+                const fd = new FormData();
+                fd.append('file', f);
+                fd.append('request_id', currentRequestId);
+                try {
+                    const uploadRes = await fetch(`/api/data-requests/${currentRequestId}/files`, {
+                        method:      'POST',
+                        credentials: 'include',
+                        body:        fd,
+                    });
+                    if (!uploadRes.ok) {
+                        const err = await uploadRes.json().catch(() => ({}));
+                        showToast(`Upload failed: ${err.error || f.name}`, 'error');
+                    }
+                } catch (uploadErr) {
+                    console.error('Upload error:', uploadErr);
+                    showToast(`Failed to upload ${f.name}`, 'error');
+                }
+            }
+            pendingFiles = [];
+            renderFileQueue();
+            const uploadBtn = document.getElementById('drUploadBtn');
+            if (uploadBtn) uploadBtn.style.display = 'none';
+        }
+
+        // ── Step 2: save delivery link + admin notes + status ────────────────────────────
+        if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Saving…</span>';
+        const status       = document.getElementById('statusSelect')?.value || 'Pending';
+        const deliveryLink = document.getElementById('deliveryLink')?.value.trim() ?? '';
+        const adminNotesEl = document.getElementById('adminNotes');
+        if (adminNotesEl) adminNotesEl.value = toSentenceCase(adminNotesEl.value);
+        const adminNotes = adminNotesEl?.value.trim() ?? '';
+
+        await fetch(`/api/data-requests/${currentRequestId}`, {
+            method:      'PUT',
+            credentials: 'include',
+            headers:     { 'Content-Type': 'application/json' },
+            body:        JSON.stringify({
+                status,
+                delivery_link: deliveryLink || null,
+                admin_notes:   adminNotes   || null,
+            }),
+        });
+
+        // ── Step 3: send notify email (no datasets — empty array) ────────────────────────
+        if (btn) btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Notifying…</span>';
+        const res  = await fetch(`/api/data-requests/${currentRequestId}/notify`, {
+            method:      'POST',
+            credentials: 'include',
+            headers:     { 'Content-Type': 'application/json' },
+            body:        JSON.stringify({ datasetIds: [] }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to notify');
+
+        // Update status badge + select
+        if (data.newStatus) {
+            const badge = document.getElementById('modalStatusBadge');
+            if (badge) {
+                badge.textContent = data.newStatus;
+                badge.className   = 'status-badge ' + statusClass(data.newStatus);
+            }
+            const sel = document.getElementById('statusSelect');
+            if (sel) {
+                if (!sel.querySelector(`option[value="${data.newStatus}"]`)) {
+                    const opt = document.createElement('option');
+                    opt.value = data.newStatus;
+                    opt.textContent = data.newStatus;
+                    sel.appendChild(opt);
+                }
+                sel.value = data.newStatus;
+            }
+            // Update main table row
+            const idx = allRequests.findIndex(r => r.id === currentRequestId);
+            if (idx !== -1) allRequests[idx].status = data.newStatus;
+            applyFiltersAndRender();
+            updateStats();
+        }
+
+        // Refresh history tab
+        try {
+            const r2 = await fetch(`/api/data-requests/${currentRequestId}`, { credentials: 'include' });
+            const d2 = await r2.json();
+            renderFulfillmentHistory(d2.delivered_files || [], d2.delivery_link, d2.notify_logs || []);
+        } catch (_) { /* non-fatal */ }
+
+        showToast('Client notified. Survey email sent.', 'success');
+
+    } catch (err) {
+        console.error(err);
+        showToast(err.message || 'Failed to notify client.', 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> <span>Notify Client</span>'; }
     }
 }
 
@@ -747,7 +937,6 @@ function drFilesSelected(fileList) {
     });
     renderFileQueue();
     document.getElementById('drUploadBtn').style.display = pendingFiles.length > 0 ? 'flex' : 'none';
-    // Reset the input so same file can be re-added after removal
     document.getElementById('drFileInput').value = '';
 }
 
@@ -827,7 +1016,7 @@ async function drUploadFiles() {
         btn.style.display = 'none';
         // Refresh fulfillment history tab
         try {
-            const res  = await fetch(`/api/data-requests/${currentRequestId}`);
+            const res  = await fetch(`/api/data-requests/${currentRequestId}`, { credentials: 'include' });
             const data = await res.json();
             renderFulfillmentHistory(data.delivered_files || [], data.delivery_link);
         } catch {}
@@ -934,7 +1123,7 @@ async function drRunDelete() {
     const btn = document.querySelector('#dr-confirm-modal .dr-btn-delete');
     if (btn) btn.disabled = true;
     try {
-        const res = await fetch(`/api/data-requests/${id}`, { method: 'DELETE' });
+        const res = await fetch(`/api/data-requests/${id}`, { method: 'DELETE', credentials: 'include' });
         if (!res.ok) throw new Error('Delete failed');
         allRequests = allRequests.filter(r => r.id !== id);
         applyFiltersAndRender();
@@ -955,14 +1144,14 @@ async function drRunDelete() {
 function exportToCSV() {
     const rows = [
         ['Request ID', 'First Name', 'Surname', 'Email', 'Affiliation', 'Client Type',
-         'Contact', 'Purpose', 'Datasets Requested', 'Date Submitted', 'Status',
+         'Purpose', 'Datasets Requested', 'Date Submitted', 'Status',
          'Delivery Link', 'Admin Notes'],
     ];
     filteredData.forEach(r => {
         const datasets = (r.datasets || []).map(d => d.title || d.dataset_title || '').join('; ');
         rows.push([
             r.request_code, r.first_name, r.surname, r.email, r.affiliation,
-            r.client_type, r.contact, r.purpose, datasets,
+            r.client_type, r.purpose, datasets,
             formatDate(r.created_at), r.status, r.delivery_link || '', r.admin_notes || '',
         ]);
     });
@@ -981,11 +1170,12 @@ function exportToCSV() {
 ═══════════════════════════════════════════════════ */
 function statusClass(s) {
     switch ((s || '').toLowerCase().replace(/\s+/g,'-')) {
-        case 'pending':      return 'status-pending';
-        case 'under-review': return 'status-under-review';
-        case 'fulfilled':    return 'status-fulfilled';
-        case 'declined':     return 'status-declined';
-        default:             return 'status-pending';
+        case 'pending':          return 'status-pending';
+        case 'under-review':     return 'status-under-review';
+        case 'awaiting-survey':  return 'status-under-review';
+        case 'fulfilled':        return 'status-fulfilled';
+        case 'declined':         return 'status-declined';
+        default:                 return 'status-pending';
     }
 }
 

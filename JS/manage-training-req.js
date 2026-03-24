@@ -18,7 +18,7 @@
 const State = {
     allRequests: [],       // raw data from server
     filtered:   [],        // after search + filter
-    sortCol:    'created_at',
+    sortCol:    '',        // empty = no column highlighted; DEFAULT_SORT_COL used for initial order
     sortDir:    'desc',    // 'asc' | 'desc'
     page:       1,
     perPage:    10,
@@ -31,6 +31,10 @@ const State = {
     },
     currentRequestId: null, // id of request open in modal
 };
+
+/* Default sort — applied when no column is explicitly selected */
+const DEFAULT_SORT_COL = 'created_at';
+const DEFAULT_SORT_DIR = 'desc';
 
 /* ================================================
    INIT
@@ -126,8 +130,8 @@ function applyFiltersAndRender() {
         return true;
     });
 
-    // Sort
-    data = sortData(data, State.sortCol, State.sortDir);
+    // Sort — fall back to default when no column explicitly selected
+    data = sortData(data, State.sortCol || DEFAULT_SORT_COL, State.sortCol ? State.sortDir : DEFAULT_SORT_DIR);
 
     State.filtered = data;
 
@@ -243,7 +247,7 @@ function renderPagination(total) {
         if (p === '...') {
             const el = document.createElement('span');
             el.className = 'pagination-ellipsis';
-            el.textContent = '…';
+            el.textContent = '\u2026';
             numbersEl.appendChild(el);
         } else {
             const btn = document.createElement('button');
@@ -293,15 +297,15 @@ function renderTableBody(rows) {
 
     tbody.innerHTML = rows.map(r => `
         <tr>
-            <td>${escHtml(r.request_code || '—')}</td>
+            <td>${escHtml(r.request_code || '\u2014')}</td>
             <td>
                 <div class="requester-info">
                     <span class="requester-name">${escHtml(r.first_name)} ${escHtml(r.surname)}</span>
-                    <span class="requester-affiliation">${escHtml(r.affiliation || '—')}</span>
+                    <span class="requester-affiliation">${escHtml(r.affiliation || '\u2014')}</span>
                 </div>
             </td>
-            <td>${escHtml(r.client_type ? r.client_type.charAt(0).toUpperCase() + r.client_type.slice(1).toLowerCase() : '—')}</td>
-            <td class="email-cell">${escHtml(r.email || '—')}</td>
+            <td>${escHtml(r.client_type ? r.client_type.charAt(0).toUpperCase() + r.client_type.slice(1).toLowerCase() : '\u2014')}</td>
+            <td class="email-cell">${escHtml(r.email || '\u2014')}</td>
             <td>${formatDate(r.created_at)}</td>
             <td><span class="status-badge ${statusClass(r.status)}">${escHtml(formatStatus(r.status))}</span></td>
             <td>
@@ -339,12 +343,12 @@ async function openViewModal(id) {
     }
 
     // Populate modal fields
-    document.getElementById('modalRequestId').textContent     = r.request_code || '—';
+    document.getElementById('modalRequestId').textContent     = r.request_code || '\u2014';
     document.getElementById('modalSubmittedDate').textContent = formatDate(r.created_at);
     document.getElementById('modalName').textContent          = `${r.surname}, ${r.first_name}`;
-    document.getElementById('modalEmail').textContent         = r.email || '—';
-    document.getElementById('modalAffiliation').textContent   = r.affiliation || '—';
-    document.getElementById('modalClientType').textContent    = r.client_type ? r.client_type.charAt(0).toUpperCase() + r.client_type.slice(1).toLowerCase() : '—';
+    document.getElementById('modalEmail').textContent         = r.email || '\u2014';
+    document.getElementById('modalAffiliation').textContent   = r.affiliation || '\u2014';
+    document.getElementById('modalClientType').textContent    = r.client_type ? r.client_type.charAt(0).toUpperCase() + r.client_type.slice(1).toLowerCase() : '\u2014';
     document.getElementById('modalDate').textContent          = formatDate(r.created_at);
 
     // Status badge — always use formatStatus() for consistent display
@@ -447,10 +451,10 @@ function confirmDelete(id, requestCode) {
     overlay.className = 'confirm-modal-overlay';
     overlay.innerHTML = `
         <div class="confirm-modal-container">
-            <button class="confirm-modal-close" onclick="this.closest('.confirm-modal-overlay').remove()">×</button>
+            <button class="confirm-modal-close" onclick="this.closest('.confirm-modal-overlay').remove()">&times;</button>
             <div class="confirm-delete-icon">
-                <svg viewBox="0 0 24 24" width="28" height="28">
-                    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="46" height="46"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+                    <path d="M320 576C178.6 576 64 461.4 64 320C64 178.6 178.6 64 320 64C461.4 64 576 178.6 576 320C576 461.4 461.4 576 320 576zM320 384C302.3 384 288 398.3 288 416C288 433.7 302.3 448 320 448C337.7 448 352 433.7 352 416C352 398.3 337.7 384 320 384zM320 192C301.8 192 287.3 207.5 288.6 225.7L296 329.7C296.9 342.3 307.4 352 319.9 352C332.5 352 342.9 342.3 343.8 329.7L351.2 225.7C352.5 207.5 338.1 192 319.8 192z"/>
                 </svg>
             </div>
             <h2>Delete Request</h2>
@@ -498,7 +502,7 @@ function exportToCSV() {
         r.email         || '',
         r.affiliation   || '',
         r.client_type   || '',
-        formatStatus(r.status),   // use formatStatus() for consistent CSV export too
+        formatStatus(r.status),
         formatDate(r.created_at),
     ]);
 
@@ -529,7 +533,6 @@ function buildFilterDropdown() {
         </button>
         <div class="filter-dropdown-panel" id="filterPanel">
             <div class="filter-panel-inner">
-                <!-- Client Type -->
                 <div class="filter-group">
                     <div class="filter-group-header">
                         <i class="fas fa-users"></i> Client Type
@@ -539,7 +542,6 @@ function buildFilterDropdown() {
                     </div>
                 </div>
                 <div class="filter-group-divider"></div>
-                <!-- Status -->
                 <div class="filter-group">
                     <div class="filter-group-header">
                         <i class="fas fa-circle-half-stroke"></i> Status
@@ -551,7 +553,6 @@ function buildFilterDropdown() {
                     </div>
                 </div>
                 <div class="filter-group-divider"></div>
-                <!-- Date Range -->
                 <div class="filter-group">
                     <div class="filter-group-header">
                         <i class="fas fa-calendar-days"></i> Date Submitted
@@ -626,7 +627,6 @@ function applyFilterPanel() {
     State.activeFilters.dateFrom   = document.getElementById('dateFrom')?.value || '';
     State.activeFilters.dateTo     = document.getElementById('dateTo')?.value   || '';
 
-    // Update badge
     const activeCount = clientType.length + status.length
         + (State.activeFilters.dateFrom || State.activeFilters.dateTo ? 1 : 0);
     updateFilterBadge(activeCount);
@@ -651,7 +651,7 @@ function clearFilters() {
 }
 
 /* ================================================
-   TOAST
+   BADGE + TOAST
    ================================================ */
 
 function updateFilterBadge(count) {
@@ -694,17 +694,12 @@ function showToast(message, type = 'success') {
    ================================================ */
 
 function formatDate(val) {
-    if (!val) return '—';
+    if (!val) return '\u2014';
     const d = new Date(val);
     if (isNaN(d)) return val;
     return d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 }
 
-/**
- * formatStatus — single source of truth for status display formatting.
- * Always produces consistent Title Case regardless of how the DB stores the value
- * (e.g. "pending", "PENDING", "Pending" all render as "Pending").
- */
 function formatStatus(status) {
     if (!status) return 'Pending';
     return status
@@ -747,4 +742,4 @@ function csvCell(val) {
 
 function dateStamp() {
     return new Date().toISOString().slice(0, 10);
-}
+}s

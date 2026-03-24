@@ -271,6 +271,7 @@ body {
 
 .tdr-status-badge.pending      { background: #fff3cd; color: #856404; }
 .tdr-status-badge.under-review { background: #cfe2ff; color: #084298; }
+.tdr-status-badge.awaiting-survey {background: #ede9fe;color: #5b21b6;}
 .tdr-status-badge.fulfilled    { background: #d1fae5; color: #065f46; }
 .tdr-status-badge.declined     { background: #fde8e8; color: #9b1c1c; }
 

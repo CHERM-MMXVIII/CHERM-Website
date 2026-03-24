@@ -152,6 +152,29 @@
         </div>
 
         <div class="survey-body">
+            <!-- Request ID Gate — shown only for data-request flow via JS -->
+            <div class="section" id="requestIdSection" style="display:none;">
+                <div class="section-title">Your Request ID</div>
+                <p style="color:#6b8a8a; font-size:0.9rem; margin:0 0 16px; line-height:1.6;">
+                    Enter the Request ID from your approval email. Your files will be sent
+                    to your registered email address after this survey is submitted.
+                </p>
+                <div class="form-group">
+                    <label>Request ID <span class="req">*</span></label>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                    <input type="text" id="requestIdInput" name="requestId"
+                            placeholder="e.g. 20260312-CHERM-DR-A1B2"
+                            style="letter-spacing:0.04em; flex:1;"
+                            autocomplete="off">
+                    <span id="requestIdStatus" style="font-size:0.82rem; white-space:nowrap;"></span>
+                    </div>
+                    <p style="font-size:0.78rem; color:#6b8a8a; margin:6px 0 0;">
+                    <i class="fas fa-info-circle" style="color:#008080;"></i>
+                    This links your response to your data request so we can send your files automatically.
+                    </p>
+                </div>
+            </div>
+
             <form id="surveyForm" novalidate>
 
                 <!-- Respondent Information -->
@@ -251,12 +274,13 @@
 
             <div class="success-msg" id="successMsg">
                 <div class="check-circle">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white"
+                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
                     </svg>
                 </div>
                 <h2>Thank You!</h2>
-                <p>Your feedback has been submitted successfully. We appreciate your time.</p>
+                <p id="successText">Your feedback has been submitted successfully. We appreciate your time.</p>
             </div>
         </div>
     </div>

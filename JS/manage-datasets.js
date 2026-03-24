@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (fScale)    fScale.addEventListener('blur',    function () { this.value = toSentenceCase(this.value); });
   if (fCrs)      fCrs.addEventListener('blur',      function () { this.value = toSentenceCase(this.value); });
 
-  // Close filter on outside click
+  // Close filter on outside click — but not when clicking inside the panel
   document.addEventListener('click', (e) => {
     const wrapper = document.getElementById('filterDropdownWrapper');
     if (filterOpen && wrapper && !wrapper.contains(e.target)) {
@@ -130,10 +130,11 @@ async function fetchDatasets() {
    STATS
 ============================================================ */
 function updateStats() {
-  document.getElementById('statTotal').textContent   = allDatasets.length;
-  document.getElementById('statHazard').textContent  = allDatasets.filter(d => d.cat === 'hazard').length;
-  document.getElementById('statLanduse').textContent = allDatasets.filter(d => d.cat === 'landuse').length;
-  document.getElementById('statOther').textContent   = allDatasets.filter(d => !['hazard','landuse'].includes(d.cat)).length;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('statTotal',   allDatasets.length);
+  set('statHazard',  allDatasets.filter(d => d.cat === 'hazard').length);
+  set('statLanduse', allDatasets.filter(d => d.cat === 'landuse').length);
+  set('statOther',   allDatasets.filter(d => !['hazard','landuse'].includes(d.cat)).length);
 }
 
 /* ============================================================
@@ -166,6 +167,7 @@ function applyFilters() {
   currentPage = 1;
   renderTable();
   renderPagination();
+  updateFilterBadge();
 }
 
 function sortBy(col) {
@@ -183,6 +185,13 @@ function sortBy(col) {
     }
   });
   applyFilters();
+}
+
+function formatDate(val) {
+    if (!val) return '\u2014';
+    const d = new Date(val);
+    if (isNaN(d)) return val;
+    return d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 }
 
 function renderTable() {
@@ -225,6 +234,7 @@ function renderTable() {
         </span>
       </td>
       <td>${escHtml(d.coverage || '—')}</td>
+      <td>${formatDate(d.created_at)}</td>
       <td><span class="fmt-badge">${escHtml(d.format || '—')}</span></td>
       <td>${d.year || '—'}</td>
       <td style="white-space:nowrap; font-size:.8rem;">${escHtml(d.size || '—')}</td>
@@ -309,6 +319,7 @@ function onItemsPerPageChange() {
 
 /* ============================================================
    FILTER DROPDOWN
+   — Filters apply instantly on checkbox change, no Apply button.
 ============================================================ */
 function buildFilterDropdown() {
   const wrapper = document.getElementById('filterDropdownWrapper');
@@ -318,6 +329,7 @@ function buildFilterDropdown() {
     <button class="filter-dropdown-toggle" id="filterToggleBtn" onclick="toggleFilterDropdown()">
       <i class="fas fa-filter"></i>
       <span>Filter</span>
+      <span class="filter-active-badge" id="filterActiveBadge" style="display:none"></span>
       <i class="fas fa-chevron-down filter-chevron" id="filterChevron"></i>
     </button>
     <div class="filter-dropdown-panel" id="filterDropdownPanel">
@@ -349,7 +361,7 @@ function buildFilterDropdown() {
               { value: 'CSV',     label: 'CSV'     },
               { value: 'KML',     label: 'KML'     },
               { value: 'GPKG',    label: 'GPKG'    },
-              { value: 'PDF',    label: 'PDF'    },
+              { value: 'PDF',     label: 'PDF'     },
             ], 'fmt')}
           </div>
         </div>
@@ -359,9 +371,6 @@ function buildFilterDropdown() {
         <button class="filter-clear-btn" onclick="clearFilters()">
           <i class="fas fa-times"></i> Clear
         </button>
-        <button class="filter-apply-btn" onclick="applyFilterDropdown()">
-          Apply
-        </button>
       </div>
     </div>
   `;
@@ -370,7 +379,7 @@ function buildFilterDropdown() {
 function buildCheckboxGroup(options, group) {
   return options.map(opt => `
     <label class="filter-checkbox-label">
-      <input type="checkbox" class="filter-checkbox filter-cb-${group}" value="${opt.value}">
+      <input type="checkbox" class="filter-checkbox filter-cb-${group}" value="${opt.value}" onchange="applyFilterDropdown()">
       <span class="filter-checkbox-custom"></span>
       <span class="filter-checkbox-text">${opt.label}</span>
     </label>
@@ -391,42 +400,29 @@ function closeFilterDropdown() {
   if (chevron) chevron.style.transform = '';
 }
 
+/* Called automatically on every checkbox change — panel stays open. */
 function applyFilterDropdown() {
   activeCategories = [...document.querySelectorAll('.filter-cb-cat:checked')].map(cb => cb.value);
   activeFormats    = [...document.querySelectorAll('.filter-cb-fmt:checked')].map(cb => cb.value.toUpperCase());
+  applyFilters(); // updateFilterBadge() is called inside applyFilters()
+}
 
-  const total = activeCategories.length + activeFormats.length;
-  const btn   = document.getElementById('filterToggleBtn');
-
-  if (total > 0) {
-    btn.classList.add('has-filters');
-    const existingBadge = btn.querySelector('.filter-active-badge');
-    if (existingBadge) existingBadge.textContent = total;
-    else btn.querySelector('span').insertAdjacentHTML('afterend', `<span class="filter-active-badge">${total}</span>`);
-  } else {
-    btn.classList.remove('has-filters');
-    const badge = btn.querySelector('.filter-active-badge');
-    if (badge) badge.remove();
+function updateFilterBadge() {
+  const total  = activeCategories.length + activeFormats.length;
+  const badge  = document.getElementById('filterActiveBadge');
+  const btn    = document.getElementById('filterToggleBtn');
+  if (badge) {
+    badge.textContent   = total;
+    badge.style.display = total > 0 ? 'inline-flex' : 'none';
   }
-
-  closeFilterDropdown();
-  applyFilters();
+  if (btn) btn.classList.toggle('has-filters', total > 0);
 }
 
 function clearFilters() {
   document.querySelectorAll('.filter-cb-cat, .filter-cb-fmt').forEach(cb => cb.checked = false);
   activeCategories = [];
   activeFormats    = [];
-
-  const btn = document.getElementById('filterToggleBtn');
-  if (btn) {
-    btn.classList.remove('has-filters');
-    const badge = btn.querySelector('.filter-active-badge');
-    if (badge) badge.remove();
-  }
-
-  closeFilterDropdown();
-  applyFilters();
+  applyFilters(); // resets badge too
 }
 
 /* ============================================================
@@ -502,6 +498,8 @@ function openEditModal(id) {
 
   // Show existing file chip if one is stored
   dsClearFile();
+  // Restore format after dsClearFile (which blanks it) — format comes from the record
+  document.getElementById('fFormat').value = d.format || '';
   if (d.file_path) {
     const filename = d.file_path.split('/').pop();
     const ext      = filename.split('.').pop().toLowerCase();
@@ -546,11 +544,14 @@ async function submitDatasetForm(e) {
   if (fScaleEl)    fScaleEl.value    = toSentenceCase(fScaleEl.value);
   if (fCrsEl)      fCrsEl.value      = toSentenceCase(fCrsEl.value);
 
+  // Find the existing record for fallback values (edit mode)
+  const existingRecord = id ? allDatasets.find(x => String(x.id) === String(id)) : null;
+
   const payload = {
     title:     document.getElementById('fTitle').value.trim(),
     data_desc: document.getElementById('fDesc').value.trim()    || null,
     cat:       document.getElementById('fCat').value,
-    format:    document.getElementById('fFormat').value,
+    format:    document.getElementById('fFormat').value         || (existingRecord?.format ?? ''),
     coverage:  document.getElementById('fCoverage').value.trim(),
     scale:     document.getElementById('fScale').value.trim()   || null,
     crs:       document.getElementById('fCrs').value.trim()     || null,

@@ -88,6 +88,9 @@ app.use(express.urlencoded({ limit: '500mb', extended: true }));
 
 function requireAuth(req, res, next) {
   if (!req.session.user) {
+    if (req.path.startsWith('/api/')) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
     return res.redirect('/login');
   }
   next();
@@ -2162,16 +2165,19 @@ app.post('/api/data-requests/:id/files', requireAuth,
      - Status auto-set to "Fulfilled"
      - Notify log row inserted (visible in History tab)
 ──────────────────────────────────────────────────────────── */
+/* ── POST /api/data-requests/:id/notify  ──────────────────────
+   Admin sends fulfilment email for selected datasets.
+   Body: { datasetIds: [1, 2, 3] }   ← can now be empty []
+   Works even with no datasets — uploaded files + delivery link
+   are picked up from DB at survey submission time.
+──────────────────────────────────────────────────────────── */
 app.post('/api/data-requests/:id/notify', requireAuth, async (req, res) => {
   const { id } = req.params;
   const { datasetIds } = req.body;
-
-  if (!Array.isArray(datasetIds) || datasetIds.length === 0) {
-    return res.status(400).json({ error: 'No datasets selected' });
-  }
+  const hasDatasets = Array.isArray(datasetIds) && datasetIds.length > 0;
 
   try {
-    // 1. Get full request info including delivery_link and admin_notes
+    // 1. Get full request info
     const reqResult = await pool.query(
       `SELECT id, request_code, first_name, surname, email, status,
               delivery_link, admin_notes
@@ -2183,50 +2189,31 @@ app.post('/api/data-requests/:id/notify', requireAuth, async (req, res) => {
     }
     const dr = reqResult.rows[0];
 
-    // 2. Resolve catalogue dataset file_paths for selected dataset_ids
-    const dsResult = await pool.query(
-      `SELECT
-         drd.dataset_id,
-         drd.dataset_title  AS title,
-         drd.format,
-         COALESCE(d.file_path, d2.file_path) AS file_path
-       FROM data_request_datasets drd
-       LEFT JOIN datasets d
-         ON d.id = drd.dataset_id AND drd.dataset_id > 0
-       LEFT JOIN datasets d2
-         ON d2.title ILIKE drd.dataset_title
-        AND (drd.dataset_id IS NULL OR drd.dataset_id = 0)
-       WHERE drd.data_request_id = $1
-         AND drd.dataset_id = ANY($2::int[])`,
-      [id, datasetIds]
-    );
-
-    const withFiles    = dsResult.rows.filter(d => d.file_path);
-    const withoutFiles = dsResult.rows.filter(d => !d.file_path);
-
-    // 3. Get uploaded files for this request
-    const uploadedResult = await pool.query(
-      `SELECT filename, file_path, file_size
-       FROM data_request_files
-       WHERE data_request_id = $1
-       ORDER BY uploaded_at ASC`,
-      [id]
-    );
-    const uploadedFiles = uploadedResult.rows;
-
-    // Must have at least one of: catalogue files, uploaded files, or delivery link
-    const hasAnything = withFiles.length > 0 || uploadedFiles.length > 0 || dr.delivery_link;
-    if (!hasAnything) {
-      return res.status(400).json({
-        error: 'Nothing to send — no files or delivery link available for this request.'
-      });
+    // 2. Resolve dataset info only if datasets were selected
+    let dsResult = { rows: [] };
+    if (hasDatasets) {
+      dsResult = await pool.query(
+        `SELECT
+           drd.dataset_id,
+           drd.dataset_title AS title,
+           drd.format,
+           COALESCE(d.file_path, d2.file_path) AS file_path
+         FROM data_request_datasets drd
+         LEFT JOIN datasets d
+           ON d.id = drd.dataset_id AND drd.dataset_id > 0
+         LEFT JOIN datasets d2
+           ON d2.title ILIKE drd.dataset_title
+          AND (drd.dataset_id IS NULL OR drd.dataset_id = 0)
+         WHERE drd.data_request_id = $1
+           AND drd.dataset_id = ANY($2::int[])`,
+        [id, datasetIds]
+      );
     }
 
-    const baseUrl = process.env.SITE_URL || `http://localhost:${PORT}`;
+    const baseUrl   = process.env.SITE_URL || `http://localhost:${PORT}`;
+    const surveyUrl = `${baseUrl}/html/css-survey.html?service=data-request&code=${dr.request_code}`;
 
-    // ── Build email sections ─────────────────────────────────────
-
-    // Admin remarks box (if notes exist)
+    // 3. Build remarks section for email (if admin notes exist)
     const remarksSection = dr.admin_notes ? `
       <div style="background:#fffbeb; border-left:4px solid #f59e0b;
                   border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 24px;">
@@ -2239,147 +2226,64 @@ app.post('/api/data-requests/:id/notify', requireAuth, async (req, res) => {
         </p>
       </div>` : '';
 
-    // Catalogue datasets table (selected checkboxes)
-    const catalogueSection = withFiles.length > 0 ? `
-      <p style="margin:0 0 10px; font-size:13px; font-weight:700;
-                color:#4a5568; text-transform:uppercase; letter-spacing:0.04em;">
-        📦 Dataset Files
-      </p>
-      <div style="background:#f7fafc; border:1px solid #e2e8f0;
-                  border-radius:8px; overflow:hidden; margin:0 0 24px;">
-        <table style="width:100%; border-collapse:collapse;">
-          <thead>
-            <tr style="background:#edf2f7;">
-              <th style="padding:10px 12px; text-align:left; font-size:11px;
-                         color:#718096; text-transform:uppercase; letter-spacing:0.05em;">
-                Dataset
-              </th>
-              <th style="padding:10px 12px; text-align:left; font-size:11px;
-                         color:#718096; text-transform:uppercase; letter-spacing:0.05em;">
-                Download
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            ${withFiles.map(d => `
-            <tr>
-              <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
-                <strong style="color:#1a202c; font-size:13px;">${d.title}</strong>
-                ${d.format ? `<span style="margin-left:8px; background:#e2e8f0; color:#4a5568;
-                  font-size:10px; padding:2px 6px; border-radius:4px; font-weight:700;">
-                  ${d.format.toUpperCase()}</span>` : ''}
-              </td>
-              <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
-                <a href="${baseUrl}${d.file_path}"
-                   style="display:inline-block; background:#008080; color:white;
-                          padding:6px 16px; border-radius:6px; text-decoration:none;
-                          font-size:12px; font-weight:600;">
-                  ⬇ Download
-                </a>
-              </td>
-            </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>` : '';
-
-    // Uploaded files table (files uploaded directly to this request)
-    const uploadedSection = uploadedFiles.length > 0 ? `
-      <p style="margin:0 0 10px; font-size:13px; font-weight:700;
-                color:#4a5568; text-transform:uppercase; letter-spacing:0.04em;">
-        📎 Additional Files
-      </p>
-      <div style="background:#f7fafc; border:1px solid #e2e8f0;
-                  border-radius:8px; overflow:hidden; margin:0 0 24px;">
-        <table style="width:100%; border-collapse:collapse;">
-          <thead>
-            <tr style="background:#edf2f7;">
-              <th style="padding:10px 12px; text-align:left; font-size:11px;
-                         color:#718096; text-transform:uppercase; letter-spacing:0.05em;">
-                File
-              </th>
-              <th style="padding:10px 12px; text-align:left; font-size:11px;
-                         color:#718096; text-transform:uppercase; letter-spacing:0.05em;">
-                Download
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            ${uploadedFiles.map(f => `
-            <tr>
-              <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
-                <strong style="color:#1a202c; font-size:13px;">${f.filename}</strong>
-                ${f.file_size ? `<span style="display:block; font-size:11px; color:#a0aec0; margin-top:2px;">
-                  ${f.file_size}</span>` : ''}
-              </td>
-              <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
-                <a href="${baseUrl}${f.file_path}"
-                   style="display:inline-block; background:#008080; color:white;
-                          padding:6px 16px; border-radius:6px; text-decoration:none;
-                          font-size:12px; font-weight:600;">
-                  ⬇ Download
-                </a>
-              </td>
-            </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>` : '';
-
-    // External delivery link button (if set)
-    const deliverySection = dr.delivery_link ? `
-      <p style="margin:0 0 10px; font-size:13px; font-weight:700;
-                color:#4a5568; text-transform:uppercase; letter-spacing:0.04em;">
-        🔗 External Download Link
-      </p>
-      <div style="background:#f7fafc; border:1px solid #e2e8f0;
-                  border-radius:8px; padding:16px 18px; margin:0 0 24px;
-                  display:flex; align-items:center; justify-content:space-between;">
-        <p style="margin:0; font-size:12px; color:#718096; word-break:break-all;">
-          ${dr.delivery_link}
-        </p>
-        <a href="${dr.delivery_link}" target="_blank"
-           style="display:inline-block; background:#5a67d8; color:white;
-                  padding:8px 20px; border-radius:6px; text-decoration:none;
-                  font-size:13px; font-weight:600; white-space:nowrap; margin-left:12px;">
-          Open Link
-        </a>
-      </div>` : '';
-
+    // 4. Survey invitation email
     const html = `
       <div style="font-family:Arial,sans-serif; max-width:600px; margin:0 auto;">
 
-        <!-- Header -->
         <div style="background:#008080; padding:28px 32px; border-radius:10px 10px 0 0;">
           <h2 style="color:white; margin:0; font-size:22px;">
-            Your Requested Data Files Are Ready
+            Your Data Request Has Been Approved
           </h2>
           <p style="color:rgba(255,255,255,0.85); margin:8px 0 0; font-size:14px;">
             CHERM — Center for Hazard and Environmental Resource Mapping
           </p>
         </div>
 
-        <!-- Body -->
         <div style="background:#ffffff; padding:28px 32px;
-                    border:1px solid #e2e8f0; border-top:none; border-radius:0 0 10px 10px;">
+                    border:1px solid #e2e8f0; border-top:none;
+                    border-radius:0 0 10px 10px;">
 
           <p style="color:#2d3748; font-size:15px; margin:0 0 6px;">
             Dear <strong>${dr.first_name} ${dr.surname}</strong>,
           </p>
           <p style="color:#4a5568; font-size:14px; line-height:1.6; margin:0 0 24px;">
-            Your GIS data request <strong>${dr.request_code}</strong> has been fulfilled.
-            Please find your files below.
+            Your GIS data request <strong>${dr.request_code}</strong> has been
+            reviewed and your files are ready for delivery.
           </p>
 
           ${remarksSection}
-          ${catalogueSection}
-          ${uploadedSection}
-          ${deliverySection}
 
-          <p style="color:#718096; font-size:12px; line-height:1.6; margin:0 0 20px;">
-            <strong>Note:</strong> Direct download links are hosted on the CHERM server.
-            Please save your files promptly after downloading.
+          <div style="background:#f0fdf8; border:1px solid #6ee7b7;
+                      border-radius:10px; padding:20px 24px; margin:0 0 24px;">
+            <p style="margin:0 0 8px; font-size:13px; font-weight:700; color:#065f46;
+                      text-transform:uppercase; letter-spacing:0.05em;">
+              📋 One Quick Step to Receive Your Files
+            </p>
+            <p style="margin:0 0 16px; font-size:14px; color:#047857; line-height:1.6;">
+              Please complete our short Client Satisfaction Survey (2–3 minutes).
+              Once submitted, your download links will be sent to this email automatically.
+            </p>
+            <p style="margin:0 0 6px; font-size:13px; color:#047857;">
+              Your Request ID (already filled in for you):
+            </p>
+            <p style="margin:0 0 20px; font-size:18px; font-weight:700;
+                      color:#065f46; letter-spacing:0.04em; font-family:monospace;">
+              ${dr.request_code}
+            </p>
+            <a href="${surveyUrl}"
+               style="display:inline-block; background:#008080; color:white;
+                      padding:13px 28px; border-radius:8px; text-decoration:none;
+                      font-size:14px; font-weight:700; letter-spacing:0.02em;">
+              Complete Survey &amp; Receive Files →
+            </a>
+          </div>
+
+          <p style="color:#718096; font-size:12px; line-height:1.6; margin:0 0 8px;">
+            If the button above does not work, copy and paste this link into your browser:<br>
+            <span style="color:#008080; word-break:break-all;">${surveyUrl}</span>
           </p>
 
-          <hr style="border:none; border-top:1px solid #e2e8f0; margin:0 0 20px;">
+          <hr style="border:none; border-top:1px solid #e2e8f0; margin:20px 0;">
           <p style="color:#a0aec0; font-size:12px; margin:0;">
             Request Code: <strong>${dr.request_code}</strong><br>
             CHERM — Southern Luzon State University
@@ -2390,26 +2294,26 @@ app.post('/api/data-requests/:id/notify', requireAuth, async (req, res) => {
     await transporter.sendMail({
       from:    `"CHERM Data Request" <${process.env.EMAIL_USER}>`,
       to:      dr.email,
-      subject: `Your CHERM Data Files Are Ready — ${dr.request_code}`,
+      subject: `Action Required: Complete Survey to Receive Your Files — ${dr.request_code}`,
       html,
     });
 
-    // ── Post-send: status update + notify log (in transaction) ───
+    // 5. Update status + store selected dataset IDs (empty array if none) + notify log
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
 
-      // Auto-set status to "Fulfilled"
       await client.query(
         `UPDATE data_requests
-         SET status = 'Fulfilled', updated_at = CURRENT_TIMESTAMP
-         WHERE id = $1`,
-        [id]
+         SET status             = 'Awaiting Survey',
+             survey_dataset_ids = $1,
+             updated_at         = CURRENT_TIMESTAMP
+         WHERE id = $2`,
+        [hasDatasets ? datasetIds : [], id]
       );
 
-      // Insert notify log row
-      const sentTitles = withFiles.map(d => d.title);
-      const sentIds    = withFiles.map(d => d.dataset_id);
+      const sentTitles = dsResult.rows.map(d => d.title);
+      const sentIds    = dsResult.rows.map(d => d.dataset_id);
       await client.query(
         `INSERT INTO data_request_notify_log
            (data_request_id, sent_to, dataset_ids, dataset_titles)
@@ -2421,17 +2325,14 @@ app.post('/api/data-requests/:id/notify', requireAuth, async (req, res) => {
     } catch (dbErr) {
       await client.query('ROLLBACK');
       console.error('Notify post-send DB error:', dbErr);
-      // Email already sent — don't fail the whole response, just warn
     } finally {
       client.release();
     }
 
     res.json({
-      success:        true,
-      sent:           withFiles.length,
-      missing:        withoutFiles.length,
-      sentDatasetIds: withFiles.map(d => d.dataset_id),
-      newStatus:      'Fulfilled',
+      success:    true,
+      surveySent: true,
+      newStatus:  'Awaiting Survey',
     });
 
   } catch (err) {
@@ -2720,6 +2621,262 @@ app.delete('/api/datasets/:id', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('Delete dataset error:', err);
     res.status(500).json({ error: 'Failed to delete dataset' });
+  }
+});
+
+app.post('/api/css-survey/submit', async (req, res) => {
+  const { requestId } = req.body;
+
+  if (!requestId || !requestId.trim()) {
+    return res.status(400).json({ error: 'Request ID is required' });
+  }
+
+  try {
+    // 1. Look up the request
+    const reqResult = await pool.query(
+      `SELECT id, request_code, first_name, surname, email,
+              status, delivery_link, admin_notes, survey_dataset_ids
+       FROM data_requests
+       WHERE TRIM(request_code) = $1
+       LIMIT 1`,
+      [requestId.trim()]
+    );
+
+    if (reqResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Request ID not found. Please check and try again.' });
+    }
+
+    const dr = reqResult.rows[0];
+
+    // 2. Guard: only process if status is 'Awaiting Survey'
+    if (dr.status === 'Fulfilled') {
+      return res.status(400).json({
+        error: 'Survey already submitted. Files have already been sent to your email.'
+      });
+    }
+
+    if (dr.status !== 'Awaiting Survey') {
+      return res.status(400).json({
+        error: 'This request is not ready for survey submission yet.'
+      });
+    }
+
+    const baseUrl = process.env.SITE_URL || `http://localhost:${PORT}`;
+
+    // 3. Resolve files from stored dataset IDs
+    const storedIds = dr.survey_dataset_ids || [];
+
+    let catalogueSection = '';
+    let uploadedSection  = '';
+    let deliverySection  = '';
+
+    if (storedIds.length > 0) {
+      const dsResult = await pool.query(
+        `SELECT
+           drd.dataset_id,
+           drd.dataset_title AS title,
+           drd.format,
+           COALESCE(d.file_path, d2.file_path) AS file_path
+         FROM data_request_datasets drd
+         LEFT JOIN datasets d
+           ON d.id = drd.dataset_id AND drd.dataset_id > 0
+         LEFT JOIN datasets d2
+           ON d2.title ILIKE drd.dataset_title
+          AND (drd.dataset_id IS NULL OR drd.dataset_id = 0)
+         WHERE drd.data_request_id = $1
+           AND drd.dataset_id = ANY($2::int[])`,
+        [dr.id, storedIds]
+      );
+
+      const withFiles = dsResult.rows.filter(d => d.file_path);
+
+      if (withFiles.length > 0) {
+        catalogueSection = `
+          <p style="margin:0 0 10px; font-size:13px; font-weight:700;
+                    color:#4a5568; text-transform:uppercase; letter-spacing:0.04em;">
+            Dataset Files
+          </p>
+          <div style="background:#f7fafc; border:1px solid #e2e8f0;
+                      border-radius:8px; overflow:hidden; margin:0 0 24px;">
+            <table style="width:100%; border-collapse:collapse;">
+              <thead>
+                <tr style="background:#edf2f7;">
+                  <th style="padding:10px 12px; text-align:left; font-size:11px;
+                             color:#718096; text-transform:uppercase; letter-spacing:0.05em;">
+                    Dataset
+                  </th>
+                  <th style="padding:10px 12px; text-align:left; font-size:11px;
+                             color:#718096; text-transform:uppercase; letter-spacing:0.05em;">
+                    Download
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                ${withFiles.map(d => `
+                <tr>
+                  <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
+                    <strong style="color:#1a202c; font-size:13px;">${d.title}</strong>
+                    ${d.format ? `<span style="margin-left:8px; background:#e2e8f0;
+                      color:#4a5568; font-size:10px; padding:2px 6px;
+                      border-radius:4px; font-weight:700;">
+                      ${d.format.toUpperCase()}</span>` : ''}
+                  </td>
+                  <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
+                    <a href="${baseUrl}${d.file_path}"
+                       style="display:inline-block; background:#008080; color:white;
+                              padding:6px 16px; border-radius:6px; text-decoration:none;
+                              font-size:12px; font-weight:600;">
+                      Download
+                    </a>
+                  </td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>`;
+      }
+    }
+
+    // 4. Uploaded files for this request
+    const uploadedResult = await pool.query(
+      `SELECT filename, file_path, file_size
+       FROM data_request_files
+       WHERE data_request_id = $1
+       ORDER BY uploaded_at ASC`,
+      [dr.id]
+    );
+
+    if (uploadedResult.rows.length > 0) {
+      uploadedSection = `
+        <p style="margin:0 0 10px; font-size:13px; font-weight:700;
+                  color:#4a5568; text-transform:uppercase; letter-spacing:0.04em;">
+          📎 Additional Files
+        </p>
+        <div style="background:#f7fafc; border:1px solid #e2e8f0;
+                    border-radius:8px; overflow:hidden; margin:0 0 24px;">
+          <table style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="background:#edf2f7;">
+                <th style="padding:10px 12px; text-align:left; font-size:11px;
+                           color:#718096; text-transform:uppercase;">File</th>
+                <th style="padding:10px 12px; text-align:left; font-size:11px;
+                           color:#718096; text-transform:uppercase;">Download</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${uploadedResult.rows.map(f => `
+              <tr>
+                <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
+                  <strong style="color:#1a202c; font-size:13px;">${f.filename}</strong>
+                  ${f.file_size ? `<span style="display:block; font-size:11px;
+                    color:#a0aec0; margin-top:2px;">${f.file_size}</span>` : ''}
+                </td>
+                <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
+                  <a href="${baseUrl}${f.file_path}"
+                     style="display:inline-block; background:#008080; color:white;
+                            padding:6px 16px; border-radius:6px; text-decoration:none;
+                            font-size:12px; font-weight:600;">
+                    ⬇ Download
+                  </a>
+                </td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    // 5. External delivery link
+    if (dr.delivery_link) {
+      deliverySection = `
+        <p style="margin:0 0 10px; font-size:13px; font-weight:700;
+                  color:#4a5568; text-transform:uppercase; letter-spacing:0.04em;">
+          🔗 External Download Link
+        </p>
+        <div style="background:#f7fafc; border:1px solid #e2e8f0;
+                    border-radius:8px; padding:16px 18px; margin:0 0 24px;">
+          <p style="margin:0 0 10px; font-size:12px; color:#718096;
+                    word-break:break-all;">${dr.delivery_link}</p>
+          <a href="${dr.delivery_link}" target="_blank"
+             style="display:inline-block; background:#5a67d8; color:white;
+                    padding:8px 20px; border-radius:6px; text-decoration:none;
+                    font-size:13px; font-weight:600;">
+            Open Link
+          </a>
+        </div>`;
+    }
+
+    const remarksSection = dr.admin_notes ? `
+      <div style="background:#fffbeb; border-left:4px solid #f59e0b;
+                  border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 24px;">
+        <p style="margin:0 0 6px; font-size:12px; font-weight:700; color:#92400e;
+                  text-transform:uppercase; letter-spacing:0.05em;">
+          📝 Remarks from CHERM
+        </p>
+        <p style="margin:0; font-size:14px; color:#78350f; line-height:1.6;">
+          ${dr.admin_notes}
+        </p>
+      </div>` : '';
+
+    const html = `
+      <div style="font-family:Arial,sans-serif; max-width:600px; margin:0 auto;">
+        <div style="background:#008080; padding:28px 32px; border-radius:10px 10px 0 0;">
+          <h2 style="color:white; margin:0; font-size:22px;">
+            Your Requested Data Files Are Ready
+          </h2>
+          <p style="color:rgba(255,255,255,0.85); margin:8px 0 0; font-size:14px;">
+            CHERM — Center for Hazard and Environmental Resource Mapping
+          </p>
+        </div>
+        <div style="background:#ffffff; padding:28px 32px;
+                    border:1px solid #e2e8f0; border-top:none;
+                    border-radius:0 0 10px 10px;">
+          <p style="color:#2d3748; font-size:15px; margin:0 0 6px;">
+            Dear <strong>${dr.first_name} ${dr.surname}</strong>,
+          </p>
+          <p style="color:#4a5568; font-size:14px; line-height:1.6; margin:0 0 24px;">
+            Thank you for completing our satisfaction survey. Your GIS data request
+            <strong>${dr.request_code}</strong> has been fulfilled.
+            Please find your files below.
+          </p>
+          ${remarksSection}
+          ${catalogueSection}
+          ${uploadedSection}
+          ${deliverySection}
+          <p style="color:#718096; font-size:12px; line-height:1.6; margin:0 0 20px;">
+            <strong>Note:</strong> Download links are hosted on the CHERM server.
+            Please save your files promptly after downloading.
+          </p>
+          <hr style="border:none; border-top:1px solid #e2e8f0; margin:0 0 20px;">
+          <p style="color:#a0aec0; font-size:12px; margin:0;">
+            Request Code: <strong>${dr.request_code}</strong><br>
+            CHERM — Southern Luzon State University
+          </p>
+        </div>
+      </div>`;
+
+    await transporter.sendMail({
+      from:    `"CHERM Data Request" <${process.env.EMAIL_USER}>`,
+      to:      dr.email,
+      subject: `Your CHERM Data Files Are Ready — ${dr.request_code}`,
+      html,
+    });
+
+    // 6. Mark as Fulfilled
+    await pool.query(
+      `UPDATE data_requests
+       SET status     = 'Fulfilled',
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [dr.id]
+    );
+
+    // TODO: Save survey answers here when css_survey_responses table is ready
+    // await pool.query(`INSERT INTO css_survey_responses (...) VALUES (...)`, [...]);
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error('CSS survey submit error:', err);
+    res.status(500).json({ error: 'Failed to process survey submission' });
   }
 });
 

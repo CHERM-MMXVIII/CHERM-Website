@@ -1405,6 +1405,7 @@ th.sort-desc .sort-icon::after {
     .btn-export {
         flex: 0 0 calc(50% - 4px);
         width: 50%;
+        justify-content: center;
     }
 
     .filter-dropdown-panel {
@@ -1424,6 +1425,11 @@ th.sort-desc .sort-icon::after {
     }
 
     .pagination-controls {
+        justify-content: center;
+    }
+
+    .filter-dropdown-toggle{
+        width: 100%;
         justify-content: center;
     }
 }

@@ -1,11 +1,8 @@
 'use strict';
 
-// ─── URL param loader (same pattern as user-manuscript-req.js) ────────────────
-
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
-
     if (code) {
         loadDataRequest(code);
     } else {
@@ -13,27 +10,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ─── Fetch data request ───────────────────────────────────────────────────────
-
 async function loadDataRequest(requestCode) {
     try {
         const response = await fetch(`/api/user/data-requests?code=${encodeURIComponent(requestCode)}`);
-
         if (!response.ok) throw new Error('Request not found');
-
         const data = await response.json();
-
         if (!data.request) throw new Error('Not found');
-
         displayRequest(data.request);
-
     } catch (err) {
         console.error('Data request lookup error:', err);
         showEmptyState("We couldn't find your data request. Please check your request code and try again.");
     }
 }
-
-// ─── Main display function ────────────────────────────────────────────────────
 
 function displayRequest(r) {
     const content   = document.getElementById('tdrContent');
@@ -41,8 +29,6 @@ function displayRequest(r) {
     const name      = [r.first_name, r.surname].filter(Boolean).join(' ') || '—';
 
     content.innerHTML = `
-
-        <!-- Title Card -->
         <div class="tdr-title-card">
             <div class="tdr-title-left">
                 <div class="tdr-request-code">${escHtml(r.request_code)}</div>
@@ -67,68 +53,50 @@ function displayRequest(r) {
                 ${formatStatus(r.status)}
             </span>
         </div>
-
-        <!-- Timeline -->
         ${buildTimeline(r)}
-
-        <!-- Admin Remarks -->
         ${buildRemarksCard(r)}
-
-        <!-- Two-column: datasets + details -->
         <div class="tdr-two-col">
             ${buildDatasetsCard(r.datasets || [])}
             ${buildDetailsCard(r)}
         </div>
-
-        <!-- Delivery section (fulfilled only) -->
         ${buildDeliveryCard(r)}
-
     `;
 }
-
-// ─── Timeline ────────────────────────────────────────────────────────────────
-
-const STEPS = [
-    { label: 'Received',     sublabel: 'Request submitted', icon: 'fas fa-inbox'  },
-    { label: 'Under Review', sublabel: 'Being evaluated',   icon: 'fas fa-search' },
-    { label: 'Fulfilled',    sublabel: 'Files sent to you', icon: 'fas fa-check'  },
-];
 
 function buildTimeline(r) {
     const s          = normalizeStatus(r.status);
     const isDeclined = s === 'declined';
 
+    const STEPS = [
+        { label: 'Received',     sublabel: 'Request submitted',  icon: 'fas fa-inbox'  },
+        { label: 'Under Review', sublabel: 'Being evaluated',    icon: 'fas fa-search' },
+        { label: 'Fulfilled',    sublabel: s === 'awaiting-survey' ? 'Survey pending' : 'Files sent to you', icon: 'fas fa-check' },
+    ];
+
     let activeIdx = 0;
-    if (s === 'under-review')  activeIdx = 1;
-    if (s === 'fulfilled')     activeIdx = 2;
-    if (s === 'declined')      activeIdx = 1;
+    if (s === 'under-review')    activeIdx = 1;
+    if (s === 'awaiting-survey') activeIdx = 2;
+    if (s === 'fulfilled')       activeIdx = 2;
+    if (s === 'declined')        activeIdx = 1;
 
     const fillPct = activeIdx === 0 ? 0 : activeIdx === 1 ? 50 : 100;
 
     const stepsHtml = STEPS.map((step, i) => {
         let wrapCls, icon;
-
         if (isDeclined && i === 1) {
-            wrapCls = 'rejected-icon';
-            icon    = 'fas fa-times';
+            wrapCls = 'rejected-icon'; icon = 'fas fa-times';
         } else if (i < activeIdx) {
-            wrapCls = 'completed';
-            icon    = 'fas fa-check';
+            wrapCls = 'completed'; icon = 'fas fa-check';
         } else if (i === activeIdx) {
             wrapCls = isDeclined ? 'rejected-icon' : 'active';
             icon    = isDeclined ? 'fas fa-times' : step.icon;
         } else {
-            wrapCls = 'pending';
-            icon    = step.icon;
+            wrapCls = 'pending'; icon = step.icon;
         }
-
         const sublabel = (isDeclined && i === 1) ? 'Request declined' : step.sublabel;
-
         return `
         <div class="timeline-step">
-            <div class="step-icon ${wrapCls}">
-                <i class="${icon}"></i>
-            </div>
+            <div class="step-icon ${wrapCls}"><i class="${icon}"></i></div>
             <div class="step-label">${step.label}</div>
             <div class="step-sublabel">${sublabel}</div>
         </div>`;
@@ -146,8 +114,6 @@ function buildTimeline(r) {
     </div>`;
 }
 
-// ─── Remarks card ─────────────────────────────────────────────────────────────
-
 function buildRemarksCard(r) {
     if (!r.admin_notes || !r.admin_notes.trim()) return '';
     return `
@@ -160,15 +126,12 @@ function buildRemarksCard(r) {
     </div>`;
 }
 
-// ─── Datasets card ────────────────────────────────────────────────────────────
-
 function buildDatasetsCard(datasets) {
     const iconMap = {
         'SHP': 'fa-layer-group', 'GEOJSON': 'fa-code', 'KML': 'fa-map-marked-alt',
         'TIFF': 'fa-image', 'CSV': 'fa-table', 'PDF': 'fa-file-pdf',
         'ZIP': 'fa-file-archive', 'GPKG': 'fa-database',
     };
-
     const listHtml = datasets.length
         ? datasets.map(d => {
             const title = escHtml(d.dataset_title || d.title || '—');
@@ -194,8 +157,6 @@ function buildDatasetsCard(datasets) {
     </div>`;
 }
 
-// ─── Details card ─────────────────────────────────────────────────────────────
-
 function buildDetailsCard(r) {
     const fields = [
         { icon: 'fa-envelope',    label: 'Email',       value: r.email       },
@@ -220,13 +181,85 @@ function buildDetailsCard(r) {
     </div>`;
 }
 
-// ─── Delivery card ────────────────────────────────────────────────────────────
-
 function buildDeliveryCard(r) {
     const s        = normalizeStatus(r.status);
     const files    = r.delivered_files || [];
     const hasFiles = files.length > 0;
     const hasLink  = !!(r.delivery_link && r.delivery_link.trim());
+
+    // ── Awaiting Survey card ──────────────────────────────────
+    if (s === 'awaiting-survey') {
+        const surveyUrl =
+            `/html/css-survey.html?service=data-request&code=${encodeURIComponent(r.request_code)}`;
+
+        // Show a locked preview of files/link already uploaded so user knows files are ready
+        let previewHtml = '';
+        if (hasFiles || hasLink) {
+            previewHtml += `
+            <div style="margin-top:24px; padding-top:20px; border-top:1px solid rgba(0,128,128,0.2);">
+                <p style="font-size:0.78rem; color:#008080; margin:0 0 10px; font-weight:600;
+                           text-transform:uppercase; letter-spacing:0.04em;">
+                    <i class="fas fa-lock"></i> Files ready — complete survey to unlock download links
+                </p>`;
+            if (hasFiles) {
+                previewHtml += `<div style="display:flex; flex-direction:column; gap:8px;">`;
+                files.forEach(f => {
+                    previewHtml += `
+                    <div style="display:flex; align-items:center; gap:10px;
+                                background:rgba(0,128,128,0.07); border-radius:8px; padding:10px 14px;">
+                        <i class="fas fa-file" style="color:#008080; font-size:14px; flex-shrink:0;"></i>
+                        <span style="font-size:0.85rem; color:#054e4e; font-weight:500; flex:1; min-width:0;
+                                     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            ${escHtml(f.filename || 'File')}
+                        </span>
+                        ${f.file_size ? `<span style="font-size:0.75rem; color:#6b9e9e; flex-shrink:0;">${escHtml(f.file_size)}</span>` : ''}
+                    </div>`;
+                });
+                previewHtml += `</div>`;
+            }
+            if (hasLink) {
+                previewHtml += `
+                <div style="margin-top:${hasFiles ? '8px' : '0'}; display:flex; align-items:center; gap:10px;
+                            background:rgba(0,128,128,0.07); border-radius:8px; padding:10px 14px;">
+                    <i class="fas fa-link" style="color:#008080; font-size:14px; flex-shrink:0;"></i>
+                    <span style="font-size:0.82rem; color:#054e4e; word-break:break-all;">
+                        External link provided
+                    </span>
+                </div>`;
+            }
+            previewHtml += `</div>`;
+        }
+
+        return `
+        <div class="download-card-wrap" style="background:linear-gradient(135deg,#e6f4f4 0%,#d1eded 100%);
+            border:2px solid #80bfbf;">
+            <div class="download-card-icon" style="color:#008080;">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <div class="download-card-info">
+                <h5 style="color:#054e4e; margin:0 0 4px;">One Step Away from Your Files</h5>
+                <p style="color:#008080; font-size:0.875rem; margin:0 0 20px; line-height:1.5;">
+                    Your request has been approved and your files are ready.
+                    Please complete our short Client Satisfaction Survey to receive your download links.
+                </p>
+                <a href="${surveyUrl}"
+                   style="display:inline-flex; align-items:center; gap:8px;
+                          background:#008080; color:white; padding:12px 24px;
+                          border-radius:10px; text-decoration:none;
+                          font-size:0.9rem; font-weight:700;
+                          box-shadow:0 4px 12px rgba(0,128,128,0.3);">
+                    <i class="fas fa-clipboard-check"></i>
+                    Complete Survey &amp; Receive Files
+                </a>
+                <p style="font-size:0.78rem; color:#008080; margin:12px 0 0;">
+                    <i class="fas fa-info-circle"></i>
+                    Your Request ID <strong>${escHtml(r.request_code)}</strong>
+                    will be pre-filled automatically.
+                </p>
+                ${previewHtml}
+            </div>
+        </div>`;
+    }
 
     if (s !== 'fulfilled' || (!hasFiles && !hasLink)) return '';
 
@@ -277,9 +310,7 @@ function buildDeliveryCard(r) {
 
     return `
     <div class="download-card-wrap">
-        <div class="download-card-icon">
-            <i class="fas fa-check-circle"></i>
-        </div>
+        <div class="download-card-icon"><i class="fas fa-check-circle"></i></div>
         <div class="download-card-info">
             <h5>Your Files Are Ready</h5>
             <p>Your requested datasets have been prepared and are available below.</p>
@@ -287,8 +318,6 @@ function buildDeliveryCard(r) {
         </div>
     </div>`;
 }
-
-// ─── Empty state ──────────────────────────────────────────────────────────────
 
 function showEmptyState(message) {
     document.getElementById('tdrContent').innerHTML = `
@@ -302,28 +331,28 @@ function showEmptyState(message) {
     </div>`;
 }
 
-// ─── Utilities ────────────────────────────────────────────────────────────────
-
 function normalizeStatus(s) {
     return (s || '').trim().toLowerCase().replace(/[\s-]+/g, '-');
 }
 
 function formatStatus(s) {
     const map = {
-        'pending':      'Pending',
-        'under-review': 'Under Review',
-        'fulfilled':    'Fulfilled',
-        'declined':     'Declined',
+        'pending':         'Pending',
+        'under-review':    'Under Review',
+        'awaiting-survey': 'Awaiting Survey',
+        'fulfilled':       'Fulfilled',
+        'declined':        'Declined',
     };
     return map[normalizeStatus(s)] || (s || 'Pending');
 }
 
 function getStatusIcon(s) {
     const map = {
-        'pending':      'fas fa-clock',
-        'under-review': 'fas fa-eye',
-        'fulfilled':    'fas fa-check-circle',
-        'declined':     'fas fa-times-circle',
+        'pending':         'fas fa-clock',
+        'under-review':    'fas fa-eye',
+        'awaiting-survey': 'fas fa-clipboard-list',
+        'fulfilled':       'fas fa-check-circle',
+        'declined':        'fas fa-times-circle',
     };
     return map[normalizeStatus(s)] || 'fas fa-info-circle';
 }

@@ -86,24 +86,7 @@
                     <h2 class="banner-title">Dataset Catalogue</h2>
                     <p>Manage all GIS datasets available for public request</p>
                 </div>
-                <div class="ds-header-stats">
-                    <div class="dr-stat">
-                        <span class="dr-stat-num" id="statTotal">0</span>
-                        <span class="dr-stat-label">Total</span>
-                    </div>
-                    <div class="dr-stat">
-                        <span class="dr-stat-num" id="statHazard">0</span>
-                        <span class="dr-stat-label">Hazard</span>
-                    </div>
-                    <div class="dr-stat">
-                        <span class="dr-stat-num" id="statLanduse">0</span>
-                        <span class="dr-stat-label">Land Use</span>
-                    </div>
-                    <div class="dr-stat">
-                        <span class="dr-stat-num" id="statOther">0</span>
-                        <span class="dr-stat-label">Other</span>
-                    </div>
-                </div>
+                
             </div>
 
             <!-- Toolbar -->
@@ -120,8 +103,8 @@
                 </div>
                 <div class="toolbar-right">
                     <div class="filter-container" id="filterDropdownWrapper"></div>
-                    <button class="btn-add-dataset" onclick="window.location.href='/admin/data-requests'">
-                        <span>View Request List</span>
+                    <button class="btn-request-list" onclick="window.location.href='/admin/data-requests'">
+                        <span>Request List</span>
                     </button>
                     <button class="btn-add-dataset" onclick="openAddModal()">
                         <i class="fas fa-plus"></i>
@@ -143,6 +126,7 @@
                             <th data-col="title" onclick="sortBy('title')">TITLE <span class="sort-icon"></span></th>
                             <th data-col="cat" onclick="sortBy('cat')">CATEGORY <span class="sort-icon"></span></th>
                             <th data-col="coverage" onclick="sortBy('coverage')">COVERAGE <span class="sort-icon"></span></th>
+                            <th data-col="created_at" onclick="sortBy('created_at')">DATE ADDED <span class="sort-icon"></span></th>
                             <th data-col="format" onclick="sortBy('format')">FORMAT <span class="sort-icon"></span></th>
                             <th data-col="year" onclick="sortBy('year')">YEAR <span class="sort-icon"></span></th>
                             <th data-col="size" onclick="sortBy('size')">SIZE <span class="sort-icon"></span></th>
