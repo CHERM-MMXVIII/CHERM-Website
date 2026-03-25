@@ -18,21 +18,25 @@ function loadEvents(page) {
   list.style.display = 'none';
   empty.style.display = 'none';
 
+  // Show placeholder immediately as default
+  empty.style.display = 'block';
+
   fetch(`/api/events?page=${page}&limit=${EVENT_PER_PAGE}`)
     .then(res => {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);  
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return res.json();
     })
     .then(data => {
       if (!data.rows || data.rows.length === 0) {
-        empty.style.display = 'block';
+        // empty already showing, just clear pagination
         pagination.innerHTML = '';
         return;
       }
 
+      // Data loaded — hide placeholder, show list
+      empty.style.display = 'none';
       list.innerHTML = data.rows.map(renderEvent).join('');
       list.style.display = 'grid';
-
       renderPagination(data.page, data.totalPages);
 
       setTimeout(() => {
@@ -41,7 +45,7 @@ function loadEvents(page) {
     })
     .catch(err => {
       console.error('Events error:', err);
-      empty.style.display = 'block';
+      empty.style.display = 'block'; // already showing, but just in case
     });
 }
 
