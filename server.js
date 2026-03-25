@@ -2219,7 +2219,7 @@ app.post('/api/data-requests/:id/notify', requireAuth, async (req, res) => {
                   border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 24px;">
         <p style="margin:0 0 6px; font-size:12px; font-weight:700;
                   color:#92400e; text-transform:uppercase; letter-spacing:0.05em;">
-          📝 Remarks from CHERM
+          Remarks from CHERM
         </p>
         <p style="margin:0; font-size:14px; color:#78350f; line-height:1.6;">
           ${dr.admin_notes}
@@ -2257,7 +2257,7 @@ app.post('/api/data-requests/:id/notify', requireAuth, async (req, res) => {
                       border-radius:10px; padding:20px 24px; margin:0 0 24px;">
             <p style="margin:0 0 8px; font-size:13px; font-weight:700; color:#065f46;
                       text-transform:uppercase; letter-spacing:0.05em;">
-              📋 One Quick Step to Receive Your Files
+              One Quick Step to Receive Your Files
             </p>
             <p style="margin:0 0 16px; font-size:14px; color:#047857; line-height:1.6;">
               Please complete our short Client Satisfaction Survey (2–3 minutes).

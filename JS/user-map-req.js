@@ -147,7 +147,7 @@ function displayRecentUpload(request) {
                             Uploaded on ${formatDateTime(map.created_at)}
                         </span>
                         <button class="download-btn"
-                                onclick="downloadMap('${fileUrl}', '${request.request_code}')">
+                                onclick="downloadMap('${fileUrl}', '${request.request_code}', '${(request.map_type || 'Map').replace(/'/g, "\\'")}')">
                             <i class="fas fa-download"></i> Download Map
                         </button>
                     </div>
@@ -314,16 +314,15 @@ function showEmptyState(message = 'No map uploads found') {
 // If you want the watermark on the downloaded file too, handle that
 // server-side (burn watermark into image before serving download URL).
 // ===============================
-
-function downloadMap(url, code) {
+function downloadMap(url, code, mapType) {
     if (!url) { alert('Map file not available'); return; }
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `map_${code}`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+
+    const surveyUrl = `/html/css-survey.html?service=map-request` +
+        `&code=${encodeURIComponent(code)}` +
+        `&fileUrl=${encodeURIComponent(url)}` +
+        `&mapType=${encodeURIComponent(mapType || 'Map')}`;
+
+    window.location.href = surveyUrl;
 }
 
 // ===============================

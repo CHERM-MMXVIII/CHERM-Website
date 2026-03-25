@@ -85,6 +85,8 @@ otherLabel.addEventListener('click', (e) => {
 const CSS_PARAMS  = new URLSearchParams(window.location.search);
 const CSS_SERVICE = CSS_PARAMS.get('service'); // 'data-request' or null
 const CSS_CODE    = CSS_PARAMS.get('code');    // e.g. '20260312-CHERM-DR-A1B2'
+const CSS_FILE_URL = CSS_PARAMS.get('fileUrl');   
+const CSS_MAP_TYPE = CSS_PARAMS.get('mapType');   
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -121,7 +123,22 @@ document.addEventListener('DOMContentLoaded', () => {
         'Thank you for your feedback! Your requested files will be sent ' +
         'to your registered email address shortly.';
     }
-  }
+  } else if (CSS_SERVICE === 'map-request') {
+      // Auto-check GIS Mapping
+      document.querySelectorAll('input[name="service"]').forEach(cb => {
+          if (cb.value === 'GIS Mapping') {
+              cb.checked = true;
+              cb.closest('.service-option')?.classList.add('selected');
+          }
+      });
+
+      // Update success message text
+      const successText = document.getElementById('successText');
+      if (successText) {
+          successText.textContent =
+              'Thank you for your feedback! Your map is ready to download below.';
+      }
+    }
 });
 
 // ─── Form Submission ───────────────────────────────────────
@@ -210,6 +227,30 @@ document.getElementById('surveyForm').addEventListener('submit', async (e) => {
       errEl.textContent = 'Network error. Please check your connection and try again.';
       return;
     }
+  }
+
+  if (CSS_SERVICE === 'map-request' && CSS_FILE_URL) {
+    const successMsg = document.getElementById('successMsg');
+
+    const dlWrap = document.createElement('div');
+    dlWrap.style.cssText = 'margin-top:20px;';
+
+    const dlBtn = document.createElement('a');
+    dlBtn.href     = CSS_FILE_URL;
+    dlBtn.download = `map_${CSS_CODE || 'file'}`;
+    dlBtn.target   = '_blank';
+    dlBtn.style.cssText =
+        'display:inline-flex;align-items:center;gap:8px;' +
+        'background:#008080;color:white;padding:12px 24px;' +
+        'border-radius:10px;text-decoration:none;' +
+        'font-size:0.9rem;font-weight:700;' +
+        'box-shadow:0 4px 12px rgba(0,128,128,0.3);';
+    dlBtn.innerHTML =
+        '<i class="fas fa-download"></i> Download ' +
+        (CSS_MAP_TYPE ? CSS_MAP_TYPE : 'Map');
+
+    dlWrap.appendChild(dlBtn);
+    successMsg.appendChild(dlWrap);
   }
 
   // ── Show success screen (both flows reach here) ──────────
