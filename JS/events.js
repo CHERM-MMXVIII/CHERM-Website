@@ -19,7 +19,10 @@ function loadEvents(page) {
   empty.style.display = 'none';
 
   fetch(`/api/events?page=${page}&limit=${EVENT_PER_PAGE}`)
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);  
+      return res.json();
+    })
     .then(data => {
       if (!data.rows || data.rows.length === 0) {
         empty.style.display = 'block';
@@ -184,7 +187,10 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ---------------- LOAD NEWS FLASH ---------------- */
 function loadNewsFlash() {
   fetch('/api/events?page=1&limit=3')
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);  
+      return res.json();
+    })
     .then(data => {
       if (!data.rows || data.rows.length === 0) return;
       

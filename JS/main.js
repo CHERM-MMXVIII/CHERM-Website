@@ -185,13 +185,28 @@ let eventCardsObserver = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   fetch('/api/events')
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);  
+        return res.json();
+      })
     .then(result => {
       if (!result.rows || result.rows.length === 0) return;
       allEvents = result.rows.slice(0, 5); // Store the 5 events
       initCarousel();
     })
-    .catch(err => console.error('❌ Carousel error:', err));
+    .catch(err => {
+      console.error('Carousel error:', err);
+      const track = document.getElementById('eventTrack');
+      if (track) {
+        track.innerHTML = `
+          <div class="event-slide" style="display:flex; align-items:center; justify-content:center; width:100%; min-height:200px;">
+            <p style="color:#aaa; font-size:1rem; text-align:center;">
+              No events to display at the moment.
+            </p>
+          </div>
+        `;
+      }
+    });
 });
 
 function getCardsPerSlide() {
