@@ -681,11 +681,13 @@ function escapeHtml(str) {
 function formatStatus(status) {
     if (!status) return 'Pending';
     const map = {
-        'pending':      'Pending',
-        'in progress':  'In Progress',
-        'under review': 'Under Review',
-        'completed':    'Completed',
-        'declined':     'Declined',
+        'pending':                   'Pending',
+        'in progress':               'In Progress',
+        'under review':              'Under Review',
+        'approved — awaiting files': 'Approved — Awaiting Files',
+        'awaiting survey':           'Awaiting Survey',
+        'completed':                 'Completed',
+        'declined':                  'Declined',
     };
     return map[status.toLowerCase()] || status;
 }
@@ -752,12 +754,171 @@ async function viewRequest(id) {
             btnLink.style.display = 'none';
         }
 
+        renderFinalFilesSection(req);
         mrResetModalTabs();
         openViewModal();
     } catch (err) {
         console.error(err);
         showErrorModal('Load Failed', 'Failed to load request details.');
     }
+}
+
+function renderFinalFilesSection(req) {
+  const container = document.getElementById('mr-final-files-section');
+  if (!container) return;
+
+  const isApproved = req.user_approved === true;
+
+  // Only show if client has approved
+  if (!isApproved) {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'block';
+
+  const hasDocx = !!req.final_docx_path;
+  const hasPdf  = !!req.final_pdf_path;
+  const hasLink = !!req.final_link;
+  const allUploaded = hasDocx && hasPdf && hasLink;
+
+  container.innerHTML = `
+    <div class="mr-final-files-header">
+      <div class="mr-final-files-title">
+        <i class="fas fa-upload"></i>
+        Final Files for Delivery
+      </div>
+      <span class="mr-final-badge ${allUploaded ? 'badge-ready' : 'badge-pending'}">
+        ${allUploaded ? '✓ Ready to Send' : '⚠ Awaiting Upload'}
+      </span>
+    </div>
+
+    <p class="mr-final-files-hint">
+      The client has approved their manuscript. 
+      Please upload the 3 final files below. 
+      Once uploaded, they will be sent to the client after the CSS survey.
+    </p>
+
+    <!-- Current files status -->
+    <div class="mr-current-files">
+      <div class="mr-current-file-row ${hasDocx ? 'file-present' : 'file-missing'}">
+        <i class="fas ${hasDocx ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+        <span>DOCX — ${hasDocx ? '<a href="' + req.final_docx_path + '" target="_blank">View file</a>' : 'Not uploaded yet'}</span>
+      </div>
+      <div class="mr-current-file-row ${hasPdf ? 'file-present' : 'file-missing'}">
+        <i class="fas ${hasPdf ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+        <span>PDF — ${hasPdf ? '<a href="' + req.final_pdf_path + '" target="_blank">View file</a>' : 'Not uploaded yet'}</span>
+      </div>
+      <div class="mr-current-file-row ${hasLink ? 'file-present' : 'file-missing'}">
+        <i class="fas ${hasLink ? 'fa-check-circle' : 'fa-times-circle'}"></i>
+        <span>Link — ${hasLink ? '<a href="' + req.final_link + '" target="_blank">Open link</a>' : 'Not provided yet'}</span>
+      </div>
+    </div>
+
+    <!-- Upload form -->
+    <div class="mr-upload-form">
+      <div class="mr-upload-field">
+        <label class="mr-field-label">
+          <i class="fas fa-file-word"></i> 
+          DOCX File ${hasDocx ? '<span class="mr-optional">(re-upload to replace)</span>' : '<span class="mr-required">*</span>'}
+        </label>
+        <input type="file" id="finalDocxInput" accept=".doc,.docx" class="mr-file-input">
+      </div>
+
+      <div class="mr-upload-field">
+        <label class="mr-field-label">
+          <i class="fas fa-file-pdf"></i> 
+          PDF File ${hasPdf ? '<span class="mr-optional">(re-upload to replace)</span>' : '<span class="mr-required">*</span>'}
+        </label>
+        <input type="file" id="finalPdfInput" accept=".pdf" class="mr-file-input">
+      </div>
+
+      <div class="mr-upload-field">
+        <label class="mr-field-label">
+          <i class="fas fa-link"></i> 
+          Document Link ${hasLink ? '<span class="mr-optional">(edit to replace)</span>' : '<span class="mr-required">*</span>'}
+        </label>
+        <input 
+          type="url" 
+          id="finalLinkInput" 
+          class="mr-input" 
+          placeholder="Paste Google Docs, Drive, or other link..."
+          value="${req.final_link || ''}"
+        >
+      </div>
+
+      <button class="mr-upload-btn" onclick="uploadFinalFiles(${req.id})">
+        <i class="fas fa-upload"></i>
+        ${allUploaded ? 'Re-upload / Update Files' : 'Upload Final Files'}
+      </button>
+    </div>
+
+    ${req.files_uploaded_at ? `
+      <p class="mr-upload-timestamp">
+        <i class="fas fa-clock"></i>
+        Last uploaded: ${new Date(req.files_uploaded_at).toLocaleString('en-US', {
+          year: 'numeric', month: 'short', day: '2-digit',
+          hour: '2-digit', minute: '2-digit'
+        })}
+      </p>
+    ` : ''}
+  `;
+}
+
+async function uploadFinalFiles(id) {
+  const docxFile = document.getElementById('finalDocxInput')?.files[0];
+  const pdfFile  = document.getElementById('finalPdfInput')?.files[0];
+  const link     = document.getElementById('finalLinkInput')?.value.trim();
+
+  // At least one thing must be provided
+  if (!docxFile && !pdfFile && !link) {
+    showErrorModal('Nothing to Upload', 'Please provide at least one file or link.');
+    return;
+  }
+
+  const btn = document.querySelector('.mr-upload-btn');
+  if (btn) {
+    btn.disabled   = true;
+    btn.innerHTML  = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+  }
+
+  try {
+    const formData = new FormData();
+    if (docxFile) formData.append('finalDocx', docxFile);
+    if (pdfFile)  formData.append('finalPdf',  pdfFile);
+    if (link)     formData.append('finalLink',  link);
+
+    const res = await fetch(`/api/manuscript-requests/${id}/final-files`, {
+      method: 'POST',
+      body:   formData
+    });
+
+    if (!res.ok) throw new Error('Upload failed');
+
+    const data = await res.json();
+
+    // Update local record so UI refreshes correctly
+    const record = allRequests.find(r => r.id == id);
+    if (record) {
+      if (data.final_docx_path) record.final_docx_path = data.final_docx_path;
+      if (data.final_pdf_path)  record.final_pdf_path  = data.final_pdf_path;
+      if (data.final_link)      record.final_link      = data.final_link;
+      record.status = 'Awaiting Survey';
+    }
+
+    showSuccessModal('Files Uploaded', 'Final files uploaded successfully! Status updated to Awaiting Survey.');
+    applyFilters();
+    closeViewModal();
+
+  } catch (err) {
+    console.error('Upload final files error:', err);
+    showErrorModal('Upload Failed', 'Failed to upload files. Please try again.');
+  } finally {
+    if (btn) {
+      btn.disabled  = false;
+      btn.innerHTML = '<i class="fas fa-upload"></i> Upload Final Files';
+    }
+  }
 }
 
 function openViewModal() {

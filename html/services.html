@@ -459,7 +459,7 @@
 
                             <!-- Email -->
                             <div class="form-group">
-                                <label>Email Address</label>
+                                <label>Email Address <span style="color: #dc3545;">*</span></label>
                                 <input type="email" id="email" name="email"
                                     placeholder="email@example.com" required>
                                 <!-- Only shown when Internal is selected -->
@@ -472,12 +472,12 @@
                             <!-- Name -->
                             <div class="form-row">
                                 <div>
-                                    <label>Surname</label>
+                                    <label>Surname <span style="color: #dc3545;">*</span></label>
                                     <input type="text" id="surname" name="surname"
                                         placeholder="Dela Cruz" required>
                                 </div>
                                 <div>
-                                    <label>First Name</label>
+                                    <label>First Name <span style="color: #dc3545;">*</span></label>
                                     <input type="text" id="firstName" name="firstName"
                                         placeholder="Juan" required>
                                 </div>
@@ -486,13 +486,13 @@
                             <!-- Dynamic Office / Agency -->
                             <div class="form-row-2">
                                 <div>
-                                    <label id="affiliationLabel">Office / College</label>
+                                    <label id="affiliationLabel">Office / College <span style="color: #dc3545;">*</span></label>
                                     <input type="text" id="affiliation" name="affiliation"
                                         placeholder="e.g. College of Engineering" required>
                                 </div>
                                 <div>
                                     <label>Map Needed By
-                                        <span class="helper-text">(Completion may vary with data and map complexity)</span>
+                                        <span class="helper-text">(Completion may vary with data and map complexity) </span><span style="color: #dc3545;">*</span>
                                     </label>
                                     <input type="date" id="date" name="date" required>
                                 </div>
@@ -501,7 +501,7 @@
                             <!-- Map Type & Purpose -->
                             <div class="form-row-2">
                                 <div>
-                                    <label>Type of Map Requested</label>
+                                    <label>Type of Map Requested <span style="color: #dc3545;">*</span></label>
                                     <select id="mapType" name="mapType" required onchange="handleMapTypeChange()">
                                         <option value="">Select map type</option>
                                         <option value="Topographic">Topographic Map</option>
@@ -517,7 +517,7 @@
                                         style="display: none; margin-top: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
                                 </div>
                                 <div>
-                                    <label>Purpose</label>
+                                    <label>Purpose <span style="color: #dc3545;">*</span></label>
                                     <input type="text" id="purpose" name="purpose"
                                         placeholder="e.g. Research, Planning, etc." required>
                                 </div>
@@ -525,7 +525,7 @@
 
                             <!-- Area -->
                             <div class="form-group">
-                                <label>Area of Interest</label>
+                                <label>Area of Interest <span style="color: #dc3545;">*</span></label>
                                 <textarea id="areaOfInterest" name="areaOfInterest"
                                         placeholder="Describe the specific area or location..."
                                         required></textarea>
@@ -534,12 +534,12 @@
                             <!-- Size & Quantity -->
                             <div class="form-row-2">
                                 <div>
-                                    <label>Size of Map</label>
+                                    <label>Size of Map <span style="color: #dc3545;">*</span></label>
                                     <input type="text" id="mapSize" name="mapSize"
                                         placeholder="e.g. A4, 12x18 inches" required>
                                 </div>
                                 <div>
-                                    <label>Quantity</label>
+                                    <label>Quantity <span style="color: #dc3545;">*</span></label>
                                     <input type="number" id="quantity" name="quantity"
                                         value="1" min="1" required>
                                 </div>
@@ -548,7 +548,7 @@
                             <!-- Upload -->
                             <div class="form-row-2">
                                 <div class="upload-wrapper">
-                                    <label>Request Letter (PDF)</label>
+                                    <label>Request Letter (PDF) <span style="color: #dc3545;">*</span></label>
                                     <p class="helper-text">Filename format: GISMR_OFFICE/COLLEGE_YourInitials.pdf.<br>Example: GISMR_CHERM_JDC.pdf.</p>
                                     <div class="upload-area"
                                         onclick="document.getElementById('requestLetter').click()">
@@ -557,7 +557,7 @@
                                     <input type="file" id="requestLetter" name="requestLetter" accept=".pdf">
                                 </div>
                                 <div class="upload-wrapper">
-                                    <label>Signature (PDF)</label>
+                                    <label>Signature (PDF) <span style="color: #dc3545;">*</span></label>
                                     <p class="helper-text">Filename format: Surname_Esign.pdf.<br>Example: DelaCruz_Esign.pdf.</p>
                                     <div class="upload-area"
                                         onclick="document.getElementById('signature').click()">

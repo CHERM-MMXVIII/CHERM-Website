@@ -52,9 +52,9 @@ body {
 .empty-state {
     text-align: center;
     padding: 100px 40px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    /* background: white; */
+    /* border-radius: 8px; */
+    /* box-shadow: 0 2px 15px rgba(0,0,0,0.08); */
     max-width: 600px;
     margin: 0 auto;
 }

@@ -62,6 +62,7 @@ async function loadDatasets() {
     if (!res.ok) throw new Error('Server error ' + res.status);
     const data = await res.json();
     DATASETS   = Array.isArray(data) ? data : [];
+    buildCategoryChips();   // ← build chips from live data
     renderTable();
     updateSelectionBar();
   } catch (err) {
@@ -72,15 +73,39 @@ async function loadDatasets() {
   }
 }
 
+function buildCategoryChips() {
+  const container = document.getElementById('filterChips');
+  if (!container) return;
+
+  // Collect unique categories that actually exist in the data, preserving base order
+  const BASE_ORDER = ['hazard', 'landuse', 'topo', 'boundary', 'infra', 'env'];
+  const inData     = new Set(DATASETS.map(d => d.cat).filter(Boolean));
+
+  // Base categories first (only if they have data), then any extras alphabetically
+  const ordered = [
+    ...BASE_ORDER.filter(k => inData.has(k)),
+    ...[...inData].filter(k => !BASE_ORDER.includes(k)).sort(),
+  ];
+
+  container.innerHTML =
+    `<button class="chip active" data-cat="all" onclick="filterCat(this,'all')">All</button>` +
+    ordered.map(k =>
+      `<button class="chip" data-cat="${escHtml(k)}" onclick="filterCat(this,'${escHtml(k)}')">${escHtml(catLabel(k))}</button>`
+    ).join('');
+}
+
 /* ─────────────────────────────────────────
    HELPERS
 ───────────────────────────────────────── */
+const BASE_CAT_LABELS = {
+  hazard: 'Hazard', landuse: 'Land Use', topo: 'Topographic',
+  boundary: 'Boundary', infra: 'Infrastructure', env: 'Environment'
+};
+
 function catLabel(cat) {
-  const map = {
-    hazard: 'Hazard', landuse: 'Land Use', topo: 'Topographic',
-    boundary: 'Boundary', infra: 'Infrastructure', env: 'Environment'
-  };
-  return map[cat] || cat;
+  if (!cat) return '—';
+  return BASE_CAT_LABELS[cat]
+    || cat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }
 
 // Normalise field names: DB uses data_desc; old dummy data used desc
@@ -890,4 +915,94 @@ function escHtml(str) {
   return String(str)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ─────────────────────────────────────────
+   DATASET INQUIRY MODAL
+───────────────────────────────────────── */
+function openInquiryModal() {
+  /* Pre-fill name/email from Step 1 if already entered */
+  const nameVal  = (document.getElementById('firstName')?.value || '').trim()
+                 + ' ' + (document.getElementById('surname')?.value || '').trim();
+  const emailVal = document.getElementById('email')?.value.trim() || '';
+
+  const inqName  = document.getElementById('inqName');
+  const inqEmail = document.getElementById('inqEmail');
+
+  if (inqName  && nameVal.trim())  inqName.value  = nameVal.trim();
+  if (inqEmail && emailVal)        inqEmail.value = emailVal;
+
+  /* Reset textarea + counter */
+  const inqDesc = document.getElementById('inqDesc');
+  if (inqDesc) {
+    inqDesc.value = '';
+    updateInqCharCount();
+    inqDesc.addEventListener('input', updateInqCharCount);
+  }
+
+  /* Reset button */
+  const btn = document.getElementById('inqSubmitBtn');
+  if (btn) {
+    btn.disabled  = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Inquiry';
+  }
+
+  document.getElementById('inquiryOverlay').classList.add('open');
+}
+
+function closeInquiryModal() {
+  document.getElementById('inquiryOverlay').classList.remove('open');
+}
+
+function closeInquiryIfOutside(e) {
+  if (e.target === document.getElementById('inquiryOverlay')) closeInquiryModal();
+}
+
+function updateInqCharCount() {
+  const val = document.getElementById('inqDesc')?.value || '';
+  const el  = document.getElementById('inqCharCount');
+  if (el) el.textContent = val.length;
+}
+
+async function submitInquiry() {
+  const name  = document.getElementById('inqName')?.value.trim();
+  const email = document.getElementById('inqEmail')?.value.trim();
+  const desc  = document.getElementById('inqDesc')?.value.trim();
+
+  /* Basic validation */
+  if (!name) {
+    document.getElementById('inqName').focus();
+    return;
+  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    document.getElementById('inqEmail').focus();
+    return;
+  }
+  if (!desc) {
+    document.getElementById('inqDesc').focus();
+    return;
+  }
+
+  const btn = document.getElementById('inqSubmitBtn');
+  btn.disabled  = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+
+  try {
+    const res  = await fetch('/api/dataset-inquiry', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ name, email, description: desc }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+
+    /* Close inquiry modal, show success overlay */
+    closeInquiryModal();
+    document.getElementById('inquirySuccessOverlay').classList.add('open');
+
+  } catch (err) {
+    btn.disabled  = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Inquiry';
+    alert('Failed to send inquiry: ' + (err.message || 'Please try again.'));
+  }
 }

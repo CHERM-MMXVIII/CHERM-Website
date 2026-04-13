@@ -829,9 +829,8 @@ td{
   gap: 12px;
 }
 .meta-modal-header h3 {
-  font-family: 'DM Serif Display', serif;
   font-size: 18px;
-  font-weight: 400;
+  font-weight: 600;
 }
 .meta-modal-header p {
   font-size: 12px;
@@ -1506,3 +1505,97 @@ td{
   .prev-unsupported  { padding: 32px 20px; }
   .prev-unsupported-specs { grid-template-columns: 1fr; }
 }
+
+.inquiry-nudge {
+    text-align: center;
+    padding: 14px 20px;
+    font-size: .875rem;
+    color: #888;
+    border-top: 1px solid #f0f0f0;
+    margin-top: 4px;
+}
+
+.btn-inquiry-link {
+    background: none;
+    border: none;
+    color: #008080;
+    font-size: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0 2px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color .15s;
+}
+.btn-inquiry-link:hover { color: #054e4e; }
+
+/* ── Inquiry modal sizing ── */
+.inquiry-modal {
+    max-width: 480px !important;
+    width: 95vw;
+}
+
+.inquiry-form .form-group {
+    margin-bottom: 16px;
+}
+.inquiry-form label {
+    display: block;
+    font-size: .82rem;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 5px;
+}
+.inquiry-form input,
+.inquiry-form textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: .88rem;
+    font-family: inherit;
+    color: #333;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    resize: vertical;
+}
+.inquiry-form input:focus,
+.inquiry-form textarea:focus {
+    border-color: #008080;
+    box-shadow: 0 0 0 3px rgba(0,128,128,.1);
+}
+
+.inq-char-count {
+    text-align: right;
+    font-size: .75rem;
+    color: #aaa;
+}
+
+.inq-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: .8rem;
+    color: #065f46;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.inq-note i { 
+  margin-top: 2px; 
+  flex-shrink: 0; 
+}
+
+.data-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+    min-width: 600px;
+}
+
+

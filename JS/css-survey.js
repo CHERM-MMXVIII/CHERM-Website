@@ -138,7 +138,41 @@ document.addEventListener('DOMContentLoaded', () => {
           successText.textContent =
               'Thank you for your feedback! Your map is ready to download below.';
       }
+  } else if (CSS_SERVICE === 'manuscript') {
+    // Auto-check the relevant service
+    document.querySelectorAll('input[name="service"]').forEach(cb => {
+      if (cb.value === 'GIS Mapping') {
+        cb.checked = true;
+        cb.closest('.service-option')?.classList.add('selected');
+      }
+    });
+
+    // Show the request ID section pre-filled and locked
+    const section = document.getElementById('requestIdSection');
+    if (section) section.style.display = 'block';
+
+    const input = document.getElementById('requestIdInput');
+    if (input && CSS_CODE) {
+      input.value    = CSS_CODE;
+      input.readOnly = true;
+      input.style.cssText = 'background:#f0fafa; color:#008080; font-weight:700;';
+
+      const status = document.getElementById('requestIdStatus');
+      if (status) {
+        status.innerHTML   = '<i class="fas fa-check-circle" style="color:#008080;"></i> Confirmed';
+        status.style.color = '#008080';
+      }
     }
+
+    // Update success message
+    const successText = document.getElementById('successText');
+    if (successText) {
+      successText.textContent =
+        'Thank you for your feedback! Your reviewed manuscript files ' +
+        '(DOCX, PDF, and document link) will be sent to your registered ' +
+        'email address shortly.';
+    }
+  } 
 });
 
 // ─── Form Submission ───────────────────────────────────────
@@ -251,6 +285,80 @@ document.getElementById('surveyForm').addEventListener('submit', async (e) => {
 
     dlWrap.appendChild(dlBtn);
     successMsg.appendChild(dlWrap);
+  }
+
+  if (CSS_SERVICE === 'manuscript') {
+    const requestCode = document.getElementById('requestIdInput')?.value?.trim();
+
+    if (!requestCode) {
+      document.getElementById('requestIdInput').focus();
+      return;
+    }
+
+    submitBtn.disabled      = true;
+    submitBtn.style.opacity = '0.7';
+    submitBtn.innerHTML     = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+           style="animation:spin 1s linear infinite;">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+      </svg>
+      Submitting...`;
+
+    try {
+      const res = await fetch('/api/manuscript-css-survey/submit', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ requestCode }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        submitBtn.disabled      = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.innerHTML     = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          Submit Survey`;
+
+        let errEl = document.getElementById('surveySubmitError');
+        if (!errEl) {
+          errEl    = document.createElement('p');
+          errEl.id = 'surveySubmitError';
+          errEl.style.cssText =
+            'color:#dc2626; font-size:0.88rem; font-weight:500; margin-top:12px; text-align:center;';
+          submitBtn.insertAdjacentElement('afterend', errEl);
+        }
+        errEl.textContent = data.error || 'Submission failed. Please try again.';
+        return;
+      }
+
+    } catch (networkErr) {
+      submitBtn.disabled      = false;
+      submitBtn.style.opacity = '1';
+      submitBtn.innerHTML     = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+        Submit Survey`;
+
+      let errEl = document.getElementById('surveySubmitError');
+      if (!errEl) {
+        errEl    = document.createElement('p');
+        errEl.id = 'surveySubmitError';
+        errEl.style.cssText =
+          'color:#dc2626; font-size:0.88rem; font-weight:500; margin-top:12px; text-align:center;';
+        submitBtn.insertAdjacentElement('afterend', errEl);
+      }
+      errEl.textContent = 'Network error. Please check your connection and try again.';
+      return;
+    }
   }
 
   // ── Show success screen (both flows reach here) ──────────

@@ -89,8 +89,8 @@
     <div class="page-header">
         <div class="page-header-inner">
             <div class="badge"><i class="fas fa-database"></i> CHERM Data Services</div>
-            <h1>Geospatial Data Request</h1>
-            <p>Access authoritative GIS datasets produced by the Center for Hazard and Environmental Resource Mapping.</p>
+            <h1>Provision of Geospatial Data</h1>
+            <p>Access GIS datasets produced by the Center for Hazard and Environmental Resource Mapping.</p>
         </div>
     </div>
 
@@ -194,14 +194,8 @@
                             <i class="fas fa-search"></i>
                             <input type="text" id="dataSearch" placeholder="Search datasets…" oninput="filterData()">
                         </div>
-                        <div class="filter-chips">
-                            <button class="chip active" data-cat="all"      onclick="filterCat(this,'all')">All</button>
-                            <button class="chip" data-cat="hazard"          onclick="filterCat(this,'hazard')">Hazard</button>
-                            <button class="chip" data-cat="landuse"         onclick="filterCat(this,'landuse')">Land Use</button>
-                            <button class="chip" data-cat="topo"            onclick="filterCat(this,'topo')">Topographic</button>
-                            <button class="chip" data-cat="boundary"        onclick="filterCat(this,'boundary')">Boundary</button>
-                            <button class="chip" data-cat="infra"           onclick="filterCat(this,'infra')">Infrastructure</button>
-                            <button class="chip" data-cat="env"             onclick="filterCat(this,'env')">Environment</button>
+                        <div class="filter-chips" id="filterChips">
+                            <button class="chip active" data-cat="all" onclick="filterCat(this,'all')">All</button>
                         </div>
                     </div>
 
@@ -224,6 +218,12 @@
                         <div class="no-results" id="noResults">
                             <i class="fas fa-layer-group"></i>
                             No datasets match your search.
+                        </div>
+
+                        <div class="inquiry-nudge" id="inquiryNudge">
+                            <i class="fas fa-question-circle"></i>
+                            Can't find the dataset you need?
+                            <button class="btn-inquiry-link" onclick="openInquiryModal()">Send an inquiry</button>
                         </div>
                     </div>
 
@@ -430,6 +430,65 @@
                     <i class="fas fa-plus"></i> Add to My Request
                 </button>
             </div>
+        </div>
+    </div>
+
+    <div class="meta-overlay" id="inquiryOverlay" onclick="closeInquiryIfOutside(event)">
+        <div class="meta-modal inquiry-modal">
+            <div class="meta-modal-header">
+                <div>
+                    <h3>Dataset Inquiry</h3>
+                    <p>Tell us what data you're looking for and we'll get back to you.</p>
+                </div>
+                <button class="btn-close-meta" onclick="closeInquiryModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="meta-body">
+                <div class="inquiry-form">
+                    <div class="form-group">
+                        <label>Your Name <span class="req">*</span></label>
+                        <input type="text" id="inqName" placeholder="Juan Dela Cruz" maxlength="100">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address <span class="req">*</span></label>
+                        <input type="email" id="inqEmail" placeholder="email@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>What dataset are you looking for? <span class="req">*</span></label>
+                        <textarea id="inqDesc" rows="4"
+                            placeholder="Describe the data you need — e.g. coverage area, data type, year range, format preference, intended use…"
+                            maxlength="1000"></textarea>
+                        <div class="inq-char-count"><span id="inqCharCount">0</span> / 1000</div>
+                    </div>
+                    <div class="inq-note">
+                        <i class="fas fa-info-circle"></i>
+                        CHERM will review your inquiry and respond as soon as possible.
+                    </div>
+                </div>
+                <div class="meta-footer">
+                    <button class="btn btn-outline" onclick="closeInquiryModal()">Cancel</button>
+                    <button class="btn btn-primary" id="inqSubmitBtn" onclick="submitInquiry()">
+                        <i class="fas fa-paper-plane"></i> Send Inquiry
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INQUIRY SUCCESS STATE (swaps in after send) -->
+    <div class="meta-overlay" id="inquirySuccessOverlay" onclick="this.classList.remove('open')">
+        <div class="meta-modal inquiry-modal" style="text-align:center; padding: 2rem;">
+            <div class="success-icon" style="width:56px;height:56px;background:#008080;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.4rem;color:#008080;">
+                <i class="fas fa-check"></i>
+            </div>
+            <h3 style="margin:0 0 8px;">Inquiry Sent!</h3>
+            <p style="color:#666; font-size:.9rem; margin:0 0 24px;">
+                Thank you! CHERM will review your inquiry and reach out to you via email.
+            </p>
+            <button class="btn btn-primary" onclick="document.getElementById('inquirySuccessOverlay').classList.remove('open')">
+                Done
+            </button>
         </div>
     </div>
 

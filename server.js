@@ -72,6 +72,11 @@ if (!fs.existsSync(manuscriptRequestDir)) {
   fs.mkdirSync(manuscriptRequestDir);
 }
 
+const manuscriptFinalsDir = path.join(uploadsDir, 'manuscript-finals');
+if (!fs.existsSync(manuscriptFinalsDir)) {
+  fs.mkdirSync(manuscriptFinalsDir);
+}
+
 const dataRequestDir = path.join(uploadsDir, 'data-requests');
 if (!fs.existsSync(dataRequestDir)) {
   fs.mkdirSync(dataRequestDir);
@@ -175,6 +180,25 @@ const manuscriptUpload = multer({
     }
   }),
   limits: { fileSize: 25 * 1024 * 1024 }, // 25MB
+  fileFilter: (req, file, cb) => {
+    const allowed = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    if (!allowed.includes(file.mimetype)) {
+      return cb(new Error('Only PDF, DOC, or DOCX files are allowed'));
+    }
+    cb(null, true);
+  }
+});
+
+const manuscriptFinalUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, manuscriptFinalsDir),
+    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+  }),
+  limits: { fileSize: 25 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = [
       'application/pdf',
@@ -433,6 +457,10 @@ app.get('/admin/datasets', requireAuth, (req, res) => {
 
 app.get('/user-track-data-req', (req, res) => {
   res.sendFile(path.join(__dirname, 'html', 'user-track-data-req.html'));
+});
+
+app.get('/data-request', (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'user-geodata-req.html'));
 });
 
 // LOGIN SETUP 
@@ -953,7 +981,9 @@ app.get('/api/banners', async (req, res) => {
   }
 });
 
-console.log('Defining route /api/map-requests');
+/* ============================================================
+   MAP REQUESTS
+   ============================================================ */
 
 /* ---------- SUBMIT MAP REQUEST ---------- */
 app.post('/api/map-requests',
@@ -986,7 +1016,7 @@ app.post('/api/map-requests',
         return res.status(400).json({ error: 'Missing required fields' });
       }
 
-      // ✅ Generate Request Code
+      // Generate Request Code
       const requestCode = generateRequestId();
 
       const requestLetterPath = req.files?.requestLetter
@@ -1044,7 +1074,7 @@ app.post('/api/map-requests',
         ]
       );
 
-      // ✅ Send Email Notification
+      // Send Email Notification
       await transporter.sendMail({
         from: `"CHERM Map Request" <${process.env.EMAIL_USER}>`,
         to: process.env.EMAIL_USER,
@@ -1065,7 +1095,7 @@ app.post('/api/map-requests',
         `
       });
 
-      // ✅ Send confirmation email to USER
+      // Send confirmation email to USER
       await transporter.sendMail({
         from: `"CHERM Map Request" <${process.env.EMAIL_USER}>`,
         to: email, // send to the user who submitted
@@ -1081,7 +1111,7 @@ app.post('/api/map-requests',
         `
       });
 
-      // ✅ Send success response
+      // Send success response
       res.json({
         success: true,
         requestCode: requestCode
@@ -1154,52 +1184,6 @@ app.get('/api/user/map-requests', async (req, res) => {
 
   } catch (err) {
     console.error('Error fetching map request:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.get('/api/user/manuscript-requests', async (req, res) => {
-  const { code } = req.query;
-
-  if (!code || !code.trim()) {
-    return res.status(400).json({ error: 'Request code is required' });
-  }
-
-  try {
-    const result = await pool.query(
-      `SELECT 
-        id,
-        request_code,
-        client_type,
-        email,
-        surname,
-        first_name,
-        affiliation,
-        manuscript_title,
-        abstract,
-        date_needed,
-        manuscript_file_path,
-        file_link,
-        status,
-        admin_notes,
-        reviewed_file_url,
-        user_approved,
-        created_at
-       FROM manuscript_review_requests
-       WHERE TRIM(request_code) = $1
-       LIMIT 1`,
-      [code.trim()]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ request: null });
-    }
-
-    const request = result.rows[0];
-    res.json({ request });
-
-  } catch (err) {
-    console.error('Error fetching manuscript review request:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -1327,6 +1311,10 @@ app.get('/api/map-requests/:id/uploads', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch upload history' });
   }
 });
+
+/* ============================================================
+   TRAINING REQUESTS
+   ============================================================ */
 
 app.post('/api/training-requests', trainingUpload.single('requestLetter'), async (req, res) => {
   try {
@@ -1477,6 +1465,10 @@ app.delete('/api/training-requests/:id', requireAuth, async (req, res) => {
     res.status(500).json({ error: 'Failed to delete request' });
   }
 });
+
+/* ============================================================
+   MANUSCRIPT REVIEW REQUESTS
+   ============================================================ */
 
 app.post('/api/manuscript-requests', manuscriptUpload.single('manuscriptFile'), async (req, res) => {
   try {
@@ -1683,6 +1675,10 @@ app.get('/api/manuscript-requests', requireAuth, async (req, res) => {
          admin_notes,
          revision_notes, 
          revision_requested_at,
+         final_docx_path, 
+         final_pdf_path, 
+         final_link, 
+         files_uploaded_at,
          created_at
        FROM manuscript_review_requests
        ORDER BY created_at DESC`
@@ -1736,6 +1732,158 @@ app.put('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
   }
 });
 
+app.post('/api/manuscript-requests/:id/final-files', requireAuth,
+  manuscriptFinalUpload.fields([
+    { name: 'finalDocx', maxCount: 1 },
+    { name: 'finalPdf',  maxCount: 1 }
+  ]),
+  async (req, res) => {
+    const { id } = req.params;
+    const { finalLink } = req.body;
+ 
+    try {
+      const current = await pool.query(
+        `SELECT final_docx_path, final_pdf_path, final_link, status
+         FROM manuscript_review_requests WHERE id = $1`,
+        [id]
+      );
+ 
+      if (current.rows.length === 0) {
+        return res.status(404).json({ error: 'Request not found' });
+      }
+ 
+      const record = current.rows[0];
+      let docxPath = record.final_docx_path;
+      let pdfPath  = record.final_pdf_path;
+ 
+      // Handle DOCX — delete old file if replacing
+      if (req.files?.finalDocx) {
+        if (docxPath) {
+          const oldPath = path.join(__dirname, docxPath);
+          if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        }
+        docxPath = '/uploads/manuscript-finals/' + req.files.finalDocx[0].filename;
+      }
+ 
+      // Handle PDF — delete old file if replacing
+      if (req.files?.finalPdf) {
+        if (pdfPath) {
+          const oldPath = path.join(__dirname, pdfPath);
+          if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        }
+        pdfPath = '/uploads/manuscript-finals/' + req.files.finalPdf[0].filename;
+      }
+ 
+      const newLink = finalLink || record.final_link || null;
+ 
+      await pool.query(
+        `UPDATE manuscript_review_requests
+         SET final_docx_path   = $1,
+             final_pdf_path    = $2,
+             final_link        = $3,
+             files_uploaded_at = CURRENT_TIMESTAMP,
+             status            = 'Awaiting Survey',
+             updated_at        = CURRENT_TIMESTAMP
+         WHERE id = $4`,
+        [docxPath, pdfPath, newLink, id]
+      );
+
+      // Fetch client details for the email
+      const clientData = await pool.query(
+        `SELECT first_name, surname, email, request_code, manuscript_title
+        FROM manuscript_review_requests WHERE id = $1`,
+        [id]
+      );
+
+      if (clientData.rows.length > 0) {
+        const client = clientData.rows[0];
+        const baseUrl   = process.env.SITE_URL || 'http://localhost:3000';
+        const surveyUrl = `${baseUrl}/html/css-survey.html?service=manuscript&code=${client.request_code}`;
+
+        await transporter.sendMail({
+          from:    `"CHERM Manuscript Review" <${process.env.EMAIL_USER}>`,
+          to:      client.email,
+          subject: `Your Reviewed Manuscript is Ready — ${client.request_code}`,
+          html: `
+            <div style="font-family:Arial,sans-serif; max-width:600px; margin:0 auto;">
+
+              <div style="background:#008080; padding:28px 32px; border-radius:10px 10px 0 0;">
+                <h2 style="color:white; margin:0; font-size:22px;">
+                  Your Manuscript Files Are Ready
+                </h2>
+                <p style="color:rgba(255,255,255,0.85); margin:8px 0 0; font-size:14px;">
+                  CHERM — Manuscript Review System
+                </p>
+              </div>
+
+              <div style="background:#ffffff; padding:28px 32px;
+                          border:1px solid #e2e8f0; border-top:none;
+                          border-radius:0 0 10px 10px;">
+
+                <p style="color:#2d3748; font-size:15px; margin:0 0 6px;">
+                  Dear <strong>${client.first_name} ${client.surname}</strong>,
+                </p>
+                <p style="color:#4a5568; font-size:14px; line-height:1.6; margin:0 0 24px;">
+                  Your reviewed manuscript <strong>${client.manuscript_title || client.request_code}</strong>
+                  has been finalized and your files are ready for delivery.
+                </p>
+
+                <div style="background:#f0fdf8; border:1px solid #6ee7b7;
+                            border-radius:10px; padding:20px 24px; margin:0 0 24px;">
+                  <p style="margin:0 0 8px; font-size:13px; font-weight:700; color:#065f46;
+                            text-transform:uppercase; letter-spacing:0.05em;">
+                    One Quick Step to Receive Your Files
+                  </p>
+                  <p style="margin:0 0 16px; font-size:14px; color:#047857; line-height:1.6;">
+                    Please complete our short Client Satisfaction Survey (2–3 minutes).
+                    Once submitted, your DOCX, PDF, and document link will be sent
+                    to this email automatically.
+                  </p>
+                  <p style="margin:0 0 6px; font-size:13px; color:#047857;">
+                    Your Request Code:
+                  </p>
+                  <p style="margin:0 0 20px; font-size:18px; font-weight:700;
+                            color:#065f46; letter-spacing:0.04em; font-family:monospace;">
+                    ${client.request_code}
+                  </p>
+                  <a href="${surveyUrl}"
+                    style="display:inline-block; background:#008080; color:white;
+                            padding:13px 28px; border-radius:8px; text-decoration:none;
+                            font-size:14px; font-weight:700; letter-spacing:0.02em;">
+                    Complete Survey &amp; Receive Files →
+                  </a>
+                </div>
+
+                <p style="color:#718096; font-size:12px; line-height:1.6; margin:0 0 8px;">
+                  If the button does not work, copy this link:<br>
+                  <span style="color:#008080; word-break:break-all;">${surveyUrl}</span>
+                </p>
+
+                <hr style="border:none; border-top:1px solid #e2e8f0; margin:20px 0;">
+                <p style="color:#a0aec0; font-size:12px; margin:0;">
+                  Request Code: <strong>${client.request_code}</strong><br>
+                  CHERM — Southern Luzon State University
+                </p>
+              </div>
+            </div>
+          `
+        });
+      }
+ 
+      res.json({
+        success:         true,
+        final_docx_path: docxPath,
+        final_pdf_path:  pdfPath,
+        final_link:      newLink
+      });
+ 
+    } catch (err) {
+      console.error('Final files upload error:', err);
+      res.status(500).json({ error: 'Failed to upload final files' });
+    }
+  }
+);
+
 app.delete('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
   try {
@@ -1768,6 +1916,56 @@ app.delete('/api/manuscript-requests/:id', requireAuth, async (req, res) => {
   }
 });
 
+/* ============================================================
+   USER-FACING MANUSCRIPT ROUTES
+   ============================================================ */
+
+app.get('/api/user/manuscript-requests', async (req, res) => {
+  const { code } = req.query;
+
+  if (!code || !code.trim()) {
+    return res.status(400).json({ error: 'Request code is required' });
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT 
+        id,
+        request_code,
+        client_type,
+        email,
+        surname,
+        first_name,
+        affiliation,
+        manuscript_title,
+        abstract,
+        date_needed,
+        manuscript_file_path,
+        file_link,
+        status,
+        admin_notes,
+        reviewed_file_url,
+        user_approved,
+        created_at
+       FROM manuscript_review_requests
+       WHERE TRIM(request_code) = $1
+       LIMIT 1`,
+      [code.trim()]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ request: null });
+    }
+
+    const request = result.rows[0];
+    res.json({ request });
+
+  } catch (err) {
+    console.error('Error fetching manuscript review request:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.post('/api/user/manuscript-requests/:code/approve', async (req, res) => {
   const { code } = req.params;
 
@@ -1777,7 +1975,7 @@ app.post('/api/user/manuscript-requests/:code/approve', async (req, res) => {
 
   try {
     const check = await pool.query(
-      `SELECT id, reviewed_file_url, user_approved, status
+      `SELECT id, reviewed_file_url, user_approved, status, first_name, surname, email, manuscript_title, created_at
        FROM manuscript_review_requests
        WHERE TRIM(request_code) = $1
        LIMIT 1`,
@@ -1801,12 +1999,106 @@ app.post('/api/user/manuscript-requests/:code/approve', async (req, res) => {
     await pool.query(
       `UPDATE manuscript_review_requests
        SET user_approved = TRUE,
-           status        = 'Completed',
+           status        = 'Approved — Awaiting Files',
            updated_at    = CURRENT_TIMESTAMP
        WHERE id = $1`,
       [record.id]
     );
 
+    const adminUrl = `${process.env.SITE_URL || 'http://localhost:3000'}/admin/manuscript-requests`;
+ 
+    await transporter.sendMail({
+      from:    `"CHERM System" <${process.env.EMAIL_USER}>`,
+      to:      process.env.EMAIL_USER,
+      subject: `✅ Manuscript Approved — Upload Final Files (${code})`,
+      html: `
+        <div style="font-family:Arial,sans-serif; max-width:600px; margin:0 auto;">
+ 
+          <div style="background:#008080; padding:28px 32px; border-radius:10px 10px 0 0;">
+            <h2 style="color:white; margin:0; font-size:22px;">
+              Manuscript Approved by Client
+            </h2>
+            <p style="color:rgba(255,255,255,0.85); margin:8px 0 0; font-size:14px;">
+              CHERM — Manuscript Review System
+            </p>
+          </div>
+ 
+          <div style="background:#ffffff; padding:28px 32px;
+                      border:1px solid #e2e8f0; border-top:none;
+                      border-radius:0 0 10px 10px;">
+ 
+            <p style="color:#2d3748; font-size:15px; margin:0 0 16px;">
+              The client has reviewed and approved their manuscript.
+              Please upload the final files so the system can send them
+              after the client completes the satisfaction survey.
+            </p>
+ 
+            <div style="background:#f7fafc; border:1px solid #e2e8f0;
+                        border-radius:8px; padding:18px 20px; margin:0 0 24px;">
+              <p style="margin:0 0 8px; font-size:13px; font-weight:700;
+                        color:#4a5568; text-transform:uppercase; letter-spacing:0.04em;">
+                Request Details
+              </p>
+              <table style="width:100%; border-collapse:collapse; font-size:14px;">
+                <tr>
+                  <td style="padding:5px 0; color:#718096; width:140px;">Request Code</td>
+                  <td style="padding:5px 0; color:#1a202c; font-weight:700;">${code}</td>
+                </tr>
+                <tr>
+                  <td style="padding:5px 0; color:#718096;">Client Name</td>
+                  <td style="padding:5px 0; color:#1a202c;">${record.first_name} ${record.surname}</td>
+                </tr>
+                <tr>
+                  <td style="padding:5px 0; color:#718096;">Email</td>
+                  <td style="padding:5px 0; color:#1a202c;">${record.email}</td>
+                </tr>
+                <tr>
+                  <td style="padding:5px 0; color:#718096;">Manuscript Title</td>
+                  <td style="padding:5px 0; color:#1a202c;">${record.manuscript_title || '—'}</td>
+                </tr>
+                <tr>
+                  <td style="padding:5px 0; color:#718096;">Date Submitted</td>
+                  <td style="padding:5px 0; color:#1a202c;">
+                    ${new Date(record.created_at).toLocaleDateString('en-US', {
+                      year: 'numeric', month: 'long', day: 'numeric'
+                    })}
+                  </td>
+                </tr>
+              </table>
+            </div>
+ 
+            <div style="background:#fff8e1; border-left:4px solid #f59e0b;
+                        border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 24px;">
+              <p style="margin:0 0 6px; font-size:12px; font-weight:700;
+                        color:#92400e; text-transform:uppercase; letter-spacing:0.05em;">
+                Action Required
+              </p>
+              <p style="margin:0; font-size:14px; color:#78350f; line-height:1.6;">
+                Please upload the following to the admin panel:
+              </p>
+              <ul style="margin:8px 0 0; padding-left:18px; font-size:14px; color:#78350f; line-height:1.8;">
+                <li>Edited manuscript <strong>(.docx)</strong></li>
+                <li>Final manuscript <strong>(.pdf)</strong></li>
+                <li>Shared document <strong>link</strong> (Google Docs / Drive)</li>
+              </ul>
+            </div>
+ 
+            <a href="${adminUrl}"
+               style="display:inline-block; background:#008080; color:white;
+                      padding:13px 28px; border-radius:8px; text-decoration:none;
+                      font-size:14px; font-weight:700; letter-spacing:0.02em;">
+              Go to Admin Panel →
+            </a>
+ 
+            <hr style="border:none; border-top:1px solid #e2e8f0; margin:24px 0 16px;">
+            <p style="color:#a0aec0; font-size:12px; margin:0;">
+              CHERM — Southern Luzon State University
+            </p>
+          </div>
+        </div>
+      `
+    });
+ 
     res.json({ success: true });
 
   } catch (err) {
@@ -1814,6 +2106,218 @@ app.post('/api/user/manuscript-requests/:code/approve', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+app.post('/api/manuscript-css-survey/submit', async (req, res) => {
+  const { requestCode } = req.body;
+
+  if (!requestCode || !requestCode.trim()) {
+    return res.status(400).json({ error: 'Request code is required' });
+  }
+
+  try {
+    // 1. Look up the request
+    const reqResult = await pool.query(
+      `SELECT id, request_code, first_name, surname, email,
+              status, final_docx_path, final_pdf_path, final_link,
+              manuscript_title, admin_notes
+       FROM manuscript_review_requests
+       WHERE TRIM(request_code) = $1
+       LIMIT 1`,
+      [requestCode.trim()]
+    );
+
+    if (reqResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Request code not found. Please check and try again.' });
+    }
+
+    const mr = reqResult.rows[0];
+
+    // 2. Guard: already completed
+    if (mr.status === 'Completed') {
+      return res.status(400).json({
+        error: 'Survey already submitted. Files have already been sent to your email.'
+      });
+    }
+
+    // 3. Guard: not ready yet
+    if (mr.status !== 'Awaiting Survey') {
+      return res.status(400).json({
+        error: 'This request is not ready for survey submission yet.'
+      });
+    }
+
+    // 4. Guard: files must be uploaded
+    if (!mr.final_docx_path && !mr.final_pdf_path && !mr.final_link) {
+      return res.status(400).json({
+        error: 'Final files are not yet available. Please contact CHERM.'
+      });
+    }
+
+    const baseUrl = process.env.SITE_URL || `http://localhost:${PORT}`;
+
+    // 5. Build email sections
+    const remarksSection = mr.admin_notes ? `
+      <div style="background:#fffbeb; border-left:4px solid #f59e0b;
+                  border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 24px;">
+        <p style="margin:0 0 6px; font-size:12px; font-weight:700; color:#92400e;
+                  text-transform:uppercase; letter-spacing:0.05em;">
+          Remarks from CHERM
+        </p>
+        <p style="margin:0; font-size:14px; color:#78350f; line-height:1.6;">
+          ${mr.admin_notes}
+        </p>
+      </div>` : '';
+
+    const docxSection = mr.final_docx_path ? `
+      <tr>
+        <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
+          <strong style="color:#1a202c; font-size:13px;">Edited Manuscript</strong>
+          <span style="margin-left:8px; background:#e2e8f0; color:#4a5568;
+                font-size:10px; padding:2px 6px; border-radius:4px; font-weight:700;">
+            DOCX
+          </span>
+        </td>
+        <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
+          <a href="${baseUrl}${mr.final_docx_path}"
+             style="display:inline-block; background:#008080; color:white;
+                    padding:6px 16px; border-radius:6px; text-decoration:none;
+                    font-size:12px; font-weight:600;">
+            Download
+          </a>
+        </td>
+      </tr>` : '';
+
+    const pdfSection = mr.final_pdf_path ? `
+      <tr>
+        <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
+          <strong style="color:#1a202c; font-size:13px;">Final Manuscript</strong>
+          <span style="margin-left:8px; background:#e2e8f0; color:#4a5568;
+                font-size:10px; padding:2px 6px; border-radius:4px; font-weight:700;">
+            PDF
+          </span>
+        </td>
+        <td style="padding:10px 12px; border-bottom:1px solid #e2e8f0;">
+          <a href="${baseUrl}${mr.final_pdf_path}"
+             style="display:inline-block; background:#008080; color:white;
+                    padding:6px 16px; border-radius:6px; text-decoration:none;
+                    font-size:12px; font-weight:600;">
+            Download
+          </a>
+        </td>
+      </tr>` : '';
+
+    const filesSection = (docxSection || pdfSection) ? `
+      <p style="margin:0 0 10px; font-size:13px; font-weight:700; color:#4a5568;
+                text-transform:uppercase; letter-spacing:0.04em;">
+        Your Manuscript Files
+      </p>
+      <div style="background:#f7fafc; border:1px solid #e2e8f0;
+                  border-radius:8px; overflow:hidden; margin:0 0 24px;">
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="background:#edf2f7;">
+              <th style="padding:10px 12px; text-align:left; font-size:11px;
+                         color:#718096; text-transform:uppercase;">File</th>
+              <th style="padding:10px 12px; text-align:left; font-size:11px;
+                         color:#718096; text-transform:uppercase;">Download</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${docxSection}
+            ${pdfSection}
+          </tbody>
+        </table>
+      </div>` : '';
+
+    const linkSection = mr.final_link ? `
+      <p style="margin:0 0 10px; font-size:13px; font-weight:700; color:#4a5568;
+                text-transform:uppercase; letter-spacing:0.04em;">
+        🔗 Document Link
+      </p>
+      <div style="background:#f7fafc; border:1px solid #e2e8f0;
+                  border-radius:8px; padding:16px 18px; margin:0 0 24px;">
+        <p style="margin:0 0 10px; font-size:12px; color:#718096;
+                  word-break:break-all;">${mr.final_link}</p>
+        <a href="${mr.final_link}" target="_blank"
+           style="display:inline-block; background:#5a67d8; color:white;
+                  padding:8px 20px; border-radius:6px; text-decoration:none;
+                  font-size:13px; font-weight:600;">
+          Open Link
+        </a>
+      </div>` : '';
+
+    // 6. Build and send the email
+    const html = `
+      <div style="font-family:Arial,sans-serif; max-width:600px; margin:0 auto;">
+
+        <div style="background:#008080; padding:28px 32px; border-radius:10px 10px 0 0;">
+          <h2 style="color:white; margin:0; font-size:22px;">
+            Your Manuscript Files Are Here
+          </h2>
+          <p style="color:rgba(255,255,255,0.85); margin:8px 0 0; font-size:14px;">
+            CHERM — Manuscript Review System
+          </p>
+        </div>
+
+        <div style="background:#ffffff; padding:28px 32px;
+                    border:1px solid #e2e8f0; border-top:none;
+                    border-radius:0 0 10px 10px;">
+
+          <p style="color:#2d3748; font-size:15px; margin:0 0 6px;">
+            Dear <strong>${mr.first_name} ${mr.surname}</strong>,
+          </p>
+          <p style="color:#4a5568; font-size:14px; line-height:1.6; margin:0 0 24px;">
+            Thank you for completing our satisfaction survey. Your reviewed manuscript
+            <strong>${mr.manuscript_title || mr.request_code}</strong>
+            is now ready. Please find your files below.
+          </p>
+
+          ${remarksSection}
+          ${filesSection}
+          ${linkSection}
+
+          <p style="color:#718096; font-size:12px; line-height:1.6; margin:0 0 20px;">
+            <strong>Note:</strong> Download links are hosted on the CHERM server.
+            Please save your files promptly after downloading.
+          </p>
+
+          <hr style="border:none; border-top:1px solid #e2e8f0; margin:0 0 20px;">
+          <p style="color:#a0aec0; font-size:12px; margin:0;">
+            Request Code: <strong>${mr.request_code}</strong><br>
+            CHERM — Southern Luzon State University
+          </p>
+        </div>
+      </div>`;
+
+    await transporter.sendMail({
+      from:    `"CHERM Manuscript Review" <${process.env.EMAIL_USER}>`,
+      to:      mr.email,
+      subject: `Your CHERM Manuscript Files Are Ready — ${mr.request_code}`,
+      html,
+    });
+
+    // 7. Mark as Completed
+    await pool.query(
+      `UPDATE manuscript_review_requests
+       SET status                = 'Completed',
+           survey_submitted      = TRUE,
+           survey_submitted_at   = CURRENT_TIMESTAMP,
+           updated_at            = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [mr.id]
+    );
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error('Manuscript CSS survey submit error:', err);
+    res.status(500).json({ error: 'Failed to process survey submission' });
+  }
+});
+
+/* ============================================================
+   DATA REQUESTS
+   ============================================================ */
 
 app.post('/api/data-requests', async (req, res) => {
   try {
@@ -2789,7 +3293,7 @@ app.post('/api/css-survey/submit', async (req, res) => {
       deliverySection = `
         <p style="margin:0 0 10px; font-size:13px; font-weight:700;
                   color:#4a5568; text-transform:uppercase; letter-spacing:0.04em;">
-          🔗 External Download Link
+          External Download Link
         </p>
         <div style="background:#f7fafc; border:1px solid #e2e8f0;
                     border-radius:8px; padding:16px 18px; margin:0 0 24px;">
@@ -2809,7 +3313,7 @@ app.post('/api/css-survey/submit', async (req, res) => {
                   border-radius:0 8px 8px 0; padding:14px 18px; margin:0 0 24px;">
         <p style="margin:0 0 6px; font-size:12px; font-weight:700; color:#92400e;
                   text-transform:uppercase; letter-spacing:0.05em;">
-          📝 Remarks from CHERM
+          Remarks from CHERM
         </p>
         <p style="margin:0; font-size:14px; color:#78350f; line-height:1.6;">
           ${dr.admin_notes}
@@ -2880,6 +3384,46 @@ app.post('/api/css-survey/submit', async (req, res) => {
   }
 });
 
+app.post('/api/dataset-inquiry', async (req, res) => {
+  const { name, email, description } = req.body;
+
+  if (!name?.trim() || !email?.trim() || !description?.trim()) {
+    return res.status(400).json({ error: 'Name, email, and description are required.' });
+  }
+
+  try {
+    await transporter.sendMail({
+      from:    `"CHERM Data Inquiry" <${process.env.EMAIL_USER}>`,
+      to:      process.env.EMAIL_USER,
+      subject: `Dataset Inquiry from ${name.trim()}`,
+      html: `
+        <h3>Dataset Inquiry</h3>
+        <p><strong>Name:</strong> ${name.trim()}</p>
+        <p><strong>Email:</strong> ${email.trim()}</p>
+        <p><strong>What they're looking for:</strong></p>
+        <blockquote style="border-left:3px solid #008080; padding-left:12px; color:#555;">
+          ${description.trim().replace(/\n/g, '<br>')}
+        </blockquote>
+        <p style="color:#888; font-size:12px;">Sent from the Dataset Catalogue inquiry form.</p>
+      `
+    });
+
+    /* Optional: log to DB — remove the block below if you don't want it */
+    try {
+      await pool.query(
+        `INSERT INTO dataset_inquiries (name, email, description)
+         VALUES ($1, $2, $3)`,
+        [name.trim(), email.trim(), description.trim()]
+      );
+    } catch (_) { /* table may not exist yet — silently skip */ }
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error('Dataset inquiry error:', err);
+    res.status(500).json({ error: 'Failed to send inquiry.' });
+  }
+});
 
 /* ---------- STATIC FILES ---------- */
 app.use(express.static(__dirname));

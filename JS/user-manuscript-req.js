@@ -9,6 +9,7 @@ const STEPS_NORMAL = [
     { key: 'initial_review',    label: 'Initial Review',      sublabel: 'Assessing your submission',     icon: 'fas fa-clipboard-check' },
     { key: 'expert_evaluation', label: 'Expert Evaluation',   sublabel: 'Manuscript being evaluated',    icon: 'fas fa-search'          },
     { key: 'awaiting_approval', label: 'Awaiting Approval',   sublabel: 'Pending your confirmation',     icon: 'fas fa-user-check'      },
+    { key: 'awaiting_survey',   label: 'Client Satisfaction Survey', sublabel: 'Please complete the survey',    icon: 'fas fa-clipboard-list'  },
     { key: 'review_complete',   label: 'Review Complete',     sublabel: 'Review finished successfully',  icon: 'fas fa-check-circle'    }
 ];
 
@@ -33,7 +34,14 @@ function getActiveStepIndex(status, isRejected, hasReviewedFile, userApproved) {
     const key = normalizeStatus(status);
 
     // Completed — all steps done
-    if (key === 'completed') return 4;
+    if (key === 'completed') return 5;
+
+    // Files uploaded — waiting for survey
+    if (key === 'awaiting-survey') return 4;
+
+    // Client approved — admin uploading files
+    if (key === 'approved-—-awaiting-files') return 4;
+
 
     // In-progress + reviewed file link present → Awaiting Approval
     if (key === 'in-progress' && hasReviewedFile && !userApproved) return 3;
@@ -149,8 +157,34 @@ function buildTimeline(review) {
 function buildApprovalCard(review) {
     if (!review.reviewed_file_url) return '';
 
-    const isCompleted = normalizeStatus(review.status) === 'completed';
-    const approved    = !!review.user_approved;
+    const statusKey  = normalizeStatus(review.status);
+    const isCompleted = statusKey === 'completed';
+    const isAwaitingSurvey = statusKey === 'awaiting-survey';
+    const approved = !!review.user_approved;
+
+    if (isAwaitingSurvey) {
+        const baseUrl   = window.location.origin;
+        const surveyUrl = `${baseUrl}/html/css-survey.html?service=manuscript&code=${review.request_code}`;
+        return `
+        <div class="approval-card approved" style="border-left: 4px solid #008080;">
+            <div class="approval-card-icon">
+            <i class="fas fa-clipboard-list" style="color:#008080;"></i>
+            </div>
+            <div class="approval-card-info">
+            <h5>Your files are ready!</h5>
+            <p>Please complete the satisfaction survey to receive your
+                final DOCX, PDF, and document link via email.</p>
+            </div>
+            <div class="approval-actions">
+            <a href="${surveyUrl}"
+                class="approve-btn"
+                style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
+                <i class="fas fa-clipboard-list"></i> Complete Survey
+            </a>
+            </div>
+        </div>
+        `;
+    }
 
     if (approved || isCompleted) {
         // Already approved — show a read-only confirmation

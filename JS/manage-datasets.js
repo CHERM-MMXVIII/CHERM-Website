@@ -36,14 +36,53 @@ let activeCategories = [];
 let activeFormats    = [];
 let filterOpen       = false;
 
-const CAT_LABELS = {
-  hazard:   { label: 'Hazard',         icon: 'fa-triangle-exclamation' },
-  landuse:  { label: 'Land Use',       icon: 'fa-map'                  },
-  topo:     { label: 'Topographic',    icon: 'fa-mountain'             },
-  boundary: { label: 'Boundary',       icon: 'fa-draw-polygon'         },
-  infra:    { label: 'Infrastructure', icon: 'fa-road'                 },
-  env:      { label: 'Environment',    icon: 'fa-leaf'                 },
-};
+const BASE_CATEGORIES = [
+  { key: 'hazard',   label: 'Hazard',         icon: 'fa-triangle-exclamation' },
+  { key: 'landuse',  label: 'Land Use',        icon: 'fa-map'                  },
+  { key: 'topo',     label: 'Topographic',     icon: 'fa-mountain'             },
+  { key: 'boundary', label: 'Boundary',        icon: 'fa-draw-polygon'         },
+  { key: 'infra',    label: 'Infrastructure',  icon: 'fa-road'                 },
+  { key: 'env',      label: 'Environment',     icon: 'fa-leaf'                 },
+];
+
+const CUSTOM_CAT_KEY = 'cherm_custom_categories';
+
+function getCustomCategories() {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_CAT_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function saveCustomCategories(list) {
+  localStorage.setItem(CUSTOM_CAT_KEY, JSON.stringify(list));
+}
+
+function addCustomCategory(label) {
+  const key    = label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+  const custom = getCustomCategories();
+  if (custom.find(c => c.key === key)) return key; // already exists
+  custom.push({ key, label, icon: 'fa-tag', custom: true });
+  saveCustomCategories(custom);
+  return key;
+}
+
+function deleteCustomCategory(key) {
+  const custom = getCustomCategories().filter(c => c.key !== key);
+  saveCustomCategories(custom);
+}
+
+/* Merged list used everywhere */
+function getAllCategories() {
+  return [...BASE_CATEGORIES, ...getCustomCategories()];
+}
+
+/* Build the CAT_LABELS map dynamically */
+function buildCatLabels() {
+  const map = {};
+  getAllCategories().forEach(c => { map[c.key] = { label: c.label, icon: c.icon }; });
+  return map;
+}
+
+let CAT_LABELS = buildCatLabels();
 
 const FILE_ICONS = {
   shp: 'fa-map', tif: 'fa-image', tiff: 'fa-image',
@@ -59,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadUserInfo();
   fetchDatasets();
   buildFilterDropdown();
+  initCategorySelect()
 
   const sidebarToggle    = document.getElementById('sidebarToggle');
   const mobileMenuToggle = document.getElementById('mobileMenuToggle');
@@ -325,6 +365,9 @@ function buildFilterDropdown() {
   const wrapper = document.getElementById('filterDropdownWrapper');
   if (!wrapper) return;
 
+  const allCats = getAllCategories();
+  const catCheckboxes = allCats.map(c => ({ value: c.key, label: c.label }));
+
   wrapper.innerHTML = `
     <button class="filter-dropdown-toggle" id="filterToggleBtn" onclick="toggleFilterDropdown()">
       <i class="fas fa-filter"></i>
@@ -338,14 +381,7 @@ function buildFilterDropdown() {
         <div class="filter-group">
           <div class="filter-group-header"><i class="fas fa-tag"></i> Category</div>
           <div class="filter-group-options" id="filterCatOptions">
-            ${buildCheckboxGroup([
-              { value: 'hazard',   label: 'Hazard'         },
-              { value: 'landuse',  label: 'Land Use'       },
-              { value: 'topo',     label: 'Topographic'    },
-              { value: 'boundary', label: 'Boundary'       },
-              { value: 'infra',    label: 'Infrastructure' },
-              { value: 'env',      label: 'Environment'    },
-            ], 'cat')}
+            ${buildCheckboxGroup(catCheckboxes, 'cat')}
           </div>
         </div>
 
@@ -374,6 +410,98 @@ function buildFilterDropdown() {
       </div>
     </div>
   `;
+}
+
+function buildCategorySelect(selectedKey = '') {
+  const fCat = document.getElementById('fCat');
+  if (!fCat) return;
+
+  const allCats = getAllCategories();
+
+  fCat.innerHTML = `<option value="">Select…</option>` +
+    allCats.map(c => `<option value="${c.key}" ${c.key === selectedKey ? 'selected' : ''}>${c.label}</option>`).join('') +
+    `<option value="__custom__" style="color:#008080; font-weight:600;">+ Add custom…</option>`;
+}
+
+function initCategorySelect() {
+  const fCat = document.getElementById('fCat');
+  if (!fCat) return;
+
+  buildCategorySelect();
+
+  fCat.addEventListener('change', function () {
+    if (this.value !== '__custom__') return;
+    showCustomCatInput(this);
+  });
+}
+
+function showCustomCatInput(selectEl) {
+  /* Prevent duplicate injection */
+  const existing = document.getElementById('customCatRow');
+  if (existing) existing.remove();
+
+  const row = document.createElement('div');
+  row.id = 'customCatRow';
+  row.style.cssText = 'display:flex; gap:8px; align-items:center; margin-top:8px; animation: fadeInRow .15s ease;';
+  row.innerHTML = `
+    <input
+      type="text"
+      id="customCatInput"
+      class="form-control"
+      placeholder="e.g. Socioeconomic"
+      maxlength="40"
+      style="flex:1;"
+      autocomplete="off"
+    />
+    <button type="button" class="btn-save" style="padding:8px 14px; font-size:.82rem;" onclick="confirmCustomCategory()">Add</button>
+    <button type="button" class="btn-cancel" style="padding:8px 10px; font-size:.82rem;" onclick="cancelCustomCategory()">Cancel</button>
+  `;
+
+  const formRow = selectEl.closest('.form-row');
+  formRow.after(row);
+  document.getElementById('customCatInput').focus();
+
+  /* Allow pressing Enter to confirm */
+  document.getElementById('customCatInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); confirmCustomCategory(); }
+    if (e.key === 'Escape') cancelCustomCategory();
+  });
+}
+
+function confirmCustomCategory() {
+  const input = document.getElementById('customCatInput');
+  if (!input) return;
+  const label = input.value.trim();
+
+  if (!label) {
+    input.style.borderColor = '#e74c3c';
+    input.focus();
+    return;
+  }
+
+  const key = addCustomCategory(label);
+
+  /* Refresh CAT_LABELS so renderTable picks it up immediately */
+  CAT_LABELS = buildCatLabels();
+
+  /* Rebuild the select and select the new key */
+  buildCategorySelect(key);
+
+  /* Remove the input row */
+  const row = document.getElementById('customCatRow');
+  if (row) row.remove();
+
+  /* Rebuild filter dropdown so new category shows up in filters */
+  buildFilterDropdown();
+
+  showToast(`Category "${label}" added.`, 'success');
+}
+
+function cancelCustomCategory() {
+  const fCat = document.getElementById('fCat');
+  if (fCat) fCat.value = '';
+  const row = document.getElementById('customCatRow');
+  if (row) row.remove();
 }
 
 function buildCheckboxGroup(options, group) {
@@ -471,6 +599,7 @@ function openAddModal() {
   document.getElementById('formSubmitBtn').innerHTML  = '<i class="fas fa-save"></i> Save Dataset';
   document.getElementById('formDatasetId').value      = '';
   document.getElementById('datasetForm').reset();
+  buildCategorySelect();  
   dsClearFile();
   openFormModal();
 }
@@ -488,7 +617,7 @@ function openEditModal(id) {
 
   document.getElementById('fTitle').value    = d.title       || '';
   document.getElementById('fDesc').value     = d.data_desc   || '';
-  document.getElementById('fCat').value      = d.cat         || '';
+  buildCategorySelect(d.cat || '');
   document.getElementById('fFormat').value   = d.format      || '';
   document.getElementById('fCoverage').value = d.coverage    || '';
   document.getElementById('fScale').value    = d.scale       || '';

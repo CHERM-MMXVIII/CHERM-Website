@@ -794,6 +794,7 @@ async function saveRequestUpdates() {
 
         applyFiltersAndRender();
         updateStats();
+        closeViewModal();
         showToast('Updates saved successfully.', 'success');
     } catch (err) {
         console.error(err);

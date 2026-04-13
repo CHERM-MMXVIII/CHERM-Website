@@ -2294,3 +2294,122 @@ th.sort-desc .sort-icon::after {
     margin-top: 2px;
     flex-shrink: 0;
 }
+
+.mr-final-files-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.mr-final-files-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2d3748;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mr-final-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.badge-ready {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-pending {
+  background: #fff8e1;
+  color: #92400e;
+}
+
+.mr-final-files-hint {
+  font-size: 12px;
+  color: #718096;
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+
+.mr-current-files {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mr-current-file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.mr-current-file-row.file-present { color: #065f46; }
+.mr-current-file-row.file-missing { color: #9b2c2c; }
+.mr-current-file-row a { color: #008080; text-decoration: underline; }
+
+.mr-upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mr-upload-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mr-file-input {
+  padding: 6px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #4a5568;
+  background: #f7fafc;
+  cursor: pointer;
+}
+
+.mr-file-input:hover { border-color: #008080; }
+
+.mr-upload-btn {
+  margin-top: 4px;
+  padding: 10px 20px;
+  background: #008080;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+  align-self: flex-start;
+}
+
+.mr-upload-btn:hover    { background: #006666; }
+.mr-upload-btn:disabled { background: #a0aec0; cursor: not-allowed; }
+
+.mr-required { color: #e53e3e; font-weight: 700; }
+
+.mr-upload-timestamp {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #a0aec0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}

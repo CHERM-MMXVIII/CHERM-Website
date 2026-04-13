@@ -196,10 +196,10 @@ function selectClientType(clientType, scopeModalId = 'serviceModal4') {
     const affiliationLabel = scope.querySelector(isTraining ? '#tr-affiliationLabel' : '#affiliationLabel');
     const affiliationInput = scope.querySelector(isTraining ? '#tr-affiliation'      : '#affiliation');
     if (clientType === 'internal') {
-        if (affiliationLabel) affiliationLabel.textContent = isTraining ? 'Office / College *' : 'Office / College';
+        if (affiliationLabel) affiliationLabel.innerHTML = isTraining ? 'Office / College *' : 'Office / College <span style="color:#dc3545;">*</span>';
         if (affiliationInput) affiliationInput.placeholder = 'e.g. College of Engineering';
     } else {
-        if (affiliationLabel) affiliationLabel.textContent = isTraining ? 'Office / Agency *' : 'Office / Agency';
+        if (affiliationLabel) affiliationLabel.innerHTML = isTraining ? 'Office / Agency *' : 'Office / Agency <span style="color:#dc3545;">*</span>';
         if (affiliationInput) affiliationInput.placeholder = 'e.g. LGU Lucena City';
     }
 
