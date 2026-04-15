@@ -13,6 +13,7 @@
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="/css/main-admin.css">
 </head>
 <body>
@@ -201,151 +202,248 @@
                 </div>
             </section> -->
 
-            <!-- Quick Actions Section -->
-            <section class="quick-actions-section">
+            <!-- STATISTICS SECTION -->
+            <div class="stats-section" style="margin-bottom: 2rem;">
                 <div class="section-header">
-                    <h2>Quick Actions</h2>
-                    <p>Manage your content efficiently</p>
+                    <h2>Requester Statistics</h2>
+                    <p>Overview of all service requests across the system</p>
                 </div>
 
-                <div class="actions-grid">
-                    <div class="action-card" data-action="banner">
-                        <div class="action-icon-wrapper">
-                            <div class="action-icon banner-icon">
-                                <i class="fas fa-plus-circle"></i>
-                            </div>
+                <!-- Service Count Cards -->
+                <div class="stats-grid" style="margin-bottom: 1.5rem;">
+                    <div class="stat-card">
+                        <div class="stat-icon events"><i class="fas fa-map"></i></div>
+                        <div class="stat-info">
+                            <h3 id="statMapCount">—</h3>
+                            <p>Map Requests</p>
                         </div>
-                        <div class="action-content">
-                            <h3>Update Hero Banner</h3>
-                            <p>Change the main banner image and content</p>
-                        </div>
-                        <button class="action-btn" onclick="location.href='/admin/banner'">
-                            <span>Update Banner</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
                     </div>
-
-                    <div class="action-card featured" data-action="new-event">
-                        <div class="featured-badge">
-                            <i class="fas fa-star"></i>
-                            <span>Most Used</span>
+                    <div class="stat-card">
+                        <div class="stat-icon banners"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <div class="stat-info">
+                            <h3 id="statTrainingCount">—</h3>
+                            <p>Training Requests</p>
                         </div>
-                        <div class="action-icon-wrapper">
-                            <div class="action-icon event-icon">
-                                <i class="fas fa-plus-circle"></i>
-                            </div>
-                        </div>
-                        <div class="action-content">
-                            <h3>Add New Event and Update</h3>
-                            <p>Post new event with images and details</p>
-                        </div>
-                        <button class="action-btn" onclick="location.href='/admin'">
-                            <span>Create Event</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
                     </div>
-
-                    <div class="action-card" data-action="view-events">
-                        <div class="action-icon-wrapper">
-                            <div class="action-icon view-icon">
-                                <i class="fas fa-list-ul"></i>
-                            </div>
+                    <div class="stat-card">
+                        <div class="stat-icon visitors"><i class="fas fa-file-alt"></i></div>
+                        <div class="stat-info">
+                            <h3 id="statManuscriptCount">—</h3>
+                            <p>Manuscript Reviews</p>
                         </div>
-                        <div class="action-content">
-                            <h3>View All Events and Updates</h3>
-                            <p>Browse and manage all published events</p>
-                        </div>
-                        <button class="action-btn" onclick="location.href='/admin/events'">
-                            <span>View Events</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
                     </div>
-
-                    <div class="action-card" data-action="view-banners">
-                        <div class="action-icon-wrapper">
-                            <div class="action-icon banners-icon">
-                                <i class="fa-solid fa-photo-film"></i>
-                            </div>
+                    <div class="stat-card">
+                        <div class="stat-icon engagement"><i class="fas fa-database"></i></div>
+                        <div class="stat-info">
+                            <h3 id="statDataCount">—</h3>
+                            <p>Data Requests</p>
                         </div>
-                        <div class="action-content">
-                            <h3>View All Banners</h3>
-                            <p>Browse and manage banner gallery</p>
-                        </div>
-                        <button class="action-btn" onclick="location.href='/admin/manage-banners'">
-                            <span>View Banners</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
                     </div>
                 </div>
 
-                <div class="section-header">
-                    <h2>Services</h2>
-                    <p>Manage your services</p>
+                <!-- Quick Actions Section -->
+                <section class="quick-actions-section">
+                    <div class="section-header">
+                        <h2>Quick Actions</h2>
+                        <p>Manage your content efficiently</p>
+                    </div>
+
+                    <div class="actions-grid">
+                        <div class="action-card" data-action="banner">
+                            <div class="action-icon-wrapper">
+                                <div class="action-icon banner-icon">
+                                    <i class="fas fa-plus-circle"></i>
+                                </div>
+                            </div>
+                            <div class="action-content">
+                                <h3>Update Hero Banner</h3>
+                                <p>Change the main banner image and content</p>
+                            </div>
+                            <button class="action-btn" onclick="location.href='/admin/banner'">
+                                <span>Update Banner</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <div class="action-card featured" data-action="new-event">
+                            <div class="featured-badge">
+                                <i class="fas fa-star"></i>
+                                <span>Most Used</span>
+                            </div>
+                            <div class="action-icon-wrapper">
+                                <div class="action-icon event-icon">
+                                    <i class="fas fa-plus-circle"></i>
+                                </div>
+                            </div>
+                            <div class="action-content">
+                                <h3>Add New Event and Update</h3>
+                                <p>Post new event with images and details</p>
+                            </div>
+                            <button class="action-btn" onclick="location.href='/admin'">
+                                <span>Create Event</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <div class="action-card" data-action="view-events">
+                            <div class="action-icon-wrapper">
+                                <div class="action-icon view-icon">
+                                    <i class="fas fa-list-ul"></i>
+                                </div>
+                            </div>
+                            <div class="action-content">
+                                <h3>View All Events and Updates</h3>
+                                <p>Browse and manage all published events</p>
+                            </div>
+                            <button class="action-btn" onclick="location.href='/admin/events'">
+                                <span>View Events</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <div class="action-card" data-action="view-banners">
+                            <div class="action-icon-wrapper">
+                                <div class="action-icon banners-icon">
+                                    <i class="fa-solid fa-photo-film"></i>
+                                </div>
+                            </div>
+                            <div class="action-content">
+                                <h3>View All Banners</h3>
+                                <p>Browse and manage banner gallery</p>
+                            </div>
+                            <button class="action-btn" onclick="location.href='/admin/manage-banners'">
+                                <span>View Banners</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="section-header">
+                        <h2>Services</h2>
+                        <p>Manage your services</p>
+                    </div>
+
+                    <div class="actions-grid">
+                        <div class="action-card" data-action="map-requests">
+                            <div class="action-icon-wrapper">
+                                <div class="action-icon map-icon">
+                                    <i class="fas fa-map-marked-alt"></i>
+                                </div>
+                            </div>
+                            <div class="action-content">
+                                <h3>View Map Requests</h3>
+                                <p>Review and manage submitted map requests</p>
+                            </div>
+                            <button class="action-btn" onclick="location.href='/admin/map-requests'">
+                                <span>View Map Requests</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                        <div class="action-card" data-action="training-requests">
+                            <div class="action-icon-wrapper">
+                                <div class="action-icon training-icon">
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                </div>
+                            </div>
+                            <div class="action-content">
+                                <h3>View Training Requests</h3>
+                                <p>Review and manage submitted training requests</p>
+                            </div>
+                            <button class="action-btn" onclick="location.href='/admin/training-requests'">
+                                <span>View Training Requests</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                        <div class="action-card" data-action="manuscript-requests">
+                            <div class="action-icon-wrapper">
+                                <div class="action-icon manuscript-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                            </div>
+                            <div class="action-content">
+                                <h3>View Manuscript Review Requests</h3>
+                                <p>Review and manage manuscript review requests</p>
+                            </div>
+                            <button class="action-btn" onclick="location.href='/admin/manuscript-requests'">
+                                <span>View Requests</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                        <div class="action-card" data-action="dataset-requests">
+                            <div class="action-icon-wrapper">
+                                <div class="action-icon dataset-icon">
+                                    <i class="fa-solid fa-database"></i>
+                                </div>
+                            </div>
+                            <div class="action-content">
+                                <h3>View Data Requests</h3>
+                                <p>Review and manage data requests</p>
+                            </div>
+                            <button class="action-btn" onclick="location.href='/admin/data-requests'">
+                                <span>View Requests</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div> 
+                    </div>
+                </section>
+
+                <!-- Charts Row -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+
+                    <!-- Pie Chart: Requests by Service -->
+                    <div class="recent-activity">
+                        <div class="section-header">
+                            <div>
+                            <h2>Requests by Service</h2>
+                            <p>Distribution of all service types</p>
+                            </div>
+                        </div>
+                        <div style="position: relative; height: 250px; display: flex; align-items: center; justify-content: center;">
+                            <canvas id="serviceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Doughnut Chart: By Client Type -->
+                    <div class="recent-activity">
+                        <div class="section-header">
+                            <div>
+                            <h2>By Client Type</h2>
+                            <p>Who is requesting the most?</p>
+                            </div>
+                        </div>
+                        <div style="position: relative; height: 250px; display: flex; align-items: center; justify-content: center;">
+                            <canvas id="clientTypeChart"></canvas>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div class="actions-grid">
-                    <div class="action-card" data-action="map-requests">
-                        <div class="action-icon-wrapper">
-                            <div class="action-icon map-icon">
-                                <i class="fas fa-map-marked-alt"></i>
-                            </div>
+                <!-- Bar Chart: Top Affiliations -->
+                <div class="recent-activity" style="margin-bottom: 1.5rem;">
+                    <div class="section-header">
+                        <div>
+                            <h2>Top Affiliations</h2>
+                            <p>Top 5 most active departments or organizations</p>
                         </div>
-                        <div class="action-content">
-                            <h3>View Map Requests</h3>
-                            <p>Review and manage submitted map requests</p>
-                        </div>
-                        <button class="action-btn" onclick="location.href='/admin/map-requests'">
-                            <span>View Map Requests</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
                     </div>
-                    <div class="action-card" data-action="training-requests">
-                        <div class="action-icon-wrapper">
-                            <div class="action-icon training-icon">
-                                <i class="fas fa-chalkboard-teacher"></i>
-                            </div>
-                        </div>
-                        <div class="action-content">
-                            <h3>View Training Requests</h3>
-                            <p>Review and manage submitted training requests</p>
-                        </div>
-                        <button class="action-btn" onclick="location.href='/admin/training-requests'">
-                            <span>View Training Requests</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
+                    <div style="position: relative; height: 280px;">
+                        <canvas id="affiliationChart"></canvas>
                     </div>
-                    <div class="action-card" data-action="manuscript-requests">
-                        <div class="action-icon-wrapper">
-                            <div class="action-icon manuscript-icon">
-                                <i class="fas fa-file-alt"></i>
-                            </div>
-                        </div>
-                        <div class="action-content">
-                            <h3>View Manuscript Review Requests</h3>
-                            <p>Review and manage manuscript review requests</p>
-                        </div>
-                        <button class="action-btn" onclick="location.href='/admin/manuscript-requests'">
-                            <span>View Requests</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-                    <div class="action-card" data-action="dataset-requests">
-                        <div class="action-icon-wrapper">
-                            <div class="action-icon dataset-icon">
-                                <i class="fa-solid fa-database"></i>
-                            </div>
-                        </div>
-                        <div class="action-content">
-                            <h3>View Data Requests</h3>
-                            <p>Review and manage data requests</p>
-                        </div>
-                        <button class="action-btn" onclick="location.href='/admin/data-requests'">
-                            <span>View Requests</span>
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div> 
                 </div>
-            </section>
+
+                <!-- Line Chart: Requests Over Time -->
+                <div class="recent-activity">
+                    <div class="section-header">
+                        <div>
+                            <h2>Requests Over Time</h2>
+                            <p>Monthly request volume across all services</p>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 280px;">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+            </div>
 
             <!-- Recent Activity -->
             <section class="recent-activity">
@@ -359,6 +457,8 @@
                 </div>
             </section>
         </div>
+        
+
         <div class="copyright">
             © 2026 Southern Luzon State University - CHERM. All rights reserved.
         </div>

@@ -268,21 +268,21 @@ function animateCounter(element, target, duration = 2000) {
 }
 
 // Animate counters when they come into view
-const statCounters = document.querySelectorAll('.stat-info h3');
-const counterObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting && !entry.target.dataset.animated) {
-            const targetValue = entry.target.textContent.trim();
-            entry.target.textContent = '0';
-            animateCounter(entry.target, targetValue);
-            entry.target.dataset.animated = 'true';
-        }
-    });
-}, { threshold: 0.5 });
+// const statCounters = document.querySelectorAll('.stat-info h3');
+// const counterObserver = new IntersectionObserver((entries) => {
+//     entries.forEach(entry => {
+//         if (entry.isIntersecting && !entry.target.dataset.animated) {
+//             const targetValue = entry.target.textContent.trim();
+//             entry.target.textContent = '0';
+//             animateCounter(entry.target, targetValue);
+//             entry.target.dataset.animated = 'true';
+//         }
+//     });
+// }, { threshold: 0.5 });
 
-statCounters.forEach(counter => {
-    counterObserver.observe(counter);
-});
+// statCounters.forEach(counter => {
+//     counterObserver.observe(counter);
+// });
 
 // ==================== LOGOUT FUNCTIONALITY ====================
 const logoutBtn = document.querySelector('.logout-btn');
@@ -464,4 +464,204 @@ function formatRelativeTime(timestamp) {
 // Call this on page load
 document.addEventListener('DOMContentLoaded', () => {
     refreshActivity();
+});
+
+// ==================== STATISTICS ====================
+let serviceChartInstance    = null;
+let clientTypeChartInstance = null;
+let affiliationChartInstance = null;
+let timelineChartInstance   = null;
+
+async function loadStatistics() {
+  try {
+    const res  = await fetch('/api/statistics', { credentials: 'include' });
+    const data = await res.json();
+
+    const TEAL_PALETTE = [
+      '#008080', '#0e9c9c', '#20c997', '#48d1cc',
+      '#80cbc4', '#b2dfdb', '#034955', '#005f5f'
+    ];
+
+    // ── Service count cards ──────────────────────────────
+    const serviceMap = {
+      'Map Request':       'statMapCount',
+      'Training Request':  'statTrainingCount',
+      'Manuscript Review': 'statManuscriptCount',
+      'Data Request':      'statDataCount'
+    };
+
+    // Set all to 0 first, mark as animated to block the counter observer
+    Object.values(serviceMap).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = '0';
+        el.dataset.animated = 'true'; // 👈 block counter observer
+      }
+    });
+
+    // Now fill real values
+    data.byService.forEach(row => {
+      const id = serviceMap[row.service];
+      if (!id) return;
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = row.total;
+        el.dataset.animated = 'true';
+      }
+    });
+
+    // ── Pie Chart: by Service ────────────────────────────
+    const serviceCtx = document.getElementById('serviceChart');
+    if (serviceCtx) {
+      if (serviceChartInstance) serviceChartInstance.destroy();
+      serviceChartInstance = new Chart(serviceCtx, {
+        type: 'pie',
+        data: {
+          labels: data.byService.map(r => r.service),
+          datasets: [{
+            data:            data.byService.map(r => r.total),
+            backgroundColor: TEAL_PALETTE,
+            borderColor:     '#fff',
+            borderWidth:     2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } }
+          }
+        }
+      });
+    }
+
+    // ── Doughnut Chart: by Client Type ───────────────────
+    const clientCtx = document.getElementById('clientTypeChart');
+    if (clientCtx) {
+      if (clientTypeChartInstance) clientTypeChartInstance.destroy();
+      clientTypeChartInstance = new Chart(clientCtx, {
+        type: 'doughnut',
+        data: {
+          labels: data.byClientType.map(r => r.client_type || 'Unknown'),
+          datasets: [{
+            data:            data.byClientType.map(r => r.total),
+            backgroundColor: TEAL_PALETTE,
+            borderColor:     '#fff',
+            borderWidth:     2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } }
+          }
+        }
+      });
+    }
+
+    // ── Bar Chart: Top Affiliations ──────────────────────
+    const affCtx = document.getElementById('affiliationChart');
+    if (affCtx) {
+      if (affiliationChartInstance) affiliationChartInstance.destroy();
+      affiliationChartInstance = new Chart(affCtx, {
+        type: 'bar',
+        data: {
+          labels: data.byAffiliation.map(r => r.affiliation || 'Unknown'),
+          datasets: [{
+            label:           'Total Requests',
+            data:            data.byAffiliation.map(r => r.total),
+            backgroundColor: '#008080',
+            borderRadius:    6,
+            borderSkipped:   false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { stepSize: 1 },
+              grid: { color: 'rgba(0,0,0,0.05)' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                // Truncate long affiliation names on the axis
+                callback: function(val) {
+                  const label = this.getLabelForValue(val);
+                  return label.length > 20 ? label.substring(0, 18) + '…' : label;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ── Line Chart: Requests Over Time ───────────────────
+    const timeCtx = document.getElementById('timelineChart');
+    if (timeCtx && data.byMonth) {
+
+      // Build a sorted unique list of months
+      const months   = [...new Set(data.byMonth.map(r => r.month))].sort();
+      const services = [...new Set(data.byMonth.map(r => r.service))];
+
+      const serviceColors = {
+        'Map Request':       '#008080',
+        'Training Request':  '#0e9c9c',
+        'Manuscript Review': '#20c997',
+        'Data Request':      '#034955'
+      };
+
+      const datasets = services.map(service => ({
+        label:       service,
+        data:        months.map(month => {
+          const found = data.byMonth.find(r => r.month === month && r.service === service);
+          return found ? parseInt(found.total) : 0;
+        }),
+        borderColor:     serviceColors[service] || '#008080',
+        backgroundColor: (serviceColors[service] || '#008080') + '22',
+        fill:            true,
+        tension:         0.4,
+        pointRadius:     4,
+        pointHoverRadius: 6
+      }));
+
+      if (timelineChartInstance) timelineChartInstance.destroy();
+      timelineChartInstance = new Chart(timeCtx, {
+        type: 'line',
+        data: { labels: months, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { stepSize: 1 },
+              grid: { color: 'rgba(0,0,0,0.05)' }
+            },
+            x: {
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+  } catch (err) {
+    console.error('Failed to load statistics:', err);
+  }
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadStatistics();
 });

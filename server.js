@@ -2010,7 +2010,7 @@ app.post('/api/user/manuscript-requests/:code/approve', async (req, res) => {
     await transporter.sendMail({
       from:    `"CHERM System" <${process.env.EMAIL_USER}>`,
       to:      process.env.EMAIL_USER,
-      subject: `✅ Manuscript Approved — Upload Final Files (${code})`,
+      subject: `Manuscript Revision Approved(${code})`,
       html: `
         <div style="font-family:Arial,sans-serif; max-width:600px; margin:0 auto;">
  
@@ -3422,6 +3422,52 @@ app.post('/api/dataset-inquiry', async (req, res) => {
   } catch (err) {
     console.error('Dataset inquiry error:', err);
     res.status(500).json({ error: 'Failed to send inquiry.' });
+  }
+});
+
+app.get('/api/statistics', requireAuth, async (req, res) => {
+  try {
+    const serviceCount = await pool.query(`
+      SELECT service, COUNT(*) AS total
+      FROM all_requesters_view
+      GROUP BY service ORDER BY total DESC
+    `);
+
+    const clientTypeCount = await pool.query(`
+      SELECT client_type, COUNT(*) AS total
+      FROM all_requesters_view
+      GROUP BY client_type ORDER BY total DESC
+    `);
+
+    const affiliationCount = await pool.query(`
+      SELECT affiliation, COUNT(*) AS total
+      FROM all_requesters_view
+      GROUP BY affiliation ORDER BY total DESC
+      LIMIT 5
+    `);
+
+    // Monthly breakdown per service for the last 6 months
+    const monthlyData = await pool.query(`
+      SELECT
+        TO_CHAR(created_at, 'YYYY-MM') AS month,
+        service,
+        COUNT(*) AS total
+      FROM all_requesters_view
+      WHERE created_at >= NOW() - INTERVAL '6 months'
+      GROUP BY month, service
+      ORDER BY month ASC
+    `);
+
+    res.json({
+      byService:     serviceCount.rows,
+      byClientType:  clientTypeCount.rows,
+      byAffiliation: affiliationCount.rows,
+      byMonth:       monthlyData.rows
+    });
+
+  } catch (err) {
+    console.error('Statistics error:', err);
+    res.status(500).json({ error: 'Failed to fetch statistics' });
   }
 });
 
