@@ -1,41 +1,24 @@
 // ==================== LOAD LOGGED-IN USER INFO ====================
 document.addEventListener('DOMContentLoaded', async () => {
     const emailEl = document.getElementById('userEmail');
-    const nameEl = document.getElementById('userFullName');
+    const nameEl  = document.getElementById('userFullName');
     const firstEl = document.getElementById('userFirstName');
 
     if (!emailEl && !nameEl && !firstEl) return;
 
     try {
-        const res = await fetch('/api/me', {
-            credentials: 'include'
-        });
-
-        if (!res.ok) {
-            window.location.href = '/login';
-            return;
-        }
-
+        const res = await fetch('/api/me', { credentials: 'include' });
+        if (!res.ok) { window.location.href = '/login'; return; }
         const data = await res.json();
-
-        if (emailEl) {
-            emailEl.textContent = data.email;
-        }
-
-        if (nameEl) {
-            nameEl.textContent = `${data.firstName} ${data.lastName}`;
-        }
-
-        if (firstEl) {
-            firstEl.textContent = `${data.firstName}!`;
-        }
-
+        if (emailEl) emailEl.textContent = data.email;
+        if (nameEl)  nameEl.textContent  = `${data.firstName} ${data.lastName}`;
+        if (firstEl) firstEl.textContent = `${data.firstName}!`;
     } catch (err) {
         console.error('Failed to load user info:', err);
     }
 });
 
-// ==================== MODAL FUNCTION ====================
+// ==================== MODAL ====================
 function showConfirmModal(title, message, onConfirm) {
     const modalHTML = `
         <div class="modal" id="confirmModal">
@@ -47,21 +30,14 @@ function showConfirmModal(title, message, onConfirm) {
                     <button class="btn-primary" onclick="confirmAction()">Yes, Continue</button>
                 </div>
             </div>
-        </div>
-    `;
-    
+        </div>`;
     const existing = document.getElementById('confirmModal');
     if (existing) existing.remove();
-    
     document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
-    // CRITICAL: Make sure modal is visible
     setTimeout(() => {
         const modal = document.getElementById('confirmModal');
         if (modal) modal.classList.remove('hidden');
     }, 10);
-    
-    // Store the callback
     window.confirmModalCallback = onConfirm;
 }
 
@@ -72,18 +48,15 @@ function closeConfirmModal() {
 }
 
 function confirmAction() {
-    if (window.confirmModalCallback) {
-        window.confirmModalCallback();
-    }
+    if (window.confirmModalCallback) window.confirmModalCallback();
     closeConfirmModal();
 }
 
 // ==================== SIDEBAR TOGGLE ====================
-const sidebar = document.getElementById('sidebar');
-const sidebarToggle = document.getElementById('sidebarToggle');
-const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+const sidebar            = document.getElementById('sidebar');
+const sidebarToggle      = document.getElementById('sidebarToggle');
+const mobileMenuToggle   = document.getElementById('mobileMenuToggle');
 
-// Desktop sidebar collapse
 if (sidebarToggle) {
     sidebarToggle.addEventListener('click', () => {
         if (sidebar) {
@@ -93,16 +66,12 @@ if (sidebarToggle) {
     });
 }
 
-// Mobile sidebar toggle
 if (mobileMenuToggle) {
     mobileMenuToggle.addEventListener('click', () => {
-        if (sidebar) {
-            sidebar.classList.toggle('active');
-        }
+        if (sidebar) sidebar.classList.toggle('active');
     });
 }
 
-// Close sidebar when clicking outside on mobile
 document.addEventListener('click', (e) => {
     if (window.innerWidth <= 1024 && sidebar) {
         if (!sidebar.contains(e.target) && mobileMenuToggle && !mobileMenuToggle.contains(e.target)) {
@@ -111,202 +80,49 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Restore sidebar state from localStorage (only if explicitly collapsed before)
 window.addEventListener('DOMContentLoaded', () => {
     if (!sidebar) return;
-    
-    // Only apply collapsed state if it was previously set and we're on desktop
     const sidebarState = localStorage.getItem('sidebarCollapsed');
     if (sidebarState === 'true' && window.innerWidth > 1024) {
         sidebar.classList.add('collapsed');
-    } else {
-        // Ensure sidebar is expanded on load for desktop
-        if (window.innerWidth > 1024) {
-            sidebar.classList.remove('collapsed');
-        }
+    } else if (window.innerWidth > 1024) {
+        sidebar.classList.remove('collapsed');
     }
 });
 
 // ==================== NAVIGATION ====================
 const navItems = document.querySelectorAll('.nav-item');
-
 navItems.forEach(item => {
-    item.addEventListener('click', function(e) {
-        // Remove active class from all items
-        navItems.forEach(nav => nav.classList.remove('active'));
-        
-        // Add active class to clicked item
+    item.addEventListener('click', function () {
+        navItems.forEach(n => n.classList.remove('active'));
         this.classList.add('active');
     });
 });
 
-// ==================== ACTION CARDS ====================
-const actionCards = document.querySelectorAll('.action-card');
-
-actionCards.forEach(card => {
-    const actionBtn = card.querySelector('.action-btn');
-    const actionType = card.dataset.action;
-    
-    if (!actionBtn) return;
-    
-    // Card click handler
-    card.addEventListener('click', (e) => {
-        if (!e.target.closest('.action-btn')) {
-            actionBtn.click();
-        }
-    });
-    
-    // Button click handler
-    actionBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        handleAction(actionType);
-    });
-});
-
-// ==================== ACTION HANDLERS ====================
-function handleAction(actionType) {
-    switch(actionType) {
-        case 'banner':
-            showToast('Redirecting to banner management...');
-            setTimeout(() => {
-                // window.location.href = '/admin/banners/update';
-                console.log('Navigate to: /admin/banners/update');
-            }, 1000);
-            break;
-            
-        case 'new-event':
-            showToast('Opening event creation form...');
-            setTimeout(() => {
-                // window.location.href = '/admin/events/create';
-                console.log('Navigate to: /admin/events/create');
-            }, 1000);
-            break;
-            
-        case 'view-events':
-            showToast('Loading events list...');
-            setTimeout(() => {
-                // window.location.href = '/admin/events';
-                console.log('Navigate to: /admin/events');
-            }, 1000);
-            break;
-            
-        case 'view-banners':
-            showToast('Loading banners gallery...');
-            setTimeout(() => {
-                // window.location.href = '/admin/banners';
-                console.log('Navigate to: /admin/banners');
-            }, 1000);
-            break;
-            
-        default:
-            showToast('Action not configured');
-    }
-}
-
-// ==================== TOAST NOTIFICATION ====================
+// ==================== TOAST ====================
 function showToast(message, duration = 3000) {
     const toast = document.getElementById('toast');
     if (!toast) return;
-    
-    const toastMessage = toast.querySelector('span');
-    if (!toastMessage) return;
-    
-    toastMessage.textContent = message;
+    const span = toast.querySelector('span');
+    if (span) span.textContent = message;
     toast.classList.add('show');
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, duration);
+    setTimeout(() => toast.classList.remove('show'), duration);
 }
 
-// ==================== ANIMATIONS ON SCROLL ====================
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, observerOptions);
-
-// Observe all cards
-const cardsToObserve = document.querySelectorAll('.stat-card, .action-card, .activity-item');
-cardsToObserve.forEach(el => {
-    if (el) {
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(20px)';
-        el.style.transition = 'all 0.6s ease-out';
-        observer.observe(el);
-    }
-});
-
-// ==================== STATS COUNTER ANIMATION ====================
-function animateCounter(element, target, duration = 2000) {
-    let current = 0;
-    const increment = target / (duration / 16);
-    const isPercentage = target.toString().includes('%');
-    const numericTarget = parseFloat(target);
-    
-    const timer = setInterval(() => {
-        current += increment;
-        if (current >= numericTarget) {
-            current = numericTarget;
-            clearInterval(timer);
-        }
-        
-        if (isPercentage) {
-            element.textContent = Math.round(current) + '%';
-        } else {
-            element.textContent = Math.round(current).toLocaleString();
-        }
-    }, 16);
-}
-
-// Animate counters when they come into view
-// const statCounters = document.querySelectorAll('.stat-info h3');
-// const counterObserver = new IntersectionObserver((entries) => {
-//     entries.forEach(entry => {
-//         if (entry.isIntersecting && !entry.target.dataset.animated) {
-//             const targetValue = entry.target.textContent.trim();
-//             entry.target.textContent = '0';
-//             animateCounter(entry.target, targetValue);
-//             entry.target.dataset.animated = 'true';
-//         }
-//     });
-// }, { threshold: 0.5 });
-
-// statCounters.forEach(counter => {
-//     counterObserver.observe(counter);
-// });
-
-// ==================== LOGOUT FUNCTIONALITY ====================
+// ==================== LOGOUT ====================
 const logoutBtn = document.querySelector('.logout-btn');
-
 if (logoutBtn) {
     logoutBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        
         showConfirmModal(
             'Logout Confirmation',
             'Are you sure you want to logout?',
             async () => {
                 showToast('Logging out...', 1000);
-                
-                // Send POST request to logout
                 try {
-                    await fetch('/logout', {
-                        method: 'POST',
-                        credentials: 'include'
-                    });
-                    
+                    await fetch('/logout', { method: 'POST', credentials: 'include' });
                     window.location.href = '/login';
                 } catch (err) {
-                    console.error('Logout error:', err);
                     window.location.href = '/login';
                 }
             }
@@ -314,354 +130,227 @@ if (logoutBtn) {
     });
 }
 
-
 // ==================== VIEW ALL ACTIVITY ====================
 const viewAllBtn = document.querySelector('.view-all-btn');
-
 if (viewAllBtn) {
     viewAllBtn.addEventListener('click', () => {
         showToast('Loading all activities...');
-        // window.location.href = '/admin/activity';
-        console.log('Navigate to: /admin/activity');
     });
 }
 
-// ==================== RESPONSIVE ADJUSTMENTS ====================
+// ==================== RESPONSIVE ====================
 function handleResize() {
-    const width = window.innerWidth;
-    
-    if (width > 1024) {
-        sidebar.classList.remove('active');
-    }
+    if (window.innerWidth > 1024 && sidebar) sidebar.classList.remove('active');
 }
-
 window.addEventListener('resize', handleResize);
 
-// ==================== ACTIVITY TIMESTAMP UPDATE ====================
-function updateActivityTimestamps() {
-    const activityTimes = document.querySelectorAll('.activity-time');
-    
-    activityTimes.forEach(timeElement => {
-        // This would update relative time stamps in a real application
-        // e.g., "2 hours ago" -> "3 hours ago" after an hour
-        console.log('Update timestamp:', timeElement.textContent);
-    });
-}
-
-// Update timestamps every minute
-setInterval(updateActivityTimestamps, 60000);
-
-// ==================== FEATURED CARD PULSE ====================
-const featuredCard = document.querySelector('.action-card.featured');
-
-if (featuredCard) {
-    setInterval(() => {
-        featuredCard.style.transform = 'scale(1.02)';
-        setTimeout(() => {
-            featuredCard.style.transform = 'scale(1)';
-        }, 200);
-    }, 5000);
-}
-
-
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Dashboard initialized');
-    
-    document.documentElement.style.scrollBehavior = 'smooth';
-    
-    initializeComponents();
-    refreshActivity();
-});
-
-function initializeComponents() {
-    console.log('Components initialized');
-}
-
-// ==================== ERROR HANDLING ====================
-window.addEventListener('error', (e) => {
-    console.error('An error occurred:', e.error);
-    // Don't show toast for every error - only log to console
-});
-
-// ==================== PERFORMANCE MONITORING ====================
-if ('performance' in window) {
-    window.addEventListener('load', () => {
-        const perfData = performance.getEntriesByType('navigation')[0];
-        console.log('Page load time:', perfData.loadEventEnd - perfData.fetchStart, 'ms');
-    });
-}
-
+// ==================== RECENT ACTIVITY ====================
 async function refreshActivity() {
     try {
-        const res = await fetch('/api/activity/recent', { credentials: 'include' });
+        const res  = await fetch('/api/activity/recent', { credentials: 'include' });
         const data = await res.json();
-
         const container = document.querySelector('.activity-list');
         if (!container) return;
-
-        container.innerHTML = ''; // Clear old items
+        container.innerHTML = '';
 
         data.activities.forEach(act => {
-            // Determine icon class based on action type
             let iconClass = 'info';
-            let iconHTML = '<i class="fas fa-info-circle"></i>';
+            let iconHTML  = '<i class="fas fa-info-circle"></i>';
+            if (act.action_type === 'create') { iconClass = 'success'; iconHTML = '<i class="fas fa-check"></i>'; }
+            if (act.action_type === 'update') { iconClass = 'info';    iconHTML = '<i class="fas fa-edit"></i>'; }
+            if (act.action_type === 'delete') { iconClass = 'warning'; iconHTML = '<i class="fas fa-trash"></i>'; }
 
-            switch(act.action_type) {
-                case 'create':
-                    iconClass = 'success';
-                    iconHTML = '<i class="fas fa-check"></i>';
-                    break;
-                case 'update':
-                    iconClass = 'info';
-                    iconHTML = '<i class="fas fa-edit"></i>';
-                    break;
-                case 'delete':
-                    iconClass = 'warning';
-                    iconHTML = '<i class="fas fa-trash"></i>';
-                    break;
-            }
-
-            // Create activity item element
             const item = document.createElement('div');
             item.classList.add('activity-item');
-
             item.innerHTML = `
-                <div class="activity-icon ${iconClass}">
-                    ${iconHTML}
-                </div>
+                <div class="activity-icon ${iconClass}">${iconHTML}</div>
                 <div class="activity-details">
                     <h4>${capitalizeAction(act.action_type)} ${act.entity_type}</h4>
                     <p>${act.message}</p>
                     <span class="activity-time">${formatRelativeTime(act.created_at)}</span>
-                </div>
-            `;
-
+                </div>`;
             container.appendChild(item);
         });
-
     } catch (err) {
         console.error('Failed to load activity logs:', err);
     }
 }
 
-// Helper to capitalize first letter
-function capitalizeAction(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
+function capitalizeAction(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
 
-// Helper to convert timestamp to relative time
 function formatRelativeTime(timestamp) {
-    const now = new Date();
-    const created = new Date(timestamp);
-    const diff = Math.floor((now - created) / 1000); // seconds
-
-    if (diff < 60) return `${diff} seconds ago`;
+    const diff = Math.floor((new Date() - new Date(timestamp)) / 1000);
+    if (diff < 60)   return `${diff} seconds ago`;
     if (diff < 3600) return `${Math.floor(diff/60)} minutes ago`;
-    if (diff < 86400) return `${Math.floor(diff/3600)} hours ago`;
+    if (diff < 86400)return `${Math.floor(diff/3600)} hours ago`;
     return `${Math.floor(diff/86400)} days ago`;
 }
 
-// Call this on page load
-document.addEventListener('DOMContentLoaded', () => {
-    refreshActivity();
-});
+setInterval(refreshActivity, 60000);
 
 // ==================== STATISTICS ====================
-let serviceChartInstance    = null;
-let clientTypeChartInstance = null;
+let serviceChartInstance     = null;
+let clientTypeChartInstance  = null;
 let affiliationChartInstance = null;
-let timelineChartInstance   = null;
+let timelineChartInstance    = null;
+
+// Map service names → stat card IDs and service badge IDs
+const SERVICE_MAP = {
+    'Map Request':       { statId: 'statMapCount',        badgeId: 'svcMapBadge' },
+    'Training Request':  { statId: 'statTrainingCount',   badgeId: 'svcTrainingBadge' },
+    'Manuscript Review': { statId: 'statManuscriptCount', badgeId: 'svcManuscriptBadge' },
+    'Data Request':      { statId: 'statDataCount',       badgeId: 'svcDataBadge' },
+};
 
 async function loadStatistics() {
-  try {
-    const res  = await fetch('/api/statistics', { credentials: 'include' });
-    const data = await res.json();
+    try {
+        const res  = await fetch('/api/statistics', { credentials: 'include' });
+        const data = await res.json();
 
-    const TEAL_PALETTE = [
-      '#008080', '#0e9c9c', '#20c997', '#48d1cc',
-      '#80cbc4', '#b2dfdb', '#034955', '#005f5f'
-    ];
+        const TEAL_PALETTE = [
+            '#008080', '#0e9c9c', '#20c997', '#48d1cc',
+            '#80cbc4', '#b2dfdb', '#034955', '#005f5f'
+        ];
 
-    // ── Service count cards ──────────────────────────────
-    const serviceMap = {
-      'Map Request':       'statMapCount',
-      'Training Request':  'statTrainingCount',
-      'Manuscript Review': 'statManuscriptCount',
-      'Data Request':      'statDataCount'
-    };
+        // ── Stat pills + service badges ──────────────────────────────
+        // Reset all to 0 first
+        Object.values(SERVICE_MAP).forEach(({ statId, badgeId }) => {
+            const statEl  = document.getElementById(statId);
+            const badgeEl = document.getElementById(badgeId);
+            if (statEl)  { statEl.textContent  = '0'; statEl.dataset.animated = 'true'; }
+            if (badgeEl) badgeEl.textContent = '0';
+        });
 
-    // Set all to 0 first, mark as animated to block the counter observer
-    Object.values(serviceMap).forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.textContent = '0';
-        el.dataset.animated = 'true'; // 👈 block counter observer
-      }
-    });
+        // Fill real values
+        data.byService.forEach(row => {
+            const mapping = SERVICE_MAP[row.service];
+            if (!mapping) return;
 
-    // Now fill real values
-    data.byService.forEach(row => {
-      const id = serviceMap[row.service];
-      if (!id) return;
-      const el = document.getElementById(id);
-      if (el) {
-        el.textContent = row.total;
-        el.dataset.animated = 'true';
-      }
-    });
+            const statEl  = document.getElementById(mapping.statId);
+            const badgeEl = document.getElementById(mapping.badgeId);
+            if (statEl)  { statEl.textContent  = row.total; statEl.dataset.animated = 'true'; }
+            if (badgeEl) badgeEl.textContent = row.total;
+        });
 
-    // ── Pie Chart: by Service ────────────────────────────
-    const serviceCtx = document.getElementById('serviceChart');
-    if (serviceCtx) {
-      if (serviceChartInstance) serviceChartInstance.destroy();
-      serviceChartInstance = new Chart(serviceCtx, {
-        type: 'pie',
-        data: {
-          labels: data.byService.map(r => r.service),
-          datasets: [{
-            data:            data.byService.map(r => r.total),
-            backgroundColor: TEAL_PALETTE,
-            borderColor:     '#fff',
-            borderWidth:     2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } }
-          }
-        }
-      });
-    }
-
-    // ── Doughnut Chart: by Client Type ───────────────────
-    const clientCtx = document.getElementById('clientTypeChart');
-    if (clientCtx) {
-      if (clientTypeChartInstance) clientTypeChartInstance.destroy();
-      clientTypeChartInstance = new Chart(clientCtx, {
-        type: 'doughnut',
-        data: {
-          labels: data.byClientType.map(r => r.client_type || 'Unknown'),
-          datasets: [{
-            data:            data.byClientType.map(r => r.total),
-            backgroundColor: TEAL_PALETTE,
-            borderColor:     '#fff',
-            borderWidth:     2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } }
-          }
-        }
-      });
-    }
-
-    // ── Bar Chart: Top Affiliations ──────────────────────
-    const affCtx = document.getElementById('affiliationChart');
-    if (affCtx) {
-      if (affiliationChartInstance) affiliationChartInstance.destroy();
-      affiliationChartInstance = new Chart(affCtx, {
-        type: 'bar',
-        data: {
-          labels: data.byAffiliation.map(r => r.affiliation || 'Unknown'),
-          datasets: [{
-            label:           'Total Requests',
-            data:            data.byAffiliation.map(r => r.total),
-            backgroundColor: '#008080',
-            borderRadius:    6,
-            borderSkipped:   false
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { stepSize: 1 },
-              grid: { color: 'rgba(0,0,0,0.05)' }
-            },
-            x: {
-              grid: { display: false },
-              ticks: {
-                // Truncate long affiliation names on the axis
-                callback: function(val) {
-                  const label = this.getLabelForValue(val);
-                  return label.length > 20 ? label.substring(0, 18) + '…' : label;
+        // ── Pie Chart: by Service ────────────────────────────────────
+        const serviceCtx = document.getElementById('serviceChart');
+        if (serviceCtx) {
+            if (serviceChartInstance) serviceChartInstance.destroy();
+            serviceChartInstance = new Chart(serviceCtx, {
+                type: 'pie',
+                data: {
+                    labels:   data.byService.map(r => r.service),
+                    datasets: [{ data: data.byService.map(r => r.total), backgroundColor: TEAL_PALETTE, borderColor: '#fff', borderWidth: 2 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } } }
                 }
-              }
-            }
-          }
+            });
         }
-      });
-    }
 
-    // ── Line Chart: Requests Over Time ───────────────────
-    const timeCtx = document.getElementById('timelineChart');
-    if (timeCtx && data.byMonth) {
-
-      // Build a sorted unique list of months
-      const months   = [...new Set(data.byMonth.map(r => r.month))].sort();
-      const services = [...new Set(data.byMonth.map(r => r.service))];
-
-      const serviceColors = {
-        'Map Request':       '#008080',
-        'Training Request':  '#0e9c9c',
-        'Manuscript Review': '#20c997',
-        'Data Request':      '#034955'
-      };
-
-      const datasets = services.map(service => ({
-        label:       service,
-        data:        months.map(month => {
-          const found = data.byMonth.find(r => r.month === month && r.service === service);
-          return found ? parseInt(found.total) : 0;
-        }),
-        borderColor:     serviceColors[service] || '#008080',
-        backgroundColor: (serviceColors[service] || '#008080') + '22',
-        fill:            true,
-        tension:         0.4,
-        pointRadius:     4,
-        pointHoverRadius: 6
-      }));
-
-      if (timelineChartInstance) timelineChartInstance.destroy();
-      timelineChartInstance = new Chart(timeCtx, {
-        type: 'line',
-        data: { labels: months, datasets },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { stepSize: 1 },
-              grid: { color: 'rgba(0,0,0,0.05)' }
-            },
-            x: {
-              grid: { display: false }
-            }
-          }
+        // ── Doughnut Chart: by Client Type ───────────────────────────
+        const clientCtx = document.getElementById('clientTypeChart');
+        if (clientCtx) {
+            if (clientTypeChartInstance) clientTypeChartInstance.destroy();
+            clientTypeChartInstance = new Chart(clientCtx, {
+                type: 'doughnut',
+                data: {
+                    labels:   data.byClientType.map(r => r.client_type || 'Unknown'),
+                    datasets: [{ data: data.byClientType.map(r => r.total), backgroundColor: TEAL_PALETTE, borderColor: '#fff', borderWidth: 2 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } } }
+                }
+            });
         }
-      });
-    }
 
-  } catch (err) {
-    console.error('Failed to load statistics:', err);
-  }
+        // ── Bar Chart: Top Affiliations ──────────────────────────────
+        const affCtx = document.getElementById('affiliationChart');
+        if (affCtx) {
+            if (affiliationChartInstance) affiliationChartInstance.destroy();
+            affiliationChartInstance = new Chart(affCtx, {
+                type: 'bar',
+                data: {
+                    labels:   data.byAffiliation.map(r => r.affiliation || 'Unknown'),
+                    datasets: [{ label: 'Total Requests', data: data.byAffiliation.map(r => r.total), backgroundColor: '#008080', borderRadius: 6, borderSkipped: false }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.04)' } },
+                        x: {
+                            grid: { display: false },
+                            ticks: { callback: function(val) {
+                                const label = this.getLabelForValue(val);
+                                return label.length > 20 ? label.substring(0,18) + '…' : label;
+                            }}
+                        }
+                    }
+                }
+            });
+        }
+
+        // ── Line Chart: Requests Over Time ───────────────────────────
+        const timeCtx = document.getElementById('timelineChart');
+        if (timeCtx && data.byMonth) {
+            const months   = [...new Set(data.byMonth.map(r => r.month))].sort();
+            const services = [...new Set(data.byMonth.map(r => r.service))];
+
+            const serviceColors = {
+                'Map Request':       '#008080',
+                'Training Request':  '#0e9c9c',
+                'Manuscript Review': '#20c997',
+                'Data Request':      '#034955'
+            };
+
+            const datasets = services.map(service => ({
+                label:            service,
+                data:             months.map(month => {
+                    const found = data.byMonth.find(r => r.month === month && r.service === service);
+                    return found ? parseInt(found.total) : 0;
+                }),
+                borderColor:      serviceColors[service] || '#008080',
+                backgroundColor:  (serviceColors[service] || '#008080') + '22',
+                fill:             true,
+                tension:          0.4,
+                pointRadius:      4,
+                pointHoverRadius: 6
+            }));
+
+            if (timelineChartInstance) timelineChartInstance.destroy();
+            timelineChartInstance = new Chart(timeCtx, {
+                type: 'line',
+                data: { labels: months, datasets },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { padding: 14, font: { size: 11 } } } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.04)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+    } catch (err) {
+        console.error('Failed to load statistics:', err);
+    }
 }
 
-
+// ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', () => {
-  loadStatistics();
+    refreshActivity();
+    loadStatistics();
+    console.log('Dashboard initialized');
 });
+
+// ==================== PERFORMANCE ====================
+if ('performance' in window) {
+    window.addEventListener('load', () => {
+        const perf = performance.getEntriesByType('navigation')[0];
+        console.log('Page load time:', Math.round(perf.loadEventEnd - perf.fetchStart), 'ms');
+    });
+}
